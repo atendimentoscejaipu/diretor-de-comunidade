@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Diretor de Comunidade</title>
+<title>Diretor de Comunidade - CEJA Dr. Gerardo Camelo Madeira</title>
 <style>
 :root{
   --bg:#f4f7f4; --card:#ffffff; --ink:#1f2937; --muted:#6b7280;
@@ -19,7 +19,7 @@ body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;backgro
 a{color:var(--green);text-decoration:none;}
 .top{background:var(--green);color:#fff;padding:10px 16px calc(10px + env(safe-area-inset-top,0px)) 16px;border-bottom:4px solid var(--gold);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
 .top .brand{display:flex;align-items:center;gap:10px;}
-.top .brand img{height:44px;width:44px;border-radius:50%;background:#fff;object-fit:contain;flex-shrink:0;}
+.top .brand img{height:48px;width:48px;border-radius:50%;background:#fff;object-fit:cover;flex-shrink:0;border:2px solid var(--gold);}
 .top .gov{font-size:.72rem;font-weight:700;color:var(--gold);letter-spacing:.5px;display:flex;align-items:center;gap:6px;}
 .badge-seduc{background:rgba(255,255,255,.18);border-radius:6px;padding:1px 6px;font-size:.65rem;}
 .top .school{font-weight:700;font-size:.95rem;}
@@ -75,7 +75,7 @@ input.cell{padding:4px 6px;font-size:.78rem;}
 .wrap-login{max-width:420px;margin:40px auto;padding:0 16px;}
 .login-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:0 6px 24px rgba(0,0,0,.06);}
 .login-head{text-align:center;margin-bottom:16px;}
-.login-logo{display:block;margin:0 auto 8px;height:74px;width:74px;border-radius:50%;}
+.login-logo{display:block;margin:0 auto 8px;height:84px;width:84px;border-radius:50%;object-fit:cover;border:3px solid var(--green);}
 .login-head .gov{color:var(--green);font-weight:700;font-size:.78rem;text-transform:uppercase;}
 .login-head h2{margin:2px 0 0;color:var(--navy);font-size:1.05rem;}
 .login-head p{color:var(--muted);font-size:.78rem;margin:2px 0 0;}
@@ -90,11 +90,16 @@ input.cell{padding:4px 6px;font-size:.78rem;}
 </head>
 <body>
 
+<!-- LOGO DO CEJA EMBUTIDO EM BASE64 -->
+<script>
+window.CEJA_LOGO_DATA_URI = "data:image/webp;base64,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";
+</script>
+
 <div id="loginView">
 <div class="wrap-login">
   <div class="login-card">
     <div class="login-head">
-      <img class="login-logo" src="assets/ceja-logo.webp" alt="Logo CEJA">
+      <img class="login-logo" id="imgLoginLogo" alt="Logo CEJA">
       <div class="gov">Governo do Estado do Ceará · SEDUC</div>
       <h2>CEJA Dr. Gerardo Camelo Madeira</h2>
       <p>Ipu · CE — Diretor de Comunidade</p>
@@ -153,7 +158,7 @@ input.cell{padding:4px 6px;font-size:.78rem;}
 <div id="appView" class="hidden">
   <div class="top">
     <div class="brand">
-      <img src="assets/ceja-logo.webp" alt="Logo CEJA">
+      <img id="imgTopLogo" alt="Logo CEJA">
       <div>
         <div class="gov">Governo do Estado do Ceará <span class="badge-seduc">SEDUC</span></div>
         <div class="school">CEJA Dr. Gerardo Camelo Madeira - IPU/CE</div>
@@ -187,11 +192,11 @@ input.cell{padding:4px 6px;font-size:.78rem;}
           <button class="btn red sm" onclick="printSection('printAlunos')">📄 Gerar PDF</button>
         </div>
         <div class="tabs">
-          <div class="tab active gold" data-subtab="atuais" onclick="setSubTab('atuais')">Matrículas Atuais</div>
-          <div class="tab" data-subtab="antigas" onclick="setSubTab('antigas')">Matrículas Antigas</div>
+          <div class="tab active gold" id="tabAtuais" data-subtab="atuais" onclick="setSubTab('atuais')">Matrículas Atuais</div>
+          <div class="tab" id="tabAntigas" data-subtab="antigas" onclick="setSubTab('antigas')">Matrículas Antigas</div>
         </div>
         <div class="grid c5" style="margin-bottom:6px;">
-          <div><label>Ano Letivo (digite o ano e clique em Salvar Alterações)</label><input type="text" id="anoLetivoInput" maxlength="4" placeholder="Ex: 2027"></div>
+          <div><label>Ano Letivo (digite e salve)</label><input type="text" id="anoLetivoInput" maxlength="4" placeholder="Ex: 2027"></div>
           <div><label>Professor</label><select id="filtroProfessor"></select></div>
         </div>
         <div class="tabs" id="anosPills" style="margin-bottom:10px;"></div>
@@ -267,14 +272,14 @@ input.cell{padding:4px 6px;font-size:.78rem;}
         <h1 class="pg" id="profWelcome"></h1>
         <p class="sub-pg">Acompanhe e registre o retorno de seus alunos evadidos.</p>
         <div class="tabs">
-          <div class="tab active" data-ptab="turma" onclick="setProfTab('turma')">📋 Minha Turma (Monitoramento)</div>
-          <div class="tab" data-ptab="remat" onclick="setProfTab('remat')">📝 Minhas Rematrículas Mensais</div>
+          <div class="tab active" id="ptabTurmaBtn" onclick="setProfTab('turma')">📋 Minha Turma (Monitoramento)</div>
+          <div class="tab" id="ptabRematBtn" onclick="setProfTab('remat')">📝 Minhas Rematrículas Mensais</div>
         </div>
         <div id="ptab-turma">
           <div class="toolbar"><button class="btn sm" style="background:var(--navy)" onclick="saveAllStudents()">💾 Salvar Alterações</button></div>
           <div class="tabs">
-            <div class="tab gold" data-subtab2="antigas" onclick="setSubTab2('antigas')">Matrículas Antigas</div>
-            <div class="tab active" data-subtab2="atuais" onclick="setSubTab2('atuais')">Matrículas Atuais</div>
+            <div class="tab gold" id="tabAntigas2" onclick="setSubTab2('antigas')">Matrículas Antigas</div>
+            <div class="tab active" id="tabAtuais2" onclick="setSubTab2('atuais')">Matrículas Atuais</div>
           </div>
           <div class="tablewrap"><table><thead class="blue"><tr>
             <th>MAT</th><th>ALUNO(A)</th><th>CONTATO</th><th>ÚLT. FREQ.</th><th>SITUAÇÃO</th><th>STATUS</th><th>REMATRÍCULA</th><th>PROFESSOR</th>
@@ -294,29 +299,34 @@ input.cell{padding:4px 6px;font-size:.78rem;}
 </div>
 
 <script type="module">
-// ======================= FIREBASE =======================
-// 1) Crie um projeto em https://console.firebase.google.com
-// 2) Ative o Firestore Database (modo produção ou teste)
-// 3) Em "Configurações do projeto > Geral > Seus apps", crie um app da Web
-//    e copie o objeto de configuração para o lugar do exemplo abaixo.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getFirestore, collection, doc, getDoc, getDocs, setDoc, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyB8Uf77lKEjPHNqiHP7tbJjLg6sgJHz43Y",
-  authDomain: "diretor-de-comunidade.firebaseapp.com",
-  projectId: "diretor-de-comunidade",
-  storageBucket: "diretor-de-comunidade.firebasestorage.app",
-  messagingSenderId: "618211503376",
-  appId: "1:618211503376:web:672da6a25ec0820083c995"
-};
-const firebaseApp = initializeApp(firebaseConfig);
-const firestoreDb = getFirestore(firebaseApp);
+// Carregar Imagem Oficial do Logo do CEJA
+document.getElementById('imgLoginLogo').src = window.CEJA_LOGO_DATA_URI;
+document.getElementById('imgTopLogo').src = window.CEJA_LOGO_DATA_URI;
 
-// Shim que reproduz a API encadeada (dbNS.collection()/doc()...) usada
-// no restante do código, mas conversando com o Firestore real.
+const firebaseConfig = {
+  apiKey: "SUA_API_KEY",
+  authDomain: "SEU_PROJETO.firebaseapp.com",
+  projectId: "SEU_PROJETO",
+  storageBucket: "SEU_PROJETO.appspot.com",
+  messagingSenderId: "SEU_SENDER_ID",
+  appId: "SEU_APP_ID"
+};
+
+let PROFESSORES = ["Aldânia Maria de Melo Lima Soares","Aline Dantas Moreira","Ana Gardênia Ximenes Dias","Ana Jéssica Martins Matos","Antonia Carla Victor de Paiva","Antonio Helio Pereira de Farias","Carliana Lima Almeida","Carlos Ely Costa Dias","Francisco de Assis Martins Passos","Francisco José Bezerra Felizola","Glaucia Paiva Timbó","Gonçalinha Rodrigues Martins","Itala Futado Dias","José Airton Ferreira de Mesquita","Marcília Felipe da Costa","Maria Siloneida de Farias","Maria Sueli Bernardo de Lima","Maria Suely Rodrigues Araujo","Pedro Furtuna da Silva","Reinaldo Inacio Barbalho","Sabrina Farias Camelo","Samuel Martins de Sousa","Silvia Helena Peres Dias","Tatiana Maria de Aragão Paiva"];
+const SEC_PASS_KEY_DEFAULT = "Secretaria23231939";
+let dbNS=null, session=null, students=[], rematriculas=[], remCounts={}, resetTarget='sec';
+let anosCriados=['2026'], currentAno='2026';
+let currentSubTab = 'atuais';
+let currentSubTab2 = 'atuais';
+let currentProfTab = 'turma';
+
+function normName(n){ return (n||'').trim().toLowerCase(); }
+
 function makeDbNS(db){
   return {
     collection(name){
@@ -335,17 +345,15 @@ function makeDbNS(db){
     }
   };
 }
-// ==========================================================
-
-let PROFESSORES = ["Aldânia Maria de Melo Lima Soares","Aline Dantas Moreira","Ana Gardênia Ximenes Dias","Ana Jéssica Martins Matos","Antonia Carla Victor de Paiva","Antonio Helio Pereira de Farias","Carliana Lima Almeida","Carlos Ely Costa Dias","Francisco de Assis Martins Passos","Francisco José Bezerra Felizola","Glaucia Paiva Timbó","Gonçalinha Rodrigues Martins","Itala Futado Dias","José Airton Ferreira de Mesquita","Marcília Felipe da Costa","Maria Siloneida de Farias","Maria Sueli Bernardo de Lima","Maria Suely Rodrigues Araujo","Pedro Furtuna da Silva","Reinaldo Inacio Barbalho","Sabrina Farias Camelo","Samuel Martins de Sousa","Silvia Helena Peres Dias","Tatiana Maria de Aragão Paiva"];
-const SEC_PASS_KEY_DEFAULT = "Secretaria23231939";
-let dbNS=null, session=null, students=[], rematriculas=[], remCounts={}, resetTarget='sec';
-let anosCriados=['2026'], currentAno='2026';
-
-function normName(n){ return (n||'').trim().toLowerCase(); }
 
 async function boot(){
-  try{ dbNS = makeDbNS(firestoreDb); }catch(e){ dbNS=null; }
+  try{ 
+    if(firebaseConfig.apiKey !== "SUA_API_KEY"){
+      const firebaseApp = initializeApp(firebaseConfig);
+      const firestoreDb = getFirestore(firebaseApp);
+      dbNS = makeDbNS(firestoreDb); 
+    }
+  }catch(e){ dbNS=null; }
   loadProfessorsLocal(); loadAnosLocal();
   if(dbNS){
     try{
@@ -374,6 +382,7 @@ async function boot(){
   prefillFromLink();
   tryAutoLogin();
 }
+
 function loadAnosLocal(){ const l=localStorage.getItem('dc_anos'); if(l){ const arr=JSON.parse(l); if(arr && arr.length) anosCriados=arr; } }
 async function persistAnos(){
   if(dbNS){ try{ await dbNS.doc('meta/anos').set({list:anosCriados}); }catch(e){} }
@@ -388,6 +397,8 @@ function persistProfessorsLocal(){ localStorage.setItem('dc_professors', JSON.st
 async function saveProfessors(){
   if(dbNS){ try{ await dbNS.doc('meta/professors').set({list:PROFESSORES}); }catch(e){} }
   else { persistProfessorsLocal(); }
+  buildProfessorFilter();
+  renderAll();
 }
 
 function seedData(){
@@ -404,15 +415,10 @@ function seedData(){
 }
 async function seedStudents(){ const data=seedData(); if(dbNS){ for(const s of data){ try{ await dbNS.doc('students/'+s.id).set(s); }catch(e){} } } students=data; }
 function persistLocal(){ if(!dbNS) localStorage.setItem('dc_students', JSON.stringify(students)); }
-async function saveStudent(s){
-  if(dbNS){ try{ await dbNS.doc('students/'+s.id).set(s); }catch(e){} }
-  else { const i=students.findIndex(x=>x.id===s.id); if(i>-1) students[i]=s; persistLocal(); }
-}
 
 function toBR(iso){ if(!iso) return ''; const p=iso.split('-'); return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : iso; }
 function toISO(br){ if(!br) return ''; const m=br.match(/^(\d{2})\/(\d{2})\/(\d{4})$/); if(!m) return ''; return m[3]+'-'+m[2]+'-'+m[1]; }
-function onDateInput(el){ el.value = el.value.replace(/[^\d]/g,'').replace(/^(\d{2})(\d{0,2})(\d{0,4})$/,(x,a,b,c)=> a+(b?'/'+b:'')+(c?'/'+c:'')); }
-function diasDesde(dateStr){ const d=new Date(dateStr); return Math.floor((new Date()-d)/86400000); }
+function diasDesde(dateStr){ if(!dateStr) return 999; const d=new Date(dateStr); return Math.floor((new Date()-d)/86400000); }
 function situacaoStatus(dateStr){ const dias=diasDesde(dateStr); if(dias<=30) return {situacao:'Ativo',cls:'g'}; if(dias<=59) return {situacao:'Pré-evadido',cls:'y'}; return {situacao:'Evadido',cls:'r'}; }
 
 function renderAnosPills(){
@@ -424,13 +430,17 @@ function renderAnosPills(){
     wrap.appendChild(d);
   });
 }
+
 function buildProfessorFilter(){
   const sel=document.getElementById('filtroProfessor'); if(!sel) return; sel.innerHTML='<option value="">Todos os Professores</option>';
-  PROFESSORES.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p;sel.appendChild(o);});
+  const sel2=document.getElementById('secSelUser'); if(sel2) sel2.innerHTML='<option value="">Selecione um perfil...</option><option value="Secretária">Secretária</option>';
+  PROFESSORES.forEach(p=>{
+    const o=document.createElement('option');o.value=p;o.textContent=p;sel.appendChild(o);
+    if(sel2){ const o2=document.createElement('option');o2.value=p;o2.textContent=p;sel2.appendChild(o2); }
+  });
   sel.onchange=renderTable;
 }
 
-// ---------- clock ----------
 function tickClock(){
   const now=new Date();
   const t=now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
@@ -438,13 +448,13 @@ function tickClock(){
   const el=document.getElementById('clockBox'); if(el) el.textContent='🕐 '+t+' - '+d;
 }
 
-// ---------- login tabs ----------
 function setLoginTab(t){
   document.getElementById('pillSec').classList.toggle('active',t==='sec');
   document.getElementById('pillProf').classList.toggle('active',t==='prof');
   document.getElementById('secForm').classList.toggle('hidden',t!=='sec');
   document.getElementById('profForm').classList.toggle('hidden',t!=='prof');
 }
+
 function openReset(which){
   resetTarget=which;
   document.getElementById('loginFormArea').classList.add('hidden');
@@ -453,7 +463,9 @@ function openReset(which){
   document.getElementById('resetNameWrap').classList.toggle('hidden', which==='sec');
   document.getElementById('resetProfName').value=''; document.getElementById('resetPass1').value=''; document.getElementById('resetPass2').value=''; document.getElementById('resetErr').textContent='';
 }
+
 function closeReset(){ document.getElementById('loginFormArea').classList.remove('hidden'); document.getElementById('resetArea').classList.add('hidden'); }
+
 function doReset(){
   const p1=document.getElementById('resetPass1').value, p2=document.getElementById('resetPass2').value;
   const err=document.getElementById('resetErr');
@@ -469,7 +481,6 @@ function doReset(){
   alert('Senha redefinida com sucesso. Você já pode entrar com a nova senha.');
 }
 
-// ---------- login ----------
 function loginSecretaria(){
   const pass=document.getElementById('secPass').value;
   const currentPass = localStorage.getItem('sec_pass_current') || SEC_PASS_KEY_DEFAULT;
@@ -486,6 +497,7 @@ function loginSecretaria(){
   if(document.getElementById('secKeep').checked) localStorage.setItem('dc_session', JSON.stringify(session));
   enterApp();
 }
+
 function loginProfessor(){
   const name=document.getElementById('profNameInput').value.trim();
   const pass=document.getElementById('profPass').value;
@@ -508,6 +520,7 @@ function loginProfessor(){
   if(document.getElementById('profKeep').checked) localStorage.setItem('dc_session', JSON.stringify(session));
   enterApp();
 }
+
 function tryAutoLogin(){ const s=localStorage.getItem('dc_session'); if(s){ session=JSON.parse(s); enterApp(); } }
 function doLogout(){ localStorage.removeItem('dc_session'); session=null; location.reload(); }
 
@@ -519,228 +532,319 @@ function enterApp(){
   document.getElementById('sidebarSec').classList.toggle('hidden',!isSec);
   ['mod-alunos','mod-profs','mod-remat','mod-farol','mod-senha'].forEach(id=>document.getElementById(id).classList.toggle('hidden',!isSec));
   document.getElementById('mod-prof-view').classList.toggle('hidden',isSec);
-  if(isSec){ setModule('alunos'); } else { document.getElementById('profWelcome').textContent='Bem-vindo(a), Prof. '+session.name; setProfTab('turma'); setSubTab2('atuais'); }
+  
+  if(isSec){ 
+    setModule('alunos'); 
+  } else { 
+    document.getElementById('profWelcome').textContent = 'Bem-vindo(a), ' + session.name;
+    setProfTab('turma');
+    setSubTab2('atuais');
+  }
   renderAll();
 }
 
-// ---------- module & tab switching ----------
-let currentMod='alunos', currentSubtab='atuais', currentSubtab2='atuais', currentPtab='turma';
-function setModule(m){
-  currentMod=m;
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.mod===m));
-  ['alunos','profs','remat','farol','senha'].forEach(id=>document.getElementById('mod-'+id).classList.toggle('hidden',id!==m));
+function setModule(mod){
+  ['alunos','profs','remat','farol','senha'].forEach(m=>{
+    const el = document.getElementById('mod-'+m);
+    if(el) el.classList.toggle('hidden', m!==mod);
+  });
+  document.querySelectorAll('.sidebar .nav-item').forEach(item=>{
+    item.classList.toggle('active', item.dataset.mod===mod);
+  });
   renderAll();
 }
-function setSubTab(t){ currentSubtab=t; document.querySelectorAll('[data-subtab]').forEach(x=>x.classList.toggle('active',x.dataset.subtab===t)); renderTable(); }
-function setSubTab2(t){ currentSubtab2=t; document.querySelectorAll('[data-subtab2]').forEach(x=>x.classList.toggle('active',x.dataset.subtab2===t)); renderProfTable(); }
-function setProfTab(t){ currentPtab=t; document.querySelectorAll('[data-ptab]').forEach(x=>x.classList.toggle('active',x.dataset.ptab===t));
-  document.getElementById('ptab-turma').classList.toggle('hidden',t!=='turma'); document.getElementById('ptab-remat').classList.toggle('hidden',t!=='remat'); renderAll(); }
 
-// ---------- render ----------
+function setSubTab(tab){
+  currentSubTab = tab;
+  document.getElementById('tabAtuais').classList.toggle('active', tab==='atuais');
+  document.getElementById('tabAntigas').classList.toggle('active', tab==='antigas');
+  renderTable();
+}
+
+function setProfTab(tab){
+  currentProfTab = tab;
+  document.getElementById('ptabTurmaBtn').classList.toggle('active', tab==='turma');
+  document.getElementById('ptabRematBtn').classList.toggle('active', tab==='remat');
+  document.getElementById('ptab-turma').classList.toggle('hidden', tab!=='turma');
+  document.getElementById('ptab-remat').classList.toggle('hidden', tab!=='remat');
+  renderProfView();
+}
+
+function setSubTab2(tab){
+  currentSubTab2 = tab;
+  document.getElementById('tabAtuais2').classList.toggle('active', tab==='atuais');
+  document.getElementById('tabAntigas2').classList.toggle('active', tab==='antigas');
+  renderProfView();
+}
+
 function renderAll(){
-  if(!session) return;
-  if(session.role==='secretaria'){
-    renderTable(); renderProfessorsList(); renderRematTable(); renderFarol();
-  } else { renderProfTable(); renderProfRemat(); }
-}
-function renderTable(){
-  const body=document.getElementById('studentsBody'); if(!body) return; body.innerHTML='';
-  const prof=document.getElementById('filtroProfessor')?document.getElementById('filtroProfessor').value:'';
-  let list=students.filter(s=> (s.ano||'2026')===currentAno && (!prof || s.professor===prof));
-  if(currentSubtab==='antigas') list=[]; // histórico simplificado — sem registros antigos no protótipo
-  list.forEach(s=>body.appendChild(renderRow(s,true)));
-  const trPlus=document.createElement('tr');
-  trPlus.innerHTML='<td colspan="8" style="text-align:center"><button class="btn sm" onclick="addStudent()">+ Adicionar Linha</button></td>';
-  body.appendChild(trPlus);
   renderAnosPills();
-}
-function renderProfTable(){
-  const body=document.getElementById('profStudentsBody'); if(!body) return; body.innerHTML='';
-  let list = students.filter(s=>s.professor===session.name);
-  if(currentSubtab2==='antigas') list=[];
-  list.forEach(s=>body.appendChild(renderRow(s,false)));
-}
-function renderRow(s,canEditAll){
-  const st=situacaoStatus(s.ultimaFreq);
-  const tr=document.createElement('tr');
-  tr.innerHTML=`
-    <td>${s.mat}</td><td>${s.aluno}</td>
-    <td><input class="cell" value="${s.contato||''}" onchange="upd('${s.id}','contato',this.value)"></td>
-    <td><input class="cell" type="text" placeholder="dd/mm/aaaa" maxlength="10" value="${toBR(s.ultimaFreq)}" oninput="onDateInput(this)" onchange="updDate('${s.id}','ultimaFreq',this.value)"></td>
-    <td>${st.situacao}</td><td><span class="dot ${st.cls}"></span></td>
-    <td>${canEditAll?`<input class="cell" style="width:55px" type="number" value="${s.rematricula}" onchange="upd('${s.id}','rematricula',this.value)">`:s.rematricula}</td>
-    <td>${canEditAll?`<select onchange="upd('${s.id}','professor',this.value)">${PROFESSORES.map(p=>`<option ${p===s.professor?'selected':''}>${p}</option>`).join('')}</select>`:s.professor}</td>`;
-  return tr;
-}
-function upd(id,field,val){ const s=students.find(x=>x.id===id); if(!s) return; if(field==='rematricula') val=parseInt(val)||0; s[field]=val; }
-function updDate(id,field,brVal){ const iso=toISO(brVal); if(!iso){ alert('Data inválida. Use o formato dd/mm/aaaa.'); return; } upd(id,field,iso); }
-async function saveAllStudents(){ for(const s of students){ await saveStudent(s); } renderAll(); }
-async function saveEstudantesModule(){
-  const typed=document.getElementById('anoLetivoInput').value.trim();
-  if(/^\d{4}$/.test(typed) && !anosCriados.includes(typed)){ anosCriados.push(typed); await persistAnos(); currentAno=typed; currentSubtab='atuais'; }
-  document.getElementById('anoLetivoInput').value='';
-  await saveAllStudents();
-  alert('Alterações salvas com sucesso.');
-}
-function addStudent(){
-  const id='s'+Date.now();
-  const s={id,mat:String(Math.floor(Math.random()*9000)+1000),aluno:'NOVO ALUNO',contato:'',ultimaFreq:new Date().toISOString().slice(0,10),rematricula:0,professor:PROFESSORES[0],ano:currentAno};
-  students.push(s); saveStudent(s); renderTable();
+  renderTable();
+  renderProfs();
+  renderRemat();
+  renderFarol();
+  if(session && session.role==='professor') renderProfView();
 }
 
-// ---------- professores (ambientes) ----------
-function renderProfessorsList(){
-  const wrap=document.getElementById('profList'); if(!wrap) return; wrap.innerHTML='';
-  document.getElementById('profCount').textContent=PROFESSORES.length;
-  PROFESSORES.forEach(p=>{
-    const count=students.filter(s=>s.professor===p).length;
-    const email=localStorage.getItem('prof_email_'+p)||'Pendente cadastro';
-    const div=document.createElement('div'); div.className='prof-card';
-    div.innerHTML=`<div style="display:flex;justify-content:space-between"><b>${p}</b><span class="badge g">${count} Alunos</span></div>
-      <div class="muted">E-mail: ${email}</div>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button class="btn sm dark" onclick="copyProfLink('${p.replace(/'/g,"\\'")}')">🔗 Copiar Link</button>
-        <button class="btn sm" onclick="openProfLink('${p.replace(/'/g,"\\'")}')">📋 Lista de Alunos</button>
-        <button class="btn sm red" onclick="removeProfessor('${p.replace(/'/g,"\\'")}')">🗑 Remover</button>
-      </div>`;
-    wrap.appendChild(div);
+function filterStudentsList(list, subtabFilter, yearFilter, profFilter){
+  return list.filter(s=>{
+    if(s.ano && s.ano !== yearFilter) return false;
+    if(profFilter && s.professor !== profFilter) return false;
+    const st = situacaoStatus(s.ultimaFreq);
+    if(subtabFilter==='atuais') return st.situacao !== 'Evadido';
+    return st.situacao === 'Evadido';
   });
 }
-function addProfessor(){
-  const inp=document.getElementById('newProfName'); const name=inp.value.trim();
-  if(!name) return;
-  if(PROFESSORES.some(p=>normName(p)===normName(name))){ alert('Professor já cadastrado.'); return; }
-  PROFESSORES.push(name); saveProfessors(); inp.value=''; renderAll(); buildProfessorFilter();
-}
-function removeProfessor(name){
-  if(!confirm('Remover '+name+'? Os alunos vinculados permanecerão no sistema, mas o acesso deste professor será desativado.')) return;
-  PROFESSORES=PROFESSORES.filter(p=>p!==name);
-  localStorage.removeItem('prof_pass_'+name); localStorage.removeItem('prof_email_'+name);
-  saveProfessors(); renderAll(); buildProfessorFilter();
-}
-function copyProfLink(name){
-  const url=location.href.split('?')[0]+'?prof='+encodeURIComponent(name);
-  navigator.clipboard && navigator.clipboard.writeText(url).then(()=>alert('Link copiado:\n'+url)).catch(()=>alert(url));
-}
-function openProfLink(name){
-  const url=location.href.split('?')[0]+'?prof='+encodeURIComponent(name);
-  window.open(url,'_blank');
+
+function buildStudentRowHTML(s, isReadOnlyProf=false){
+  const st = situacaoStatus(s.ultimaFreq);
+  let optionsProf = PROFESSORES.map(p=>`<option value="${p}" ${s.professor===p?'selected':''}>${p}</option>`).join('');
+  return `<tr data-id="${s.id}">
+    <td>${s.mat||''}</td>
+    <td><input class="cell" value="${s.aluno||''}" data-field="aluno"></td>
+    <td><input class="cell" value="${s.contato||''}" data-field="contato"></td>
+    <td><input class="cell" type="date" value="${s.ultimaFreq||''}" data-field="ultimaFreq"></td>
+    <td>${st.situacao}</td>
+    <td><span class="badge ${st.cls}">${st.situacao}</span></td>
+    <td><input class="cell" type="number" value="${s.rematricula||0}" data-field="rematricula" style="width:60px"></td>
+    <td><select class="cell" data-field="professor"><option value="">Selecione...</option>${optionsProf}</select></td>
+  </tr>`;
 }
 
-// ---------- rematricula mensal ----------
-function renderRematTable(){
-  const body=document.getElementById('rematBody'); if(!body) return; body.innerHTML='';
+function renderTable(){
+  const body = document.getElementById('studentsBody'); if(!body) return;
+  const filterP = document.getElementById('filtroProfessor')?.value || '';
+  const list = filterStudentsList(students, currentSubTab, currentAno, filterP);
+  body.innerHTML = list.map(s => buildStudentRowHTML(s)).join('');
+}
+
+function renderProfs(){
+  const list = document.getElementById('profList'); if(!list) return;
+  document.getElementById('profCount').textContent = PROFESSORES.length;
+  list.innerHTML = PROFESSORES.map(p => {
+    const link = window.location.origin + window.location.pathname + '?prof=' + encodeURIComponent(p);
+    return `<div class="prof-card">
+      <b>${p}</b>
+      <div class="muted" style="margin-top:4px;word-break:break-all">${link}</div>
+      <div style="margin-top:8px;display:flex;gap:6px">
+        <button class="btn sm" onclick="copyProfLink('${p}')">📋 Copiar Link</button>
+        <button class="btn red sm" onclick="deleteProfessor('${p}')">🗑 Excluir</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderRemat(){
+  const body = document.getElementById('rematBody'); if(!body) return;
+  body.innerHTML = rematriculas.map(r=>`<tr>
+    <td>${r.aluno||''}</td>
+    <td>${r.mat||''}</td>
+    <td>${toBR(r.ultFreq)}</td>
+    <td>${toBR(r.retorno)}</td>
+    <td>${r.mes||''}</td>
+    <td>${r.prof||''}</td>
+  </tr>`).join('');
   document.getElementById('rematEmpty').classList.toggle('hidden', rematriculas.length>0);
-  rematriculas.forEach(r=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${r.aluno}</td><td>${r.matricula}</td><td>${toBR(r.ultimaFreq)}</td><td>${toBR(r.retorno)}</td><td>${r.mes||''}</td><td>${r.professor}</td>`;
-    body.appendChild(tr);
-  });
 }
-const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-function renderProfRemat(){
-  const body=document.getElementById('profRematBody'); if(!body) return; body.innerHTML='';
-  const mine=rematriculas.filter(r=>r.professor===session.name);
-  mine.forEach(r=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td><input class="cell" value="${r.aluno}" onchange="updRemat('${r.id}','aluno',this.value)"></td>
-      <td><input class="cell" value="${r.matricula}" onchange="updRemat('${r.id}','matricula',this.value)"></td>
-      <td><input class="cell" type="text" placeholder="dd/mm/aaaa" maxlength="10" value="${toBR(r.ultimaFreq)}" oninput="onDateInput(this)" onchange="updRematDate('${r.id}','ultimaFreq',this.value)"></td>
-      <td><input class="cell" type="text" placeholder="dd/mm/aaaa" maxlength="10" value="${toBR(r.retorno)}" oninput="onDateInput(this)" onchange="updRematDate('${r.id}','retorno',this.value)"></td>
-      <td><select onchange="updRemat('${r.id}','mes',this.value)"><option value="">Selecione...</option>${MESES.map(m=>`<option ${m===r.mes?'selected':''}>${m}</option>`).join('')}</select></td>
-      <td>${r.professor}</td><td><span style="color:var(--red);cursor:pointer" onclick="removeRemat('${r.id}')">✖</span></td>`;
-    body.appendChild(tr);
-  });
+
+function renderFarol(){
+  const body = document.getElementById('rankBody'); if(!body) return;
+  const counts = {};
+  PROFESSORES.forEach(p=>counts[p]=0);
+  rematriculas.forEach(r=>{ if(counts[r.prof]!==undefined) counts[r.prof]++; });
+  
+  const sorted = PROFESSORES.map(p=>({name:p, count:counts[p]})).sort((a,b)=>b.count-a.count);
+  body.innerHTML = sorted.map(item=>{
+    let badge = '<span class="badge r">Vermelho</span>';
+    if(item.count > 4) badge = '<span class="badge g">Verde</span>';
+    else if(item.count > 0) badge = '<span class="badge y">Amarelo</span>';
+    return `<tr><td>${item.name}</td><td><b>${item.count}</b></td><td>${badge}</td></tr>`;
+  }).join('');
 }
-function addProfRematRow(){
-  const id='r'+Date.now();
-  rematriculas.push({id,aluno:'',matricula:'',ultimaFreq:new Date().toISOString().slice(0,10),retorno:new Date().toISOString().slice(0,10),mes:'',professor:session.name});
-  renderProfRemat();
+
+function renderProfView(){
+  if(!session || session.role!=='professor') return;
+  const myName = session.name;
+  const bodyTurma = document.getElementById('profStudentsBody');
+  if(bodyTurma){
+    const myStudents = filterStudentsList(students, currentSubTab2, currentAno, myName);
+    bodyTurma.innerHTML = myStudents.map(s=>buildStudentRowHTML(s)).join('');
+  }
+  const bodyRemat = document.getElementById('profRematBody');
+  if(bodyRemat){
+    const myRemat = rematriculas.filter(r=>r.prof===myName);
+    bodyRemat.innerHTML = myRemat.map((r,idx)=>`<tr>
+      <td><input class="cell" value="${r.aluno||''}" onchange="updateProfRemat(${idx},'aluno',this.value)"></td>
+      <td><input class="cell" value="${r.mat||''}" onchange="updateProfRemat(${idx},'mat',this.value)"></td>
+      <td><input class="cell" type="date" value="${r.ultFreq||''}" onchange="updateProfRemat(${idx},'ultFreq',this.value)"></td>
+      <td><input class="cell" type="date" value="${r.retorno||''}" onchange="updateProfRemat(${idx},'retorno',this.value)"></td>
+      <td><input class="cell" value="${r.mes||''}" onchange="updateProfRemat(${idx},'mes',this.value)"></td>
+      <td>${myName}</td>
+      <td><button class="btn red sm" onclick="deleteProfRematRow(${idx})">🗑</button></td>
+    </tr>`).join('');
+  }
 }
-function updRemat(id,field,val){ const r=rematriculas.find(x=>x.id===id); if(r){ r[field]=val; } }
-function updRematDate(id,field,brVal){ const iso=toISO(brVal); if(!iso){ alert('Data inválida. Use o formato dd/mm/aaaa.'); return; } updRemat(id,field,iso); }
-function recomputeRemCounts(){ remCounts={}; rematriculas.forEach(r=>{ remCounts[r.professor]=(remCounts[r.professor]||0)+1; }); }
-async function persistRemat(){
-  recomputeRemCounts();
-  if(dbNS){ try{ await dbNS.doc('meta/rematriculas').set({list:rematriculas, counts:remCounts}); }catch(e){} }
-  else { localStorage.setItem('dc_remat', JSON.stringify(rematriculas)); localStorage.setItem('dc_remcounts', JSON.stringify(remCounts)); }
+
+function addProfessor(){
+  const inp = document.getElementById('newProfName');
+  const name = inp.value.trim();
+  if(!name) return;
+  if(!PROFESSORES.includes(name)){
+    PROFESSORES.push(name);
+    saveProfessors();
+  }
+  inp.value = '';
+}
+
+function deleteProfessor(name){
+  if(confirm(`Deseja remover o professor "${name}"?`)){
+    PROFESSORES = PROFESSORES.filter(p=>p!==name);
+    saveProfessors();
+  }
+}
+
+function copyProfLink(p){
+  const link = window.location.origin + window.location.pathname + '?prof=' + encodeURIComponent(p);
+  navigator.clipboard.writeText(link).then(()=>alert('Link copiado!'));
+}
+
+async function saveEstudantesModule(){
+  const anoInp = document.getElementById('anoLetivoInput').value.trim();
+  if(anoInp && !anosCriados.includes(anoInp)){
+    anosCriados.push(anoInp);
+    currentAno = anoInp;
+    await persistAnos();
+  }
+  await saveAllStudents();
+  alert('Alterações salvas com sucesso!');
+}
+
+async function saveAllStudents(){
+  const rows = document.querySelectorAll('tr[data-id]');
+  for(let row of rows){
+    const id = row.dataset.id;
+    const st = students.find(s=>s.id===id);
+    if(st){
+      row.querySelectorAll('[data-field]').forEach(input=>{
+        st[input.dataset.field] = input.value;
+      });
+      if(dbNS){ await dbNS.doc('students/'+st.id).set(st); }
+    }
+  }
+  persistLocal();
   renderAll();
 }
-async function saveAllRemat(){ await persistRemat(); alert('Alterações salvas com sucesso.'); }
-function removeRemat(id){
-  rematriculas=rematriculas.filter(x=>x.id!==id);
-  persistRemat();
-}
-function exportCSVRemat(){
-  const rows=[['ESTUDANTE','MATRICULA','ULTIMA_FREQ','RETORNO','MES_REMATRICULA','PROFESSOR']];
-  rematriculas.forEach(r=>rows.push([r.aluno,r.matricula,toBR(r.ultimaFreq),toBR(r.retorno),r.mes||'',r.professor]));
-  downloadCSV(toCSV(rows),'rematricula_mensal.csv');
+
+function updateProfRemat(idx, field, val){
+  const myRemat = rematriculas.filter(r=>r.prof===session.name);
+  if(myRemat[idx]){
+    myRemat[idx][field] = val;
+  }
 }
 
-// ---------- farol ----------
-function renderFarol(){
-  const wrap=document.getElementById('rankBody'); if(!wrap) return; wrap.innerHTML='';
-  const totals={}; PROFESSORES.forEach(p=>totals[p]=remCounts[p]||0);
-  const arr=Object.entries(totals).sort((a,b)=>b[1]-a[1]);
-  arr.forEach(([name,count])=>{
-    const cls=count>=4?'g':(count>=1?'y':'r'); const label=count>=4?'Excelente':(count>=1?'Em Progresso':'Sem Rematrículas');
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${name}</td><td>${count}</td><td><span class="badge ${cls}">${label}</span></td>`;
-    wrap.appendChild(tr);
-  });
-}
-function exportFarolWord(){
-  const rows=document.getElementById('rankBody').innerHTML;
-  const html=`<html><head><meta charset="utf-8"></head><body><h2>Farol de Rematrícula</h2>
-  <table border="1" cellpadding="6" style="border-collapse:collapse;width:100%"><tr><th>Nome do Professor</th><th>Qtd. Rematrículas</th><th>Status Farol</th></tr>${rows}</table></body></html>`;
-  const blob=new Blob(['\ufeff',html],{type:'application/msword'});
-  triggerDownload(blob,'farol_de_rematricula.doc');
-}
-function printSection(id){
-  const el=document.getElementById(id);
-  const w=window.open('','_blank');
-  w.document.write('<html><head><meta charset="utf-8"><title>Impressão</title></head><body>'+el.outerHTML+'</body></html>');
-  w.document.close(); w.focus(); setTimeout(()=>{w.print();},300);
+function addProfRematRow(){
+  if(!session || session.role!=='professor') return;
+  rematriculas.push({aluno:'', mat:'', ultFreq:'', retorno:'', mes:'', prof:session.name});
+  renderProfView();
 }
 
-// ---------- recuperar senha (secretaria) ----------
-(function fillSecUserSelect(){})();
-function refreshSecUserSelect(){
-  const sel=document.getElementById('secSelUser'); if(!sel) return;
-  const cur=sel.value;
-  sel.innerHTML='<option value="">Selecione um perfil...</option><option value="Secretária">Secretária</option>';
-  PROFESSORES.forEach(p=>{const o=document.createElement('option');o.value=p;o.textContent=p;sel.appendChild(o);});
-  sel.value=cur;
+function deleteProfRematRow(idx){
+  const myRemat = rematriculas.filter(r=>r.prof===session.name);
+  const target = myRemat[idx];
+  if(target){
+    rematriculas = rematriculas.filter(r=>r!==target);
+    saveAllRemat();
+  }
 }
+
+async function saveAllRemat(){
+  if(dbNS){ try{ await dbNS.doc('meta/rematriculas').set({list:rematriculas, counts:remCounts}); }catch(e){} }
+  else { localStorage.setItem('dc_remat', JSON.stringify(rematriculas)); }
+  renderAll();
+  alert('Rematrículas salvas com sucesso!');
+}
+
 function adminChangePass(){
-  const user=document.getElementById('secSelUser').value;
-  const p1=document.getElementById('secNewPassAdmin').value, p2=document.getElementById('secNewPassAdmin2').value;
-  const err=document.getElementById('secAdminErr');
-  if(!user){ err.textContent='Selecione um usuário.'; return; }
-  if(!p1||p1!==p2){ err.textContent='As senhas não coincidem.'; return; }
-  if(user==='Secretária'){ localStorage.setItem('sec_pass_current',p1); localStorage.setItem('sec_first_done','1'); }
-  else { localStorage.setItem('prof_pass_'+user,p1); }
-  err.textContent=''; alert('Senha de '+user+' atualizada com sucesso.');
-  document.getElementById('secNewPassAdmin').value=''; document.getElementById('secNewPassAdmin2').value='';
+  const user = document.getElementById('secSelUser').value;
+  const p1 = document.getElementById('secNewPassAdmin').value;
+  const p2 = document.getElementById('secNewPassAdmin2').value;
+  const err = document.getElementById('secAdminErr');
+  if(!user || !p1 || p1!==p2){ err.textContent='Selecione um usuário e digite senhas coincidentes.'; return; }
+  if(user==='Secretária'){
+    localStorage.setItem('sec_pass_current', p1);
+  } else {
+    localStorage.setItem('prof_pass_'+user, p1);
+  }
+  err.textContent = '';
+  alert(`Senha de ${user} alterada com sucesso!`);
 }
 
-// ---------- export helpers ----------
-function toCSV(rows){ return rows.map(r=>r.map(c=>`"${String(c||'').replace(/"/g,'""')}"`).join(',')).join('\n'); }
 function exportCSV(){
-  const rows=[['MAT','ALUNO','CONTATO','ULTIMA_FREQ','SITUACAO','REMATRICULA','PROFESSOR']];
-  students.forEach(s=>rows.push([s.mat,s.aluno,s.contato,toBR(s.ultimaFreq),situacaoStatus(s.ultimaFreq).situacao,s.rematricula,s.professor]));
-  downloadCSV(toCSV(rows),'diretor_de_comunidade.csv');
-}
-async function downloadCSV(csv,filename){
-  triggerDownload(new Blob([csv],{type:'text/csv'}),filename);
-}
-function triggerDownload(blob,filename){
-  const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.click();
+  let csv = "MAT;ALUNO;CONTATO;ULTIMA_FREQ;SITUACAO;REMATRICULAS;PROFESSOR\n";
+  students.forEach(s=>{
+    const st = situacaoStatus(s.ultimaFreq);
+    csv += `"${s.mat||''}';'${s.aluno||''}';'${s.contato||''}';'${s.ultimaFreq||''}';'${st.situacao}';'${s.rematricula||0}';'${s.professor||''}"\n`;
+  });
+  downloadFile(csv, 'estudantes.csv', 'text/csv;charset=utf-8;');
 }
 
-const _origRenderAll=renderAll;
-renderAll=function(){ _origRenderAll(); refreshSecUserSelect(); };
+function exportCSVRemat(){
+  let csv = "ESTUDANTE;MATRICULA;ULT_FREQ;RETORNO;MES;PROFESSOR\n";
+  rematriculas.forEach(r=>{
+    csv += `"${r.aluno||''}';'${r.mat||''}';'${r.ultFreq||''}';'${r.retorno||''}';'${r.mes||''}';'${r.prof||''}"\n`;
+  });
+  downloadFile(csv, 'rematriculas.csv', 'text/csv;charset=utf-8;');
+}
 
+function exportFarolWord(){
+  const html = document.getElementById('printFarol').outerHTML;
+  downloadFile(html, 'farol.doc', 'application/msword');
+}
+
+function printSection(id){
+  const el = document.getElementById(id);
+  const win = window.open('','_blank');
+  win.document.write(`<html><head><title>Impressão</title><style>table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ccc;padding:6px;font-family:sans-serif;}</style></head><body>${el.outerHTML}</body></html>`);
+  win.document.close();
+  win.print();
+}
+
+function downloadFile(content, fileName, contentType){
+  const a = document.createElement('a');
+  const blob = new Blob([content], {type: contentType});
+  a.href = URL.createObjectURL(blob);
+  a.download = fileName;
+  a.click();
+}
+
+// Mapeamento global para manipuladores de evento do HTML
+window.setLoginTab = setLoginTab;
+window.openReset = openReset;
+window.closeReset = closeReset;
+window.doReset = doReset;
+window.loginSecretaria = loginSecretaria;
+window.loginProfessor = loginProfessor;
+window.doLogout = doLogout;
+window.setModule = setModule;
+window.setSubTab = setSubTab;
+window.setProfTab = setProfTab;
+window.setSubTab2 = setSubTab2;
+window.addProfessor = addProfessor;
+window.deleteProfessor = deleteProfessor;
+window.copyProfLink = copyProfLink;
+window.saveEstudantesModule = saveEstudantesModule;
+window.saveAllStudents = saveAllStudents;
+window.updateProfRemat = updateProfRemat;
+window.addProfRematRow = addProfRematRow;
+window.deleteProfRematRow = deleteProfRematRow;
+window.saveAllRemat = saveAllRemat;
+window.adminChangePass = adminChangePass;
+window.exportCSV = exportCSV;
+window.exportCSVRemat = exportCSVRemat;
+window.exportFarolWord = exportFarolWord;
+window.printSection = printSection;
+
+// Inicialização da Aplicação
 boot();
 </script>
 </body>
