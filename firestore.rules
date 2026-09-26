@@ -1,0 +1,28 @@
+rules_version = '2';
+
+// ATENÇÃO: este app ainda não usa o Firebase Authentication — o login
+// de Secretária/Professor é simulado no próprio navegador (localStorage).
+// Por isso, as regras abaixo liberam leitura/escrita para qualquer
+// visitante que tenha a URL do site, o que é aceitável apenas para
+// testes/protótipo. Antes de usar com dados reais de alunos, implemente
+// o Firebase Authentication e troque estas regras por algo como o bloco
+// comentado mais abaixo.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
+
+// Exemplo de regra mais segura, após implementar Firebase Authentication
+// (exigindo que o usuário esteja autenticado para ler/gravar):
+//
+// service cloud.firestore {
+//   match /databases/{database}/documents {
+//     match /{document=**} {
+//       allow read, write: if request.auth != null;
+//     }
+//   }
+// }
