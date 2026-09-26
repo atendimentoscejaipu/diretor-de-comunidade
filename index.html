@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Diretor de Comunidade - CEJA Dr. Gerardo Camelo Madeira</title>
+<!-- Font Awesome para Ícones -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
 :root{
   --bg:#f4f7f4; --card:#ffffff; --ink:#1f2937; --muted:#6b7280;
@@ -15,7 +17,7 @@
 :root[data-theme="dark"]{ --bg:#12160f; --card:#1b221a; --ink:#e6e9ef; --muted:#9aa4b2; --border:#2b3327; }
 *{box-sizing:border-box;}
 html{scroll-padding-top:env(safe-area-inset-top,0px);}
-body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);min-height:100%;}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
 a{color:var(--green);text-decoration:none;}
 .top{background:var(--green);color:#fff;padding:10px 16px calc(10px + env(safe-area-inset-top,0px)) 16px;border-bottom:4px solid var(--gold);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
 .top .brand{display:flex;align-items:center;gap:10px;}
@@ -26,15 +28,15 @@ a{color:var(--green);text-decoration:none;}
 .top .sub{font-size:.72rem;opacity:.9;}
 .top .right{display:flex;align-items:center;gap:10px;}
 .clock{background:rgba(0,0,0,.15);border-radius:20px;padding:5px 12px;font-size:.78rem;}
-.btn{background:var(--green);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:.9rem;cursor:pointer;}
+.btn{background:var(--green);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:.9rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
 .btn:hover{background:var(--green-d);}
 .btn.orange{background:#e08a00;} .btn.orange:hover{background:#c67600;}
 .btn.sm{padding:6px 11px;font-size:.78rem;} .btn.red{background:var(--red);} .btn.dark{background:var(--navy);}
 .btn:disabled{background:#a9b3a9;cursor:not-allowed;}
-.layout{display:flex;max-width:1300px;margin:0 auto;min-height:calc(100vh - 62px);}
-.sidebar{width:230px;flex-shrink:0;padding:18px 10px;border-right:1px solid var(--border);}
+.layout{display:flex;max-width:1350px;margin:0 auto;min-height:calc(100vh - 62px);}
+.sidebar{width:240px;flex-shrink:0;padding:18px 10px;border-right:1px solid var(--border);}
 .sidebar h4{font-size:.72rem;color:var(--muted);text-transform:uppercase;margin:4px 8px 10px;}
-.nav-item{display:flex;align-items:center;gap:8px;padding:10px 10px;border-radius:8px;cursor:pointer;color:var(--ink);font-size:.87rem;margin-bottom:4px;}
+.nav-item{display:flex;align-items:center;gap:8px;padding:10px 10px;border-radius:8px;cursor:pointer;color:var(--ink);font-size:.87rem;margin-bottom:4px;transition:all .2s;}
 .nav-item:hover{background:rgba(30,122,52,.08);}
 .nav-item.active{background:rgba(30,122,52,.12);color:var(--green);font-weight:700;border:1px solid rgba(30,122,52,.3);}
 .main{flex:1;padding:20px;min-width:0;}
@@ -42,33 +44,28 @@ a{color:var(--green);text-decoration:none;}
 h1.pg{font-size:1.3rem;margin:0 0 2px;} .sub-pg{color:var(--muted);font-size:.85rem;margin:0 0 16px;}
 label{display:block;font-size:.78rem;color:var(--muted);margin:8px 0 4px;}
 input,select{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--ink);font-size:.87rem;}
-.grid{display:grid;gap:10px;} .grid.c5{grid-template-columns:repeat(5,1fr);} .grid.c2{grid-template-columns:1fr 1fr;}
-@media(max-width:900px){.grid.c5{grid-template-columns:1fr 1fr;} .layout{flex-direction:column;} .sidebar{width:100%;display:flex;flex-wrap:wrap;gap:4px;} .nav-item{flex:1;justify-content:center;}}
+.grid{display:grid;gap:10px;} .grid.c5{grid-template-columns:repeat(5,1fr);} .grid.c2{grid-template-columns:1fr 1fr;} .grid.c4{grid-template-columns:repeat(4,1fr);}
+@media(max-width:900px){.grid.c5,.grid.c4{grid-template-columns:1fr 1fr;} .layout{flex-direction:column;} .sidebar{width:100%;display:flex;flex-wrap:wrap;gap:4px;} .nav-item{flex:1;justify-content:center;}}
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
-.tabs{display:flex;gap:6px;margin-bottom:12px;}
-.tab{padding:9px 16px;border-radius:20px;cursor:pointer;color:var(--muted);background:var(--bg);border:1px solid var(--border);font-size:.85rem;white-space:nowrap;}
+.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+.tab{padding:9px 16px;border-radius:20px;cursor:pointer;color:var(--muted);background:var(--bg);border:1px solid var(--border);font-size:.85rem;white-space:nowrap;transition:all .2s;}
 .tab.active{background:var(--green);color:#fff;border-color:var(--green);font-weight:600;}
 .tab.gold.active{background:var(--gold);color:#5a4200;border-color:var(--gold);}
-.tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;}
-table{border-collapse:collapse;width:100%;min-width:760px;font-size:.8rem;}
-th{padding:8px 6px;text-align:left;position:sticky;top:0;} thead.blue th{background:#3b5fa8;color:#fff;}
+.tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;background:var(--card);}
+table{border-collapse:collapse;width:100%;min-width:880px;font-size:.8rem;}
+th{padding:9px 6px;text-align:left;position:sticky;top:0;font-weight:700;} thead.blue th{background:#3b5fa8;color:#fff;}
 thead.darkgreen th{background:var(--green-d);color:#fff;} thead.navy th{background:var(--navy);color:#fff;}
-td{padding:6px;border-bottom:1px solid var(--border);}
-tr:nth-child(even) td{background:rgba(30,122,52,.04);}
-input.cell{padding:4px 6px;font-size:.78rem;}
-.dot{display:inline-block;width:11px;height:11px;border-radius:50%;vertical-align:middle;}
-.dot.g{background:var(--green);} .dot.y{background:var(--gold);} .dot.r{background:var(--red);}
-.badge{padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;color:#fff;}
+td{padding:6px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:nth-child(even) td{background:rgba(30,122,52,.03);}
+input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--border);border-radius:6px;}
+.badge{padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;color:#fff;display:inline-block;}
 .badge.g{background:var(--green);} .badge.y{background:var(--gold);color:#5a4200;} .badge.r{background:var(--red);}
 .muted{color:var(--muted);font-size:.8rem;} .err{color:var(--red);font-size:.82rem;margin-top:6px;}
-.note{background:#fff8e1;border:1px solid #f0d789;color:#7a5c00;border-radius:8px;padding:10px 12px;font-size:.8rem;margin-bottom:14px;}
-:root[data-theme="dark"] .note,:root:not([data-theme="light"]) .note{background:#332c12;border-color:#5a4a13;color:#e6d38a;}
 .legend{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
 @media(max-width:700px){.legend{grid-template-columns:1fr;}}
 .legend div{border-radius:10px;padding:12px;color:#fff;font-size:.8rem;}
 .legend .g{background:var(--green);} .legend .y{background:var(--gold);color:#5a4200;} .legend .r{background:var(--red);}
-.rank{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;}
-.prof-card{border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;}
+.prof-card{border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;background:var(--card);}
 .prof-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 @media(max-width:700px){.prof-grid{grid-template-columns:1fr;}}
 .hidden{display:none!important;}
@@ -82,17 +79,29 @@ input.cell{padding:4px 6px;font-size:.78rem;}
 .pill-toggle{display:flex;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:16px;}
 .pill-toggle .pill{flex:1;text-align:center;padding:9px;border-radius:8px;cursor:pointer;font-weight:700;font-size:.85rem;color:var(--muted);}
 .pill-toggle .pill.active{background:var(--green);color:#fff;}
+.pass-wrap{position:relative;display:flex;align-items:center;}
+.pass-wrap input{padding-right:36px;}
+.pass-wrap .eye-btn{position:absolute;right:8px;background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;font-size:.9rem;}
 .checkline{display:flex;align-items:center;gap:6px;margin:10px 0;font-size:.82rem;color:var(--muted);}
 .checkline input{width:auto;}
 .linkrow{text-align:center;margin-top:10px;font-size:.82rem;}
 .footer-note{text-align:center;color:var(--muted);font-size:.72rem;margin-top:14px;}
+.btn-plus{background:#1E7A34;color:#fff;border:none;border-radius:50%;width:28px;height:28px;font-size:1.1rem;font-weight:bold;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.2);transition:transform .15s;}
+.btn-plus:hover{transform:scale(1.1);background:#155526;}
+.months-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+@media(max-width:700px){.months-grid{grid-template-columns:repeat(2,1fr);}}
+.month-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;cursor:pointer;font-weight:700;font-size:.9rem;transition:all .2s;color:var(--ink);}
+.month-card:hover,.month-card.active{background:var(--green);color:#fff;border-color:var(--green);}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;}
+.stat-card .num{font-size:2.2rem;font-weight:800;color:var(--green);}
+.stat-card .label{font-size:.82rem;color:var(--muted);font-weight:600;}
 </style>
 </head>
 <body>
 
-<!-- LOGO DO CEJA EMBUTIDO EM BASE64 -->
+<!-- LOGO EMBUTIDO EM BASE64 -->
 <script>
-window.CEJA_LOGO_DATA_URI = "data:image/webp;base64,UklGRgQiAABXRUJQVlA4IPghAADwbwCdASrIAMgAPlEgjUSjoiEWe6YgOAUEtABpkO9/gOzo3N5f+0+i9aH8P/Zvt14qSsvLb52/7f3gfOP/Oepv9Uf9L3B/1m/YjzVfcf+7PqC/ZX9tPeF/4/qy/vH+s/FX5AP6b/oOs//eD2E/2R9N79zPhQ/tP/G/b72of/17AH//9snpN+pH997Vf8z/b/IHxm+kfav1wf8rwddCf8r0L/j328/G/339yf7f7pfcB59/Gf+09QX8i/nX+Q/uP7if3/4tvrf8x3H1svQF9s/pf+r/u371f5P4cPjf+p6DfWf/fe4B/Pf6Z/nPzC/f/3wfB287/4HuBfzT+z/9X/EfmX8gH/Z/s/zM9un0j/5P87+Sf2F/zX+wf8r/Ce2X////r8DP3f9nb9y0uajD2YLr6N8URhduaoEYb5K9jGKx4IXzZ6m1nq///7l6gMmIkRObZnPT/Oab7slkScPHrJjLT/h6+hZCN/b+7a7P/NDlVQfeEbdMmiJg6YGb0cGs9AI9v7XmxpfXHEo0jopmQsupsc0MUAd3UITFQDrEklyNXt4zzREKEi+e/jz4hav+oH+td8vfmmqhFIyjlsoO+7S6YW9jBabInD4ZpBBXLpLgiXirV3Np0X2q+e4o7XxUxUOgTat8YWCKtrLDVlnnaCXyML1C8slXOiBtZ5Sy1CsbECnLMANhMwTjZW4bGoRrux+m484BLahUcR1M6F9K/lKtrngn0TAi/zsWiXgABPxmkCvfuox3QKR9uq1wgQjg/Y3EbKsrnNVu/YQ1RMxatGsrt/icrrW2Qd7jH8y6klsQu75A/Wv5jXjO8nbWl7SAekkDoLd9HIlIcE03hjAdDiGKSz332NPl1vECtcC5FuRHbLrOPub22rhk5gBtoIYKV/pFc9qyIDKocOJXSQM0ufXuqhA05jd3ibqDDVydzIg3FgkE+f9YoizK4k9XDAzoSBNGnhhFG1MEjUh1zNdRIsZo3aG/NOyPEaPDzw+CVtDcQuWyhHxvmmbs3uW0GlsYq+R3YqDARtKpMJam23JAYJxy+kPtNiIXwqJLCIr4AbQ41weyLyRxcm7iee6Y6v1P2TKca9TShKdZoRdy9S4kIEVYYfpTdMkgFBeHe247LzTO52BW22oLhJO0CMey/i2QIH1yZeD9E2poTZoAHxY9PkmkZ9ELIYwA1er+dh4pl1J24P4hGPj6OD5AAP7+FKAxxHvY3JqaxKo1jknDRB4HY/ECN6CRBtqfvT9VWV/BaTH1P5roStyO5NgZzQJdmxaQefOqxg2oF4ksjko2+4eB0LQV0oq0cK8zyMYFZnzL7dw8XhQD6dFXr6Pt9xuTmZR8mPpip63jXYm94g737X+iD6M7lOfl+/+JMFSdf7w0fTQF6Qg6vfMEy9dypbJ4iqzAASUMdTf16l5nC+XjwP0sFr0LeQ1Zuq5SElEHI3vouzbf0zxwSJL+1FD3RF4VucHOxTeM1cBGWyjW8tw9f2EEXvO6eSfMeK/2y4tvAZT6hROnMjkv/1itS1x5F6F8twWV+CpLMBYGYeZnd2c+x9ziMOADzx686bgrasH+EjqsJoum7DL73vuCttPzlifib5CsIwxtJ7FDGC5hV0y1masPkNiDNmGZdmWZAntTbeeg1W0XPuzluIVdyC8H2P3WQowigMeTPx2E3+XH+ZI/tov5AOSrO/MYKT3+0r+gaInw+8kVQI8jjV2nIMoahrfJLaP9W7XbD2jidiy5U0krJ2Yae6XwqtXEcF65fvPpDpn+8G9sbKX+C3260aUiyCbJLva0lD6UwaBbtLNaH3ynREDviOIsjctG6ROoLVkLsRFrFiY81biKp6zYOarGIcFMKH8E+OnsEcfvZvexDc29oUA/KNQ1atdHFWjUUbIgZ9pSv6vBePiw8TuElSiJO8iRwOLAXRLdglC/gM2Az6/SsoKhpm4+8hsLiSkUOYgSUkxgumePiI8fmHVNSrlEcn9FYoByNNDfAkCuif3BygPqo1iI+/6NsBiEvptX/fEma0Nnmay0r+8bP2geUlIQ9xU/zC0zaF7MF5DLyImbc2B2rYzveIYQ83epEXn7hLpWMf4D22JcNtt3yiVC2o6MlUCLTOw+ANmr1xaBaXylA9CRVxWXTXd89xCc0xkmiIB1iKd0ioZshK5Gh26XFqJLz04xUgRcEzA/ifyp/CAjeDWO1/g71oWgg9oCFZTpbnoM0PF3yGBO3J2BIxwCnubGTnfBvD7e3ZTJRTso8P8WpKi/InWbzppGfMnCeoAhsckRGrxEXoSCy4xMdZHfpvwWvBsuOL/ADzDMPYiqSNi7cImLPgpMLpNswaRNz+WAHpBjJ0P8sm9IIHL26XpjdB2baze92+Gasl94/tXL+jfXwilk2fGXm9QhO3XLjL1RAzofuTPQP7uSqmULTu48nWMFT1DCqJI2sawl8sNKV7NqBCyabRDsTglBSz5RcqxedoIbGEEHZM7uyfR37XkthDlVp1SjENu0d/5iCPMzocD2PkYZ+OT74obJ0+NttIzQjGvY3z9JhrwTKfv/KFPPyJwYX9ibGv+Q1FsV2+R0+hFjkE2sMWHB+F88nTwboNZ4tp2TP4wigiIaOTrDmg0hfv75SA4krji0MHLgnGHGT6lSMPlOVqlP5sVJ/stCneet16v+brhjmESZpxAFL+mIrFlIR5TKNym2Fdo75hd8fH+XM4//XI7vf3bcg1/1YH86xZbyuSrvmqY4HxiNCZwfq9NEwDyKFij5njqk+eFuiQDqWy+PylWQfwaDv2gwLKqmHpeoa+W5WflYaLT/8NaZ6+xKnutJ0XQoMKcgcGi92ctWDCioSMltG6kq9uokz6SIefJuP6ch6hwJdCxYTGPjgEwQy6vJT9dC5ynPPBDc/8V3V/6G6sw5X5iXtBFUNVYIkTxpNkAUx2zC4/AatOGzfuyGo8+r0eG4taycNqyOWhKpb5dQ77LkL8SHnQq4ifZ8d/cXcNrSkkxi4EOtoZ6XTgX+o4rXQBaIaVBeMQNLvyZo4vLg90OUAve7Ts2NHEoCa+lW8Ds3QZ8FaJZhl60fqVA1CuoiCWjJGxKmin2g73HKgFf5GxNfkr6rLD8ge0cWKq883+P4Q+eYQBFwJo10Arm18bGpiTC7Wv8hK/6f2PtLfZc7S1xAt03cjxLTsA8lBzml53w2nDXx5l0wSncZrDvY4r1QLK5sjIooDT41tWHz9qKjnIbyuoxb3MG93KTqjnIGFxeiaSxflflGdXU33Xla3t9rBHUb+MmihuJjKd7PRZjTwF/XydAMWw3Ga24+J3Wak/UaiTgCY8haPO3rmuJJloAA3df0n2s8brPR6GFie8hEijgyTEqZGd+OGZCKHDp1+YddbcMnlZG35CuSWvzHscG6xvyMUzc1rDtLsxyxiyFuXB9xwc01f0m0fkXEytJI2HVKpFN7sDnhrru36Caqaa5/EiM3/402LguYbHhNFbOFDLDwM5dLo4VR/3xTgCQ1t3SLbqr/etpOD5OyzKIybHFL0Z2WQ//fSVRbUve8K7SFrW+41xf7b2Jj3vBIcx/7tguD5CrqC5h2Zq6if0xqe9G6iYFw0vnvgszFN+Iyc8zuMTbwNzdFaWp+KFIH7Odscw1630dkGfUyirNtdvJtNL5T0oT3CRhOufCwwEYn3ieF6j2ZK66jovUcv4Urw7fgMhk6WyeH/X2LQ3a66Eo8H+C2pm2PQECsaAnqV5B8dlJgf5p92AzLCELZ2+eU0C/BG6rnIOk3vfBkmC4o6OxzZYFrwsf9n0tGPsxpRGQY+C2XEzgxdPJhiFRrGNxCp2q8sa5DlO4cuquOVV1zJNictyAnhVbkUGdxVjmCrc/O+ofac1qyJ+PqPXUkMXeJC4pbTM8KI4bKWyUiyVzmuJcronax2j3eJ4ky6dldpeGiVJX1TynzqzlvbKJpO9PzTxHT75AXayev4ycekFYwteNzAQlpCGVcItfprxpOZf75TjL8XqSOrYO15u4m9pH8uPvP+OQIruaZCUIhBoTg+w5v/2hkqwGMVoImqYtP/1wYH030ZI2AWiDTLsd0rtLBOvdLAdfQM4bxX4fMXwA2Z0FojKBYOve4Izuqi4bX8dHKzl2eID3os5Zs4iHJECSa9+gaadTtPO6e0D9KGDB56Py5uX+K3nXemp0I0quGIHD7sRElOIntYcSX1gp4swKdujb4SYKYla0iCWU5HRhaZoyOa7re16Zlo9f+JvyaffwURhyrMsS5lvq1FftnErJwC7/jmUYCm4D/XcVwE7+HqoRPPonBD4s936PLbDJ3TwolHCe0QdspEgk3yrhoEp+Z+zGhYA5RHCpmvSyaIf38O7JVL8ywW8D9Wlak8h6TyXXVhaDvUsfi+lZy8oGiL2Hf9z/D/O9110l2bANWoeoeqHfgg0tNRpcdYDvZY2ctsCmsYQRsTJjShsyrGv6qAgUKSwaFdGHx8+Me0RPuvIt7FadqCok2cXlISSR909bLfFitQn2rgm/8BzOOgE0dnNotoLRc3c9ujuIKASqv77OHcD9XwnzrVl95UHmYZXLAVKrzv9KI1pIHUiP3WKu61ANLsrM4+SLGh8O5W8LaY8HHQzSDpmy1FeuhJsiyx3fbUHIIu/TSMsSTzBQPlnMO5MKQfxSxP7anYibL8nKPBsO3oEnqaWLxmcRbUZv4o/fztSiL7OR3P7lcyHDT8jBojyuGstlCYTfmu1Bdb2f93vG7t/ktsZJbf5xGIf7CKqwL4ABImS4TkzzxfCsFhq/n/8ljx6FuIFBMf3w2aC5SInER9j59k7Xpa/6WwK7DJG7+0poJYTab6vRE/bzapHUqYSAE/ZuFV6RPMm0kbAUoKwE3jR9oumadx715LLD9KWr05tLslnVs2AINKan5AqTf7I2iXDxlkp6SLcUuzL9gN3AG5H1RyB8h2gkygiFdSN73SwSWBhmSrKyDi2WNVPyT7vwzzMplssVAQY42z6K6zblMzCB6Q5ZQFk+eYVxfRXj5Jz7/rLxeqFq7RjCSYSITb1nw7oxXrRF5kDml4im3olmgghOFIzhnqyJYCWdDPoiO43QeZEiRBDSMYsxl0BCWelRRBkhn46nQAThErwEzBMCOtDJL8FM9hK/yftPJO9tgUmqYdKdNy6b1S+sf9xYChBowsT9RIYetuHtznVoz9+8pkI8TfoyNqq3NvFvaJSe7bSr12+sSR2SaSVbMIs0+XclyRaXuW3rHccjg8IqWnXTUL4M0lttHQYLeAvSTgjLGRXUfVqeD0tKiD/1u0SwlPExlf6CBkdipYEoJBjzr6vbKwTKeLzzXY90SWPm+/84QqyIvm8bKJCcKkMuACNxm6krfyDC/ZsK0TSh3a5dDyxLDwc50MuD0RL/+oKNr836pnZoxYfMgNzDVK2HRhzBjBjphq0Ew1JrCtQNRzj4ce+0elFeC2UPphdfYhqN+y/3/s59JVmzu2lx2fi68VaEHnp1auQHLebgoIcF1Q/wpBLzUgMBA82Xw1f/jLR8D8v22xL9Tx4QkoqgtNyJ2FC9cftDeHoiMGLXk8W6dQp2kU7uStbyOdFppoIBXlp9PqEbwlIT233Qv2iCvfBbWmHA4IOtwEBoAVrjkZEiEQPdBDFe+IV6qbbUW6zPpm0RlpxAh9f/t54L8J44+5M14gZUYpPDFjIgks0bRtr1iE+xys9MnWkBnUoow1yTMlWyC7iDYEA0CoQb8x7ZQ3EqkdAA0cgaprx3dbjIwU7exYcXw61UHegMDv36NOvzbmGSOtLyiyzL86NE8jtkjkev/YTl1ZKYUb83z7ggzQsBML5lo3SBz6gNIihdjNGGKIVjVZ89tBIYB5Ol1R3i+8wXz3ZPn9CnW41UUd2hOxNC5nOAjlxu5jM0zqzswsqk2g5pv9HLoN8Ss7HvQvJ2GHRkZZa3NeAtD8V4dVEZTAiR4++luCzErLggrEZ8lr5ICUer8Dp1a+N9WuXxWjvzuB65MGHwRRZZUMFF5QkClYi+Q41bACaRwqJ98L2kXQJRMk0SCeA8b6xjOUj41ROf4U7i7VnKR+HIKDHX8e/wr9xwwnSsIg6jcDJzlVS1+bTOpevv4i9g/+9zhDxEoVqbZR9POU0H9y/78XnIPsCYaxPInSIDNw3kHpd1oeVpQD1wP/LkXRNOo6LxnISQ2rUZLwdiTudEGDBtLuLs13K3E0D5LaQ3jWMa6mIhL31YR+eZ+XfCQZz4h8otuS+F8aqv49dVuuwo5/ynutsEL5g6Kb4UEKK2/OG4IelIxZpPxT8IiPpvPnruitU/YoFMOlNSfB7s85UZBiGkqyRpaaYszLAqbsb/zbJsOeF1G+xcZoQGV32Pys3BD8I3D0w1aP/hccDcJkSGuSUHs99k5x/6AvLal+WuM/I6ljf7LHeJhbr10vG6qyIglnmS+sCxv7v79A8Ews6H8+J6/28OEwEQqC9eDgXhKt3kQkSKLCeH7uV1kwzcL+Fgc/8Xmtf8Q6EELdCGEPSb2+R7V5v+uO8lAckVIiB7MeonDsJ8P4MeCYn/ZOJRlmsl/VGtS5Jfzp12jxbraDP6FR5T5F00932qTt/q1rXxDvkYD46CJIlbd9WrxecdAHh3W53iwGWsH5BRvRqYY++r90SWuYI3hCumkRpORMzGEM9XXmn1qdKNjWmlkF8u1xb3hzk7ScrAkHxxEoFJD/Gd/fdNA5+qcT66+xh6sWHiOUAO+T1xNi4PZ/T3fjdp4EIdUA6IP62EVOU01HsESrOYmsqnm0K3oXVjYiD+3RmWlu4eHMzcytLo0z7GJB1mW1V3P8aJppkvBb+WJnjgaji6uew7xiPzI4eqegPR28OhKwXEm1C9eb4V5hJhMP0i6/JdmvSyRvgS6KETY9loJPDMkj2R56/UA0VNeMJnft2AjQEHuOohfPA6m11BTThzhWE98dXkSEhmLgeqMrq6kTA/OnsWkKDfuY9JQcOLWZ4YV4TI8oWflc8akW7R3cJun6sfVmqgRfAkoQXi8otiZwA5wzPl8bc9SHzhnR5tON7ZbxC9KCRIF1yLcdC2qr78RWl7FTppjMR1RN0nN/VAr/wexsr5ZqRO9kyg9bMdmZXjzni9FHp/uv82RXgLpjGU9VmHNQAsaMZHYI4Pp/2NcnLFg12+59dCT8iaXkxr+d3jPu5h2u864PyUwQ5zezauKpsqUswAA/C2MtL5lmXuINFQ1GYDsFhcBeX5KmqCIkBSRvpe+87Wm98IBBuuzovO/rqZ+lFlKKb7DT/MtBBbzznjP3b7/2vm3NrLxj/eATxkl818Sc1Tnr4MDP/sAAjOiK2zQMm+m6QAvkCMMQV5fJ9rGQ+F9MDfF61KmisKtsRDAFt61JYxwyCckOcM4D3VvUAbDXn5jn/D04uDi4f8n2jwTq7WgsyrJLdg4d5f/wkVff2azNQzC59pCUPFE3Du5JZxIxarQcy5q+mzfY+2hq8TL6V5ahGXSXlQfNU7IqiTwvnC+2bRz2osa1KCr33kS7G7iN1tMa1tnosRS1Civ22z6B/U1jIACgIjv7It4zVCpem8ejAvp83cSyv7aqmlrah7DMh76yrMEceAB5r07si74AnmeZEET4mr2IPbHSA08tvIWUZ9DU5z1oOgnnUVpq0ea/mKWQfkxCMySp65uylzPygyuWDwd7fs6ZjoqxFzzIwjUGyqptXCUrEPgg6jCpp1Xe6jnjm/xsLB6TmEc7S/4mR5x7OJYfIdG6ApJGExO7NezOb9xihRthOt6CgMa0o1wceZzOp/4N7yLlgHMtohfX8sTIOPW/GD7rGWpDJkR/6WDbE/6/A7/fAemeeeGl/xiL7UFRLmjuYKZ2wEFXnmwm8bzFn3LD2kSptOHII8awoygDyadAeXwgIlKoJUKYmwYot+YrCUyp5/Z5nCXs/82vRhI2Q9Nb35jfE5Nhf4Ua/vKpZdiDRzNYN01WxDrhnS/XnAMbSD7IZ/qLZA1tahGTfbhJKCbAxD5iRbqe1SqbQmFrPyDKk1Ggf3l1v3N7ov3du+2NJd42lDu+dmFsIQ3XNbiGh1Tk2GI27XqhUvdRGTelQ9VMFrqlecmISS0iVWNAp4t1ylSL1m+4k/k0E2YV7mRpIm16h7PiNy7b+aCpETNTLoz8bea4BV6JHAQAavZDoOml8newOh1Z/XRm0ymyJQgAM8eZtwiS6DzZDpGWN8c7mcUL6GiaTDgeUoxDTXnje5Dq262a3tXonndUw8+Y1q9VVGj9EEPqEy2Nl/rXk6TPwonWg5SoyKCWF8Ejw11DmXtBc59oL2XFhuySw3D49yXZKkOkScRRV/F1KZm13tdwtm/7jibudlgKrPcY0ywuDz5yWl2BVtR3OqlY0+iTfkKNJhGsr4psSWIrZ9nJfMPxBFNCGr7/jYorTA3I6W3wC95EK2F4LzE9SdhZukTFv7B8lBqGmV6/5RLa8aPPHNfVXskegquew0zM0m3HhTOTgDtCstn0oXKqNZQFfjsCY0BbLY97pPlav4VewZqxB+zxZjt2LSKRa2tLwEWp1QI+Bek38NryitnKp9joA+MB8vxi7L89w8IzyuJ/gln3qM+RyuZn7wSfubcMMZP4SXB0rAB9XyqkUOEnL1ZKO+E0TMjWietV58vYA9cJy9Sr3GZEgfEuMZ08x1n0PbfCwJKRdsxeZKro3w4yFMTJi60NCosGaU8ETNbZFM52Yyg3+qDqgderSSPYw0jJFfLyU8duNIrstHvo5PLpaMs1Saa7tp9K27xaJDp4O1scIL8n/hK5Hz4W4QZVyoBol6/R6znFMpPtmvLNPh20t38fzg8qpdIf4umDtnfOsmL7rFsGDJ5l8OupSgoqgAnZKtCp0K8nvDvnIHAjr8UrFjKTHFKUc4cVM5pliccSRmLPNR5SqJvwsYVF3ZfOE3uXZSQyrSyfhvdhpSJAssVRex/H7eE9vAHpGW3fQx6MyGveXJXqvkyTYcWtdLIuRl1NjWaDDByymQE/QiUWqeN1ARLT0pSApijP/KUrZvdHWW/1gWzKEO1DiEqjM/moS/fOjc6/FigTgPMEq0lYX2M+cFxRrtMc/ABazzEoQRfRh457Az9BWXjAQGWJZB3sXUFHYiqntcuchUZITopH3GN/WBxMOML9zai6MoDaqA2aFATaiCRIJzMRuuZsYUn9Loin8+Bazuq9Dg4bUB+mmOelaGaizpPQVsahsBSMJYWzhiYJ9sF5/59seQeOsvc1pCMbzbZGukH3qKpTUDLzCJTPNY8CE47f/kI9q0p28JtFzUoVCGMA7Y4lW6G/fSv5tSv+SuZQwaSGYdU+XKtXsqOmc0xV1tzdl0lgQB5Qj3wAc5jjxMHP2/Ks/EQHKkf1LBjA5k9Sav0TVoGdCaY+0a3KQg4yHqF52wSpDqzNFU0mq5EMK5sRBdb8tnUqf+Qkt8z8I/kXApemHj2G18RxzYNeVFnSc3+VR638HQvgkEJAyqcpstYOCyo+q1hnEvljncIM2uqtmV1u7UUr6K0Elps3587Byg64O4CUdjxEPYKYhZV05aFlHH57ERFMjQa8PJf0/y+5RuB4wBVVbui32RqYMDMGFnGn9N9bDKgedKDPJNeoBw6S3zOaoYPuYHYWcFEBUOhCP25OO4nQ5SH//+WjR80jGIRMW1jJkBwFxIdKmmDaO5+DngzfwPru5fyWuMUvRVYmjwCxoDQtVP/1Jvwew1l7iji6FoRYJPsUpC4KfXExnfkHWfZWvMdsFROY/k/xXajMWYpL/3HjlG12zVE01SbTOrDhiLLS0FC0tLp0E3FzzD93EZYFYb4A2FoBDmhkn9jxjzsespt3hlfonPYeia/tbSjM7mdXukuqxgkLaxFb6MggWOOtFU4uK6PfTDNmdsbtOVb0idep9J28lgxe58AmCGgFSlgXC3yQ+mLWdH0/JxKIefT8W/xZQLDsv1N695ZC2Zt+xSD77dZcK4aZG9nDmuaEHDCmBwTPCdqAvqszmpyv8O0ARMK95DGN5vP8hdlA4c5N8RpjtSsPpVZ9ag0fbaTFmum+xwPKIKDgdV5ErA4+Gfbm8Q7AzuN1rhpijUW8g8PYBcgMGSGVyIkEYvt2AXgaNtY0SDnQgm3Hl200wmqPUqIL0hsaUvu5nG8KL9h28ZWCE+8P+LVFgo+KZsmX3XmcAAaE3/7GVtteEAprEeKtNDmE23Nokxc9K3VSU5sIebiHImv0hz7iR0Py1LrbctzOZaqT8P3toCZfIn2gWlp3KHuhLscUhuOUcNxJnzcdX948Z2zdntG9TVf0P2gjqXRlPBur+/9+QZNkINEEmkLNYNZOpJ72qSDD+wyCDGVfendFRIpqLoVs6lcV6ATvWYY49FA2mPyy0i6wvcsTFPYR+4WCzzR7S9D59xFTsY0EQXprNtDnuP0JAXf8OB9nOHBKhij7o/CbwAV5HjT3f5vsoC4Sgr+rvvICi+CJ46HkMq2XDiicG5wtVr85YBRyIloHxSg/Tai/Jeapf8v/N/+iqZJKnqFK5O+0JFdCmj7Zsci4rkpSGpKXlT4Ju6n4UbFnGHe2RkPq+dutXQ90CaztxJ0riI7s6o6MxDZh3T1eGG0pXjn5fcK7D7tx5CCauPIpxqPaFFUiCQFH2ojySdRcnGvrhexEMWeD82bpZJurtWQ/PBKdat4tzqMQ73TfbYO3wlEcSxfPbj+8J33UlOJX7N2yi0TQQM0zARYSSOQhZADebfbUUQOkrQqDBgMLhcqgRybowu55gB7Sq0OMX0/NUqZM2Ygao0Fj2RwkNq5mN37/Oqz5c7ADliKRh5mfKw617ugpP0juarZd7wWlH+hkkz+DsffQD16s1cOKotIm4X7MAyxvAK2ZwTlhrphHHNBi5+v1snhwELL05zzu2kEBW3B3gE6hVhiTm7xqlCNENFWU+LEwyEJ2cGc0q8J0UCFgh0+AcdHuu/TUD1RLcDzLxrAKSsjUr9RNqfQ+Efay7K4amW0j3PhcwJxH2r74R3FklhBoBaNkzAUYqunoEjKI36pNVyBnK/tJSY39FcQhZhBJDfIS9dCXE/IzHkFJHlDhzOB8S69iYR8ym4YWOF8ctVofa4QFRySlSni/I8S+yb0h/jqCfE2ll1uKaBgIwuXzwnSH2YN5Stq7ujwvnHq/Zcq9VqT7GzZw1yOw19HbjOjfwR1Vt/dAC1ri60ErO5wJMgwgK7dJSf8IoOPxnn9/g3YOWJXwNnYJw44RmZ6yOPqT9XRxivEwyK9eCzY5ks2nsoBcuByK/LBCndUPrRTjS236NtJdKx0TpfWiX+tQU+pBK55F8quLeP3baNm/zMHwmTrcbvhG1Kf7v6A5lu3FIgpwCDG/KCt6ieEayO2wUySMDPSE4L8csxHPVckovEz2lin7jfi7q9+IqBv85oNYnrtyfOpdzjExGTMGuDEccWab8CbKK58BRyqADcTORATWAYAaPFBYllGzWrKIupWTmsKbn+3zXTYmeU3btzvi35nfVqm0f28+TtJCidG2pHoV0Ymfb9wCU1TGzx4cmDfp8MCgnP4Qpa7vU/06YVmp7Zm22Q9yO0BUWayTROkDRkspwBXY83jsDTlHqKBbH3FwDi3+AAAA5iaAKvbXwsEAAAAAAAAAA==";
+window.CEJA_LOGO_DATA_URI = "data:image/webp;base64,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";
 </script>
 
 <div id="loginView">
@@ -104,7 +113,6 @@ window.CEJA_LOGO_DATA_URI = "data:image/webp;base64,UklGRgQiAABXRUJQVlA4IPghAADw
       <h2>CEJA Dr. Gerardo Camelo Madeira</h2>
       <p>Ipu · CE — Diretor de Comunidade</p>
     </div>
-    <div class="note">Protótipo funcional — login e senhas são simulados no navegador (não é autenticação de produção).</div>
 
     <div id="loginFormArea">
       <div class="pill-toggle">
@@ -112,31 +120,50 @@ window.CEJA_LOGO_DATA_URI = "data:image/webp;base64,UklGRgQiAABXRUJQVlA4IPghAADw
         <div class="pill" id="pillProf" onclick="setLoginTab('prof')">Professor</div>
       </div>
 
+      <!-- FORMULÁRIO SECRETÁRIA -->
       <div id="secForm">
         <label>Usuário</label><input value="Secretária" disabled>
-        <label>Senha</label><input type="password" id="secPass" placeholder="Senha da secretária">
-        <div id="secRecovery" class="hidden"><label>E-mail de recuperação (1º acesso)</label><input type="email" id="secEmail"></div>
-        <div class="checkline"><input type="checkbox" id="secKeep"> Manter conectado</div>
+        <label>Senha</label>
+        <div class="pass-wrap">
+          <input type="password" id="secPass" placeholder="Senha da secretária">
+          <button type="button" class="eye-btn" onclick="togglePass('secPass', this)"><i class="fa-solid fa-eye"></i></button>
+        </div>
+        <div id="secRecovery" class="hidden">
+          <label>E-mail de recuperação (1º acesso)</label>
+          <input type="email" id="secEmail">
+        </div>
+        <div class="checkline"><input type="checkbox" id="secKeep" checked> Lembrar login e senha</div>
         <div id="secErr" class="err"></div>
         <button class="btn" style="width:100%" onclick="loginSecretaria()">Acessar Sistema</button>
         <div class="linkrow"><a href="#" onclick="openReset('sec');return false;">Esqueci minha senha</a></div>
       </div>
 
+      <!-- FORMULÁRIO PROFESSOR -->
       <div id="profForm" class="hidden">
         <label>Nome completo</label>
         <input type="text" id="profNameInput" autocomplete="off" placeholder="Digite seu nome completo">
-        <label>Senha</label><input type="password" id="profPass" placeholder="Senha (padrão: 12345)">
-        <div id="profFirstAccess" class="hidden">
-          <label>Nova senha</label><input type="password" id="profNewPass">
-          <label>E-mail de recuperação</label><input type="email" id="profEmail">
+        <label>Senha</label>
+        <div class="pass-wrap">
+          <input type="password" id="profPass" placeholder="Senha (padrão: 12345)">
+          <button type="button" class="eye-btn" onclick="togglePass('profPass', this)"><i class="fa-solid fa-eye"></i></button>
         </div>
-        <div class="checkline"><input type="checkbox" id="profKeep"> Manter conectado</div>
+        <div id="profFirstAccess" class="hidden">
+          <label>Nova senha</label>
+          <div class="pass-wrap">
+            <input type="password" id="profNewPass">
+            <button type="button" class="eye-btn" onclick="togglePass('profNewPass', this)"><i class="fa-solid fa-eye"></i></button>
+          </div>
+          <label>E-mail de recuperação</label>
+          <input type="email" id="profEmail">
+        </div>
+        <div class="checkline"><input type="checkbox" id="profKeep" checked> Lembrar login e senha</div>
         <div id="profErr" class="err"></div>
         <button class="btn" style="width:100%" onclick="loginProfessor()">Acessar Sistema</button>
         <div class="linkrow"><a href="#" onclick="openReset('prof');return false;">Esqueci minha senha</a></div>
       </div>
     </div>
 
+    <!-- REDEFINIÇÃO DE SENHA -->
     <div id="resetArea" class="hidden">
       <h3 id="resetTitle" style="margin-top:0"></h3>
       <p class="muted" style="margin-top:-6px">Defina uma nova senha imediatamente — não é necessário informar a senha antiga.</p>
@@ -144,8 +171,16 @@ window.CEJA_LOGO_DATA_URI = "data:image/webp;base64,UklGRgQiAABXRUJQVlA4IPghAADw
         <label>Nome completo do professor</label>
         <input type="text" id="resetProfName" autocomplete="off" placeholder="Digite seu nome completo">
       </div>
-      <label>Nova senha</label><input type="password" id="resetPass1">
-      <label>Repita a nova senha</label><input type="password" id="resetPass2">
+      <label>Nova senha</label>
+      <div class="pass-wrap">
+        <input type="password" id="resetPass1">
+        <button type="button" class="eye-btn" onclick="togglePass('resetPass1', this)"><i class="fa-solid fa-eye"></i></button>
+      </div>
+      <label>Repita a nova senha</label>
+      <div class="pass-wrap">
+        <input type="password" id="resetPass2">
+        <button type="button" class="eye-btn" onclick="togglePass('resetPass2', this)"><i class="fa-solid fa-eye"></i></button>
+      </div>
       <div id="resetErr" class="err"></div>
       <button class="btn" style="width:100%" onclick="doReset()">Redefinir Senha</button>
       <div class="linkrow"><a href="#" onclick="closeReset();return false;">Voltar ao login</a></div>
@@ -155,6 +190,7 @@ window.CEJA_LOGO_DATA_URI = "data:image/webp;base64,UklGRgQiAABXRUJQVlA4IPghAADw
 </div>
 </div>
 
+<!-- TELA PRINCIPAL -->
 <div id="appView" class="hidden">
   <div class="top">
     <div class="brand">
@@ -167,43 +203,59 @@ window.CEJA_LOGO_DATA_URI = "data:image/webp;base64,UklGRgQiAABXRUJQVlA4IPghAADw
     </div>
     <div class="right">
       <div class="clock" id="clockBox"></div>
-      <button class="btn orange sm" id="logoutBtn" onclick="doLogout()">⏻ Sair</button>
+      <button class="btn orange sm" id="logoutBtn" onclick="doLogout()"><i class="fa-solid fa-power-off"></i> Sair</button>
     </div>
   </div>
 
   <div class="layout">
     <div class="sidebar" id="sidebarSec">
       <h4>Módulos do Sistema</h4>
-      <div class="nav-item active" data-mod="alunos" onclick="setModule('alunos')">🎓 Estudantes &amp; Matrículas</div>
-      <div class="nav-item" data-mod="profs" onclick="setModule('profs')">💬 Ambientes dos Professores</div>
-      <div class="nav-item" data-mod="remat" onclick="setModule('remat')">📝 Rematrícula Mensal</div>
-      <div class="nav-item" data-mod="farol" onclick="setModule('farol')">🚨 Farol de Rematrícula</div>
-      <div class="nav-item" data-mod="senha" onclick="setModule('senha')">🔑 Recuperar Senha</div>
+      <div class="nav-item active" data-mod="alunos" onclick="setModule('alunos')"><i class="fa-solid fa-user-graduate"></i> Estudantes &amp; Matrículas</div>
+      <div class="nav-item" data-mod="profs" onclick="setModule('profs')"><i class="fa-solid fa-chalkboard-user"></i> Ambientes dos Professores</div>
+      <div class="nav-item" data-mod="remat" onclick="setModule('remat')"><i class="fa-solid fa-file-pen"></i> Rematrícula Mensal</div>
+      <div class="nav-item" data-mod="farol" onclick="setModule('farol')"><i class="fa-solid fa-lightbulb"></i> Farol de Rematrícula</div>
+      <div class="nav-item" data-mod="certificacao" onclick="setModule('certificacao')"><i class="fa-solid fa-award"></i> Certificação</div>
+      <div class="nav-item" data-mod="senha" onclick="setModule('senha')"><i class="fa-solid fa-key"></i> Recuperar Senha</div>
     </div>
 
     <div class="main">
-      <!-- ESTUDANTES (secretaria) -->
+      <!-- ESTUDANTES (SECRETARIA) -->
       <div id="mod-alunos">
         <h1 class="pg">Gestão de Estudantes</h1>
         <p class="sub-pg">Acompanhamento e controle de evasão escolar do CEJA Dr. Gerardo Camelo Madeira</p>
         <div class="toolbar">
-          <button class="btn sm" style="background:var(--navy)" onclick="saveEstudantesModule()">💾 Salvar Alterações</button>
-          <button class="btn dark sm" onclick="exportCSV()">📊 Exportar Excel</button>
-          <button class="btn red sm" onclick="printSection('printAlunos')">📄 Gerar PDF</button>
+          <button class="btn sm" style="background:var(--navy)" onclick="saveEstudantesModule()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
+          <button class="btn dark sm" onclick="exportCSV()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
+          <button class="btn red sm" onclick="printSection('printAlunos')"><i class="fa-solid fa-file-pdf"></i> Gerar PDF</button>
         </div>
         <div class="tabs">
           <div class="tab active gold" id="tabAtuais" data-subtab="atuais" onclick="setSubTab('atuais')">Matrículas Atuais</div>
           <div class="tab" id="tabAntigas" data-subtab="antigas" onclick="setSubTab('antigas')">Matrículas Antigas</div>
         </div>
         <div class="grid c5" style="margin-bottom:6px;">
-          <div><label>Ano Letivo (digite e salve)</label><input type="text" id="anoLetivoInput" maxlength="4" placeholder="Ex: 2027"></div>
+          <div><label>Ano Letivo (digite e clique em Salvar)</label><input type="text" id="anoLetivoInput" maxlength="4" placeholder="Ex: 2027"></div>
           <div><label>Professor</label><select id="filtroProfessor"></select></div>
         </div>
         <div class="tabs" id="anosPills" style="margin-bottom:10px;"></div>
         <div class="tablewrap" id="printAlunos">
-          <table><thead class="blue"><tr>
-            <th>MAT</th><th>ALUNO(A)</th><th>CONTATO</th><th>ÚLT. FREQ.</th><th>SITUAÇÃO</th><th>STATUS</th><th>REMATRÍCULA</th><th>PROFESSOR</th>
-          </tr></thead><tbody id="studentsBody"></tbody></table>
+          <table>
+            <thead class="blue">
+              <tr>
+                <th>MAT</th>
+                <th>ALUNO(A)</th>
+                <th>NÍVEL</th>
+                <th>CONTATO</th>
+                <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
+                <th>SITUAÇÃO</th>
+                <th>STATUS</th>
+                <th>REMATRÍCULA</th>
+                <th>PROFESSOR</th>
+                <th style="text-align:center">CONCLUDENTE</th>
+                <th style="text-align:center">AÇÃO</th>
+              </tr>
+            </thead>
+            <tbody id="studentsBody"></tbody>
+          </table>
         </div>
       </div>
 
@@ -211,11 +263,14 @@ window.CEJA_LOGO_DATA_URI = "data:image/webp;base64,UklGRgQiAABXRUJQVlA4IPghAADw
       <div id="mod-profs" class="hidden">
         <h1 class="pg">Ambientes dos Professores</h1>
         <p class="sub-pg">Gestão individualizada de professores e links de acesso compartilhados</p>
+        <div class="toolbar">
+          <button class="btn sm" style="background:var(--navy)" onclick="saveProfessors()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
+        </div>
         <div class="card">
-          <label>Cadastrar Novo Professor</label>
+          <label>Cadastrar Novo Professor (Ordem Alfabética Automática)</label>
           <div style="display:flex;gap:8px">
             <input id="newProfName" placeholder="Nome completo do novo professor">
-            <button class="btn sm" onclick="addProfessor()">Cadastrar Professor</button>
+            <button class="btn sm" onclick="addProfessor()"><i class="fa-solid fa-plus"></i> Cadastrar Professor</button>
           </div>
         </div>
         <h3>Lista de Professores Cadastrados (<span id="profCount">0</span>)</h3>
@@ -225,49 +280,120 @@ window.CEJA_LOGO_DATA_URI = "data:image/webp;base64,UklGRgQiAABXRUJQVlA4IPghAADw
       <!-- REMATRICULA MENSAL -->
       <div id="mod-remat" class="hidden">
         <h1 class="pg">Rematrícula Mensal</h1>
-        <p class="sub-pg">Registro unificado dos alunos que retornaram e realizaram provas de reativação</p>
-        <div class="toolbar"><button class="btn dark sm" onclick="exportCSVRemat()">📊 Exportar</button></div>
-        <div class="tablewrap">
-          <table><thead class="darkgreen"><tr><th>ESTUDANTE</th><th>MATRÍCULA</th><th>ÚLT. FREQ. (ANTERIOR)</th><th>DATA DO RETORNO</th><th>MÊS DA REMATRÍCULA</th><th>PROFESSOR</th></tr></thead>
-          <tbody id="rematBody"></tbody></table>
+        <p class="sub-pg">Registro unificado dos alunos que retornaram por ano e mês</p>
+        <div class="grid c5" style="margin-bottom:10px">
+          <div><label>Adicionar Próximo Ano</label><input type="text" id="addYearRemat" maxlength="4" placeholder="Ex: 2027"></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn sm" onclick="addNewYearRemat()"><i class="fa-solid fa-plus"></i> Adicionar Ano</button></div>
         </div>
-        <p class="muted hidden" id="rematEmpty">Nenhuma rematrícula efetuada até o momento.</p>
+        <div class="tabs" id="rematYearsPills"></div>
+        <h3 id="rematYearTitle" style="margin-top:10px">Selecione o Mês:</h3>
+        <div class="months-grid" id="rematMonthsGrid"></div>
+        
+        <div id="rematMonthDetail" class="hidden">
+          <h3 id="rematMonthTitle"></h3>
+          <div class="toolbar"><button class="btn dark sm" onclick="exportCSVRemat()"><i class="fa-solid fa-file-excel"></i> Exportar Mês</button></div>
+          <div class="tablewrap">
+            <table>
+              <thead class="darkgreen">
+                <tr><th>ESTUDANTE</th><th>MATRÍCULA</th><th>ÚLT. FREQ. (DD/MM/AAAA)</th><th>DATA DO RETORNO (DD/MM/AAAA)</th><th>MÊS/ANO</th><th>PROFESSOR</th></tr>
+              </thead>
+              <tbody id="rematBody"></tbody>
+            </table>
+          </div>
+          <p class="muted hidden" id="rematEmpty">Nenhuma rematrícula efetuada neste mês.</p>
+        </div>
       </div>
 
       <!-- FAROL -->
       <div id="mod-farol" class="hidden">
         <h1 class="pg">Farol de Rematrícula (Ranking em Tempo Real)</h1>
-        <p class="sub-pg">Monitoramento do empenho nas rematrículas ativas de alunos evadidos por professor</p>
-        <div class="legend">
-          <div class="g"><b>Acima de 4 Rematrículas</b><br>Desempenho Excelente (Verde)</div>
-          <div class="y"><b>Até 3 Rematrículas</b><br>Desempenho em Progresso (Amarelo)</div>
-          <div class="r"><b>Nenhuma Rematrícula</b><br>Sem Alunos Recuperados (Vermelho)</div>
-        </div>
-        <div class="toolbar">
-          <button class="btn dark sm" onclick="exportFarolWord()">📄 Exportar Word</button>
-          <button class="btn red sm" onclick="printSection('printFarol')">📄 Exportar PDF</button>
-        </div>
-        <div class="tablewrap" id="printFarol">
-          <table><thead class="navy"><tr><th>NOME DO PROFESSOR</th><th>QTD. REMATRÍCULAS</th><th>STATUS FAROL</th></tr></thead>
-          <tbody id="rankBody"></tbody></table>
+        <p class="sub-pg">Monitoramento do empenho nas rematrículas ativas por ano e mês</p>
+        <div class="tabs" id="farolYearsPills"></div>
+        <h3 id="farolYearTitle" style="margin-top:10px">Selecione o Mês:</h3>
+        <div class="months-grid" id="farolMonthsGrid"></div>
+
+        <div id="farolMonthDetail" class="hidden">
+          <h3 id="farolMonthTitle"></h3>
+          <div class="legend">
+            <div class="g"><b>Acima de 4 Rematrículas</b><br>Desempenho Excelente (Verde)</div>
+            <div class="y"><b>Até 3 Rematrículas</b><br>Desempenho em Progresso (Amarelo)</div>
+            <div class="r"><b>Nenhuma Rematrícula</b><br>Sem Alunos Recuperados (Vermelho)</div>
+          </div>
+          <div class="toolbar">
+            <button class="btn dark sm" onclick="exportFarolWord()"><i class="fa-solid fa-file-word"></i> Exportar Word</button>
+            <button class="btn red sm" onclick="printSection('printFarol')"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</button>
+          </div>
+          <div class="tablewrap" id="printFarol">
+            <table>
+              <thead class="navy">
+                <tr><th>NOME DO PROFESSOR</th><th>QTD. REMATRÍCULAS NO MÊS</th><th>STATUS FAROL</th></tr>
+              </thead>
+              <tbody id="rankBody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      <!-- RECUPERAR SENHA (secretaria) -->
+      <!-- MÓDULO CERTIFICAÇÃO (NOVO) -->
+      <div id="mod-certificacao" class="hidden">
+        <h1 class="pg">Certificação e Concludentes</h1>
+        <p class="sub-pg">Acompanhamento dos alunos diplomados no ano em curso (Ensino Fundamental e Médio)</p>
+        
+        <div class="grid c2" style="margin-bottom:20px">
+          <div class="stat-card">
+            <div class="num" id="countCertEF">0</div>
+            <div class="label">Concludentes do Ensino Fundamental (EF) em <span class="currentYearLabel">2026</span></div>
+          </div>
+          <div class="stat-card">
+            <div class="num" id="countCertEM">0</div>
+            <div class="label">Concludentes do Ensino Médio (EM) em <span class="currentYearLabel">2026</span></div>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <button class="btn red sm" onclick="printSection('printCertificacao')"><i class="fa-solid fa-print"></i> Imprimir Relação de Concludentes</button>
+        </div>
+
+        <div class="tablewrap" id="printCertificacao">
+          <table>
+            <thead class="blue">
+              <tr>
+                <th>MATRÍCULA</th>
+                <th>NOME DO CONCLUDENTE</th>
+                <th>NÍVEL</th>
+                <th>CONTATO</th>
+                <th>PROFESSOR RESPONSÁVEL</th>
+                <th>ANO DE CONCLUSÃO</th>
+              </tr>
+            </thead>
+            <tbody id="certificacaoBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RECUPERAR SENHA (SECRETARIA) -->
       <div id="mod-senha" class="hidden">
         <h1 class="pg">Recuperação e Alteração de Senha</h1>
         <p class="sub-pg">Defina uma nova senha para qualquer usuário de forma imediata, sem precisar da senha antiga.</p>
         <div class="card" style="max-width:440px">
           <label>Selecione o Usuário</label>
           <select id="secSelUser"><option value="">Selecione um perfil...</option><option value="Secretária">Secretária</option></select>
-          <label>Nova Senha</label><input type="password" id="secNewPassAdmin" placeholder="Digite a nova senha">
-          <label>Repita a Nova Senha</label><input type="password" id="secNewPassAdmin2" placeholder="Repita a nova senha">
+          <label>Nova Senha</label>
+          <div class="pass-wrap">
+            <input type="password" id="secNewPassAdmin" placeholder="Digite a nova senha">
+            <button type="button" class="eye-btn" onclick="togglePass('secNewPassAdmin', this)"><i class="fa-solid fa-eye"></i></button>
+          </div>
+          <label>Repita a Nova Senha</label>
+          <div class="pass-wrap">
+            <input type="password" id="secNewPassAdmin2" placeholder="Repita a nova senha">
+            <button type="button" class="eye-btn" onclick="togglePass('secNewPassAdmin2', this)"><i class="fa-solid fa-eye"></i></button>
+          </div>
           <div id="secAdminErr" class="err"></div>
-          <button class="btn" style="width:100%;margin-top:8px" onclick="adminChangePass()">💾 Alterar Senha do Usuário</button>
+          <button class="btn" style="width:100%;margin-top:8px" onclick="adminChangePass()"><i class="fa-solid fa-key"></i> Alterar Senha do Usuário</button>
         </div>
       </div>
 
-      <!-- VISAO DO PROFESSOR -->
+      <!-- VISÃO DO PROFESSOR -->
       <div id="mod-prof-view" class="hidden">
         <h1 class="pg" id="profWelcome"></h1>
         <p class="sub-pg">Acompanhe e registre o retorno de seus alunos evadidos.</p>
@@ -276,22 +402,42 @@ window.CEJA_LOGO_DATA_URI = "data:image/webp;base64,UklGRgQiAABXRUJQVlA4IPghAADw
           <div class="tab" id="ptabRematBtn" onclick="setProfTab('remat')">📝 Minhas Rematrículas Mensais</div>
         </div>
         <div id="ptab-turma">
-          <div class="toolbar"><button class="btn sm" style="background:var(--navy)" onclick="saveAllStudents()">💾 Salvar Alterações</button></div>
+          <div class="toolbar"><button class="btn sm" style="background:var(--navy)" onclick="saveAllStudents()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button></div>
           <div class="tabs">
             <div class="tab gold" id="tabAntigas2" onclick="setSubTab2('antigas')">Matrículas Antigas</div>
             <div class="tab active" id="tabAtuais2" onclick="setSubTab2('atuais')">Matrículas Atuais</div>
           </div>
-          <div class="tablewrap"><table><thead class="blue"><tr>
-            <th>MAT</th><th>ALUNO(A)</th><th>CONTATO</th><th>ÚLT. FREQ.</th><th>SITUAÇÃO</th><th>STATUS</th><th>REMATRÍCULA</th><th>PROFESSOR</th>
-          </tr></thead><tbody id="profStudentsBody"></tbody></table></div>
+          <div class="tablewrap">
+            <table>
+              <thead class="blue">
+                <tr>
+                  <th>MAT</th>
+                  <th>ALUNO(A)</th>
+                  <th>NÍVEL</th>
+                  <th>CONTATO</th>
+                  <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
+                  <th>SITUAÇÃO</th>
+                  <th>STATUS</th>
+                  <th>REMATRÍCULA</th>
+                  <th>PROFESSOR</th>
+                  <th style="text-align:center">CONCLUDENTE</th>
+                </tr>
+              </thead>
+              <tbody id="profStudentsBody"></tbody>
+            </table>
+          </div>
         </div>
         <div id="ptab-remat" class="hidden">
           <div class="tablewrap">
-            <table><thead class="darkgreen"><tr><th>NOME DO ALUNO</th><th>MATRÍCULA</th><th>ÚLT. FREQ.</th><th>RETORNO</th><th>MÊS DA REMATRÍCULA</th><th>PROFESSOR</th><th>AÇÃO</th></tr></thead>
-            <tbody id="profRematBody"></tbody></table>
+            <table>
+              <thead class="darkgreen">
+                <tr><th>NOME DO ALUNO</th><th>MATRÍCULA</th><th>ÚLT. FREQ. (DD/MM/AAAA)</th><th>RETORNO (DD/MM/AAAA)</th><th>MÊS DA REMATRÍCULA</th><th>PROFESSOR</th><th>AÇÃO</th></tr>
+              </thead>
+              <tbody id="profRematBody"></tbody>
+            </table>
           </div>
-          <button class="btn sm" style="margin-top:10px" onclick="addProfRematRow()">+ Adicionar Linha à Tabela</button>
-          <button class="btn sm" style="margin-top:10px;background:var(--navy)" onclick="saveAllRemat()">💾 Salvar Alterações</button>
+          <button class="btn sm" style="margin-top:10px" onclick="addProfRematRow()"><i class="fa-solid fa-plus"></i> Adicionar Linha à Tabela</button>
+          <button class="btn sm" style="margin-top:10px;background:var(--navy)" onclick="saveAllRemat()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
         </div>
       </div>
     </div>
@@ -304,26 +450,29 @@ import {
   getFirestore, collection, doc, getDoc, getDocs, setDoc, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// Carregar Imagem Oficial do Logo do CEJA
+// Carregar Imagem do Logo
 document.getElementById('imgLoginLogo').src = window.CEJA_LOGO_DATA_URI;
 document.getElementById('imgTopLogo').src = window.CEJA_LOGO_DATA_URI;
 
-const firebaseConfig = {
-  apiKey: "SUA_API_KEY",
-  authDomain: "SEU_PROJETO.firebaseapp.com",
-  projectId: "SEU_PROJETO",
-  storageBucket: "SEU_PROJETO.appspot.com",
-  messagingSenderId: "SEU_SENDER_ID",
-  appId: "SEU_APP_ID"
-};
+const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 let PROFESSORES = ["Aldânia Maria de Melo Lima Soares","Aline Dantas Moreira","Ana Gardênia Ximenes Dias","Ana Jéssica Martins Matos","Antonia Carla Victor de Paiva","Antonio Helio Pereira de Farias","Carliana Lima Almeida","Carlos Ely Costa Dias","Francisco de Assis Martins Passos","Francisco José Bezerra Felizola","Glaucia Paiva Timbó","Gonçalinha Rodrigues Martins","Itala Futado Dias","José Airton Ferreira de Mesquita","Marcília Felipe da Costa","Maria Siloneida de Farias","Maria Sueli Bernardo de Lima","Maria Suely Rodrigues Araujo","Pedro Furtuna da Silva","Reinaldo Inacio Barbalho","Sabrina Farias Camelo","Samuel Martins de Sousa","Silvia Helena Peres Dias","Tatiana Maria de Aragão Paiva"];
+
+// Ordenar Professores Inicialmente
+sortProfessors();
+
 const SEC_PASS_KEY_DEFAULT = "Secretaria23231939";
 let dbNS=null, session=null, students=[], rematriculas=[], remCounts={}, resetTarget='sec';
 let anosCriados=['2026'], currentAno='2026';
+let selectedRematYear='2026', selectedRematMonth='Setembro';
+let selectedFarolYear='2026', selectedFarolMonth='Setembro';
 let currentSubTab = 'atuais';
 let currentSubTab2 = 'atuais';
 let currentProfTab = 'turma';
+
+function sortProfessors(){
+  PROFESSORES.sort((a,b)=>a.localeCompare(b, 'pt-BR', {sensitivity:'base'}));
+}
 
 function normName(n){ return (n||'').trim().toLowerCase(); }
 
@@ -347,86 +496,117 @@ function makeDbNS(db){
 }
 
 async function boot(){
-  try{ 
-    if(firebaseConfig.apiKey !== "SUA_API_KEY"){
-      const firebaseApp = initializeApp(firebaseConfig);
-      const firestoreDb = getFirestore(firebaseApp);
-      dbNS = makeDbNS(firestoreDb); 
-    }
-  }catch(e){ dbNS=null; }
   loadProfessorsLocal(); loadAnosLocal();
-  if(dbNS){
-    try{
-      const snap = await dbNS.collection('students').get();
-      if(!snap || !snap.docs || snap.docs.length===0){ await seedStudents(); }
-      dbNS.collection('students').onSnapshot(s=>{ students = s.docs.map(d=>({id:d.id,...d.data()})); renderAll(); });
-      const pdoc = await dbNS.doc('meta/professors').get().catch(()=>null);
-      if(pdoc && pdoc.data && pdoc.data() && pdoc.data().list){ PROFESSORES = pdoc.data().list; }
-      dbNS.doc('meta/professors').onSnapshot(d=>{ const dt=d.data(); if(dt&&dt.list){ PROFESSORES=dt.list; renderAll(); } });
-      const rdoc = await dbNS.doc('meta/rematriculas').get().catch(()=>null);
-      if(rdoc && rdoc.data && rdoc.data()){ rematriculas = rdoc.data().list||[]; remCounts = rdoc.data().counts||{}; }
-      dbNS.doc('meta/rematriculas').onSnapshot(d=>{ const dt=d.data(); if(dt){ rematriculas=dt.list||[]; remCounts=dt.counts||{}; renderAll(); } });
-      const adoc = await dbNS.doc('meta/anos').get().catch(()=>null);
-      if(adoc && adoc.data && adoc.data() && adoc.data().list && adoc.data().list.length){ anosCriados = adoc.data().list; }
-      dbNS.doc('meta/anos').onSnapshot(d=>{ const dt=d.data(); if(dt&&dt.list&&dt.list.length){ anosCriados=dt.list; renderAll(); } });
-    }catch(e){ await seedStudents(); renderAll(); }
-  } else {
-    const local = localStorage.getItem('dc_students');
-    students = local ? JSON.parse(local) : seedData();
-    rematriculas = JSON.parse(localStorage.getItem('dc_remat')||'[]');
-    remCounts = JSON.parse(localStorage.getItem('dc_remcounts')||'{}');
-    renderAll();
-  }
+  loadSavedLoginCredentials();
+  
+  const local = localStorage.getItem('dc_students');
+  students = local ? JSON.parse(local) : seedData();
+  rematriculas = JSON.parse(localStorage.getItem('dc_remat')||'[]');
+  remCounts = JSON.parse(localStorage.getItem('dc_remcounts')||'{}');
+  
+  sortYears();
   currentAno = anosCriados[0] || '2026';
+  selectedRematYear = currentAno;
+  selectedFarolYear = currentAno;
+
   buildProfessorFilter(); tickClock(); setInterval(tickClock,1000);
   prefillFromLink();
   tryAutoLogin();
+  renderAll();
 }
 
-function loadAnosLocal(){ const l=localStorage.getItem('dc_anos'); if(l){ const arr=JSON.parse(l); if(arr && arr.length) anosCriados=arr; } }
-async function persistAnos(){
-  if(dbNS){ try{ await dbNS.doc('meta/anos').set({list:anosCriados}); }catch(e){} }
-  else { localStorage.setItem('dc_anos', JSON.stringify(anosCriados)); }
+function sortYears(){
+  anosCriados.sort((a,b)=>parseInt(b)-parseInt(a));
 }
+
+function loadAnosLocal(){ 
+  const l=localStorage.getItem('dc_anos'); 
+  if(l){ const arr=JSON.parse(l); if(arr && arr.length) anosCriados=arr; } 
+  else { anosCriados = ['2026']; }
+  sortYears();
+}
+
+async function persistAnos(){
+  sortYears();
+  localStorage.setItem('dc_anos', JSON.stringify(anosCriados));
+}
+
 function prefillFromLink(){
   const p=new URLSearchParams(location.search).get('prof');
   if(p){ setLoginTab('prof'); const inp=document.getElementById('profNameInput'); if(inp) inp.value=p; }
 }
-function loadProfessorsLocal(){ const l=localStorage.getItem('dc_professors'); if(l) PROFESSORES=JSON.parse(l); }
-function persistProfessorsLocal(){ localStorage.setItem('dc_professors', JSON.stringify(PROFESSORES)); }
+
+function loadProfessorsLocal(){ 
+  const l=localStorage.getItem('dc_professors'); 
+  if(l) PROFESSORES=JSON.parse(l); 
+  sortProfessors();
+}
+
+function persistProfessorsLocal(){ 
+  sortProfessors();
+  localStorage.setItem('dc_professors', JSON.stringify(PROFESSORES)); 
+}
+
 async function saveProfessors(){
-  if(dbNS){ try{ await dbNS.doc('meta/professors').set({list:PROFESSORES}); }catch(e){} }
-  else { persistProfessorsLocal(); }
+  persistProfessorsLocal();
   buildProfessorFilter();
   renderAll();
+  alert('Lista de professores atualizada e salva!');
 }
 
 function seedData(){
   const base=[
-    ["520","FRANCISCO DANIEL RIBEIRO DE MORAES","","2026-08-27",28,"Samuel Martins de Sousa"],
-    ["740","CARLOS ALBERTO INÁCIO DE OLIVEIRA","","2026-06-10",106,"Samuel Martins de Sousa"],
-    ["765","ANDREA LOPES ALVES DO NASCIMENTO","","2026-06-23",93,"Aline Dantas Moreira"],
-    ["1590","NAZELIA ALVES RODRIGUES","88993610217","2026-09-21",3,"Carliana Lima Almeida"],
-    ["1601","IURI RIBEIRO MATOS","88996514766","2026-09-16",8,"Glaucia Paiva Timbó"],
-    ["3200","MARIA EDWIRGES RODRIGUES DA SILVA","88999604881","2026-09-21",3,"Pedro Furtuna da Silva"],
-    ["3424","ANTONIO DE PAIVA MANSO","88982206664","2026-09-22",2,"Pedro Furtuna da Silva"]
+    ["520","FRANCISCO DANIEL RIBEIRO DE MORAES","EM","","2026-08-27",28,"Samuel Martins de Sousa", false],
+    ["740","CARLOS ALBERTO INÁCIO DE OLIVEIRA","EF","","2026-06-10",106,"Samuel Martins de Sousa", false],
+    ["765","ANDREA LOPES ALVES DO NASCIMENTO","EM","","2026-06-23",93,"Aline Dantas Moreira", false],
+    ["1590","NAZELIA ALVES RODRIGUES","EF","88993610217","2026-09-21",3,"Carliana Lima Almeida", false],
+    ["1601","IURI RIBEIRO MATOS","EM","88996514766","2026-09-16",8,"Glaucia Paiva Timbó", false]
   ];
-  return base.map((r,i)=>({id:'s'+i,mat:r[0],aluno:r[1],contato:r[2],ultimaFreq:r[3],rematricula:r[4],professor:r[5],ano:'2026'}));
+  return base.map((r,i)=>({id:'s'+Date.now()+i,mat:r[0],aluno:r[1],nivel:r[2],contato:r[3],ultimaFreq:r[4],rematricula:r[5],professor:r[6],concludente:r[7],ano:'2026'}));
 }
-async function seedStudents(){ const data=seedData(); if(dbNS){ for(const s of data){ try{ await dbNS.doc('students/'+s.id).set(s); }catch(e){} } } students=data; }
-function persistLocal(){ if(!dbNS) localStorage.setItem('dc_students', JSON.stringify(students)); }
 
-function toBR(iso){ if(!iso) return ''; const p=iso.split('-'); return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : iso; }
-function toISO(br){ if(!br) return ''; const m=br.match(/^(\d{2})\/(\d{2})\/(\d{4})$/); if(!m) return ''; return m[3]+'-'+m[2]+'-'+m[1]; }
-function diasDesde(dateStr){ if(!dateStr) return 999; const d=new Date(dateStr); return Math.floor((new Date()-d)/86400000); }
-function situacaoStatus(dateStr){ const dias=diasDesde(dateStr); if(dias<=30) return {situacao:'Ativo',cls:'g'}; if(dias<=59) return {situacao:'Pré-evadido',cls:'y'}; return {situacao:'Evadido',cls:'r'}; }
+function persistLocal(){ localStorage.setItem('dc_students', JSON.stringify(students)); }
+
+// Conversão estrita de datas DD/MM/AAAA <-> YYYY-MM-DD
+function toBR(dateStr){ 
+  if(!dateStr) return ''; 
+  if(dateStr.match(/^\d{4}-\d{2}-\d{2}$/)){
+    const p=dateStr.split('-');
+    return `${p[2]}/${p[1]}/${p[0]}`;
+  }
+  return dateStr;
+}
+
+function toISO(brStr){ 
+  if(!brStr) return ''; 
+  if(brStr.match(/^\d{2}\/\d{2}\/\d{4}$/)){
+    const p=brStr.split('/');
+    return `${p[2]}-${p[1]}-${p[0]}`;
+  }
+  return brStr;
+}
+
+function diasDesde(dateStr){ 
+  if(!dateStr) return 999; 
+  const iso = toISO(dateStr);
+  const d=new Date(iso); 
+  return Math.floor((new Date()-d)/86400000); 
+}
+
+function situacaoStatus(dateStr){ 
+  const dias=diasDesde(dateStr); 
+  if(dias<=30) return {situacao:'Ativo',cls:'g'}; 
+  if(dias<=59) return {situacao:'Pré-evadido',cls:'y'}; 
+  return {situacao:'Evadido',cls:'r'}; 
+}
 
 function renderAnosPills(){
   const wrap=document.getElementById('anosPills'); if(!wrap) return; wrap.innerHTML='';
+  sortYears();
   anosCriados.forEach(a=>{
     const d=document.createElement('div'); d.className='tab'+(a===currentAno?' active':'');
     d.textContent='📅 '+a;
-    d.onclick=()=>{ currentAno=a; setSubTab('atuais'); };
+    d.onclick=()=>{ currentAno=a; renderAll(); };
     wrap.appendChild(d);
   });
 }
@@ -448,11 +628,33 @@ function tickClock(){
   const el=document.getElementById('clockBox'); if(el) el.textContent='🕐 '+t+' - '+d;
 }
 
+function togglePass(inputId, btnEl){
+  const inp = document.getElementById(inputId);
+  if(!inp) return;
+  if(inp.type === 'password'){
+    inp.type = 'text';
+    btnEl.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+  } else {
+    inp.type = 'password';
+    btnEl.innerHTML = '<i class="fa-solid fa-eye"></i>';
+  }
+}
+
 function setLoginTab(t){
   document.getElementById('pillSec').classList.toggle('active',t==='sec');
   document.getElementById('pillProf').classList.toggle('active',t==='prof');
   document.getElementById('secForm').classList.toggle('hidden',t!=='sec');
   document.getElementById('profForm').classList.toggle('hidden',t!=='prof');
+}
+
+function loadSavedLoginCredentials(){
+  const secPass = localStorage.getItem('dc_saved_sec_pass') || 'Secretaria23231939';
+  document.getElementById('secPass').value = secPass;
+
+  const profName = localStorage.getItem('dc_saved_prof_name') || '';
+  const profPass = localStorage.getItem('dc_saved_prof_pass') || '';
+  if(profName) document.getElementById('profNameInput').value = profName;
+  if(profPass) document.getElementById('profPass').value = profPass;
 }
 
 function openReset(which){
@@ -461,7 +663,6 @@ function openReset(which){
   document.getElementById('resetArea').classList.remove('hidden');
   document.getElementById('resetTitle').textContent = which==='sec' ? 'Esqueci minha senha — Secretária' : 'Esqueci minha senha — Professor(a)';
   document.getElementById('resetNameWrap').classList.toggle('hidden', which==='sec');
-  document.getElementById('resetProfName').value=''; document.getElementById('resetPass1').value=''; document.getElementById('resetPass2').value=''; document.getElementById('resetErr').textContent='';
 }
 
 function closeReset(){ document.getElementById('loginFormArea').classList.remove('hidden'); document.getElementById('resetArea').classList.add('hidden'); }
@@ -470,31 +671,31 @@ function doReset(){
   const p1=document.getElementById('resetPass1').value, p2=document.getElementById('resetPass2').value;
   const err=document.getElementById('resetErr');
   if(!p1||p1!==p2){ err.textContent='As senhas não coincidem.'; return; }
-  if(resetTarget==='sec'){ localStorage.setItem('sec_pass_current',p1); localStorage.setItem('sec_first_done','1'); }
-  else {
+  if(resetTarget==='sec'){ 
+    localStorage.setItem('sec_pass_current',p1); 
+    localStorage.setItem('dc_saved_sec_pass', p1);
+  } else {
     const name=document.getElementById('resetProfName').value.trim();
     const match=PROFESSORES.find(p=>normName(p)===normName(name));
     if(!match){ err.textContent='Nome de professor não encontrado.'; return; }
     localStorage.setItem('prof_pass_'+match,p1);
+    localStorage.setItem('dc_saved_prof_pass', p1);
   }
   closeReset();
-  alert('Senha redefinida com sucesso. Você já pode entrar com a nova senha.');
+  alert('Senha redefinida com sucesso.');
 }
 
 function loginSecretaria(){
   const pass=document.getElementById('secPass').value;
   const currentPass = localStorage.getItem('sec_pass_current') || SEC_PASS_KEY_DEFAULT;
-  const firstAccess = localStorage.getItem('sec_first_done')!=='1';
   if(pass!==currentPass){ document.getElementById('secErr').textContent='Senha incorreta.'; return; }
-  if(firstAccess){
-    const rec=document.getElementById('secRecovery');
-    if(rec.classList.contains('hidden')){ rec.classList.remove('hidden'); return; }
-    const email=document.getElementById('secEmail').value;
-    if(!email){ document.getElementById('secErr').textContent='Informe um e-mail de recuperação.'; return; }
-    localStorage.setItem('sec_first_done','1'); localStorage.setItem('sec_email',email);
+  
+  if(document.getElementById('secKeep').checked){
+    localStorage.setItem('dc_saved_sec_pass', pass);
   }
+
   session={role:'secretaria'};
-  if(document.getElementById('secKeep').checked) localStorage.setItem('dc_session', JSON.stringify(session));
+  localStorage.setItem('dc_session', JSON.stringify(session));
   enterApp();
 }
 
@@ -503,26 +704,32 @@ function loginProfessor(){
   const pass=document.getElementById('profPass').value;
   const err=document.getElementById('profErr');
   const match=PROFESSORES.find(p=>normName(p)===normName(name));
-  if(!match){ err.textContent='Professor não encontrado. Verifique o nome digitado.'; return; }
+  if(!match){ err.textContent='Professor não encontrado. Verifique o nome.'; return; }
+  
   const key='prof_pass_'+match;
-  const stored=localStorage.getItem(key);
-  const fa=document.getElementById('profFirstAccess');
-  if(!stored){
-    if(pass!=='12345'){ err.textContent='No primeiro acesso use a senha universal 12345.'; return; }
-    if(fa.classList.contains('hidden')){ fa.classList.remove('hidden'); return; }
-    const np=document.getElementById('profNewPass').value, em=document.getElementById('profEmail').value;
-    if(!np||!em){ err.textContent='Defina a nova senha e o e-mail de recuperação.'; return; }
-    localStorage.setItem(key,np); localStorage.setItem('prof_email_'+match,em);
-  } else {
-    if(pass!==stored){ err.textContent='Senha incorreta.'; return; }
+  const stored=localStorage.getItem(key) || '12345';
+  if(pass!==stored){ err.textContent='Senha incorreta.'; return; }
+
+  if(document.getElementById('profKeep').checked){
+    localStorage.setItem('dc_saved_prof_name', match);
+    localStorage.setItem('dc_saved_prof_pass', pass);
   }
+
   session={role:'professor',name:match};
-  if(document.getElementById('profKeep').checked) localStorage.setItem('dc_session', JSON.stringify(session));
+  localStorage.setItem('dc_session', JSON.stringify(session));
   enterApp();
 }
 
-function tryAutoLogin(){ const s=localStorage.getItem('dc_session'); if(s){ session=JSON.parse(s); enterApp(); } }
-function doLogout(){ localStorage.removeItem('dc_session'); session=null; location.reload(); }
+function tryAutoLogin(){ 
+  const s=localStorage.getItem('dc_session'); 
+  if(s){ session=JSON.parse(s); enterApp(); } 
+}
+
+function doLogout(){ 
+  localStorage.removeItem('dc_session'); 
+  session=null; 
+  location.reload(); 
+}
 
 function enterApp(){
   document.getElementById('loginView').classList.add('hidden');
@@ -530,7 +737,10 @@ function enterApp(){
   const isSec = session.role==='secretaria';
   document.getElementById('whoami').textContent = isSec ? 'DIRETOR DE COMUNIDADE • AMBIENTE DA SECRETÁRIA' : 'DIRETOR DE COMUNIDADE • AMBIENTE DO PROFESSOR';
   document.getElementById('sidebarSec').classList.toggle('hidden',!isSec);
-  ['mod-alunos','mod-profs','mod-remat','mod-farol','mod-senha'].forEach(id=>document.getElementById(id).classList.toggle('hidden',!isSec));
+  ['mod-alunos','mod-profs','mod-remat','mod-farol','mod-certificacao','mod-senha'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.classList.toggle('hidden',!isSec);
+  });
   document.getElementById('mod-prof-view').classList.toggle('hidden',isSec);
   
   if(isSec){ 
@@ -544,7 +754,7 @@ function enterApp(){
 }
 
 function setModule(mod){
-  ['alunos','profs','remat','farol','senha'].forEach(m=>{
+  ['alunos','profs','remat','farol','certificacao','senha'].forEach(m=>{
     const el = document.getElementById('mod-'+m);
     if(el) el.classList.toggle('hidden', m!==mod);
   });
@@ -581,33 +791,49 @@ function renderAll(){
   renderAnosPills();
   renderTable();
   renderProfs();
-  renderRemat();
-  renderFarol();
+  renderRematModule();
+  renderFarolModule();
+  renderCertificacaoModule();
   if(session && session.role==='professor') renderProfView();
 }
 
 function filterStudentsList(list, subtabFilter, yearFilter, profFilter){
   return list.filter(s=>{
-    if(s.ano && s.ano !== yearFilter) return false;
     if(profFilter && s.professor !== profFilter) return false;
-    const st = situacaoStatus(s.ultimaFreq);
-    if(subtabFilter==='atuais') return st.situacao !== 'Evadido';
-    return st.situacao === 'Evadido';
+    
+    // Matrículas Atuais = Ano selecionado e NÃO Concludente
+    if(subtabFilter==='atuais'){
+      return (s.ano === yearFilter) && (!s.concludente);
+    }
+    // Matrículas Antigas = Marcados como Concludente OU de anos anteriores
+    return (s.concludente) || (s.ano < yearFilter);
   });
 }
 
-function buildStudentRowHTML(s, isReadOnlyProf=false){
+function buildStudentRowHTML(s, isSecretaria=true){
   const st = situacaoStatus(s.ultimaFreq);
   let optionsProf = PROFESSORES.map(p=>`<option value="${p}" ${s.professor===p?'selected':''}>${p}</option>`).join('');
+  const dateFormatted = toBR(s.ultimaFreq);
+
   return `<tr data-id="${s.id}">
-    <td>${s.mat||''}</td>
+    <td><input class="cell" value="${s.mat||''}" data-field="mat" style="width:65px"></td>
     <td><input class="cell" value="${s.aluno||''}" data-field="aluno"></td>
+    <td>
+      <select class="cell" data-field="nivel">
+        <option value="EF" ${s.nivel==='EF'?'selected':''}>EF</option>
+        <option value="EM" ${s.nivel==='EM'?'selected':''}>EM</option>
+      </select>
+    </td>
     <td><input class="cell" value="${s.contato||''}" data-field="contato"></td>
-    <td><input class="cell" type="date" value="${s.ultimaFreq||''}" data-field="ultimaFreq"></td>
+    <td><input class="cell" value="${dateFormatted}" data-field="ultimaFreq" placeholder="DD/MM/AAAA" style="width:105px"></td>
     <td>${st.situacao}</td>
     <td><span class="badge ${st.cls}">${st.situacao}</span></td>
-    <td><input class="cell" type="number" value="${s.rematricula||0}" data-field="rematricula" style="width:60px"></td>
+    <td><input class="cell" type="number" value="${s.rematricula||0}" data-field="rematricula" style="width:55px"></td>
     <td><select class="cell" data-field="professor"><option value="">Selecione...</option>${optionsProf}</select></td>
+    <td style="text-align:center">
+      <input type="checkbox" data-field="concludente" ${s.concludente?'checked':''} style="width:18px;height:18px;cursor:pointer">
+    </td>
+    ${isSecretaria ? `<td style="text-align:center"><button type="button" class="btn-plus" onclick="addNewStudentRow()" title="Adicionar Novo Estudante">+</button></td>` : ''}
   </tr>`;
 }
 
@@ -615,11 +841,30 @@ function renderTable(){
   const body = document.getElementById('studentsBody'); if(!body) return;
   const filterP = document.getElementById('filtroProfessor')?.value || '';
   const list = filterStudentsList(students, currentSubTab, currentAno, filterP);
-  body.innerHTML = list.map(s => buildStudentRowHTML(s)).join('');
+  body.innerHTML = list.map(s => buildStudentRowHTML(s, true)).join('');
+}
+
+function addNewStudentRow(){
+  const newStudent = {
+    id: 's' + Date.now(),
+    mat: '',
+    aluno: 'NOVO ESTUDANTE',
+    nivel: 'EM',
+    contato: '',
+    ultimaFreq: toISO(new Date().toLocaleDateString('pt-BR')),
+    rematricula: 0,
+    professor: session?.role === 'professor' ? session.name : '',
+    concludente: false,
+    ano: currentAno
+  };
+  students.push(newStudent);
+  persistLocal();
+  renderAll();
 }
 
 function renderProfs(){
   const list = document.getElementById('profList'); if(!list) return;
+  sortProfessors();
   document.getElementById('profCount').textContent = PROFESSORES.length;
   list.innerHTML = PROFESSORES.map(p => {
     const link = window.location.origin + window.location.pathname + '?prof=' + encodeURIComponent(p);
@@ -627,32 +872,105 @@ function renderProfs(){
       <b>${p}</b>
       <div class="muted" style="margin-top:4px;word-break:break-all">${link}</div>
       <div style="margin-top:8px;display:flex;gap:6px">
-        <button class="btn sm" onclick="copyProfLink('${p}')">📋 Copiar Link</button>
-        <button class="btn red sm" onclick="deleteProfessor('${p}')">🗑 Excluir</button>
+        <button class="btn sm" onclick="copyProfLink('${p}')"><i class="fa-solid fa-copy"></i> Copiar Link</button>
+        <button class="btn red sm" onclick="deleteProfessor('${p}')"><i class="fa-solid fa-trash"></i> Excluir</button>
       </div>
     </div>`;
   }).join('');
 }
 
-function renderRemat(){
-  const body = document.getElementById('rematBody'); if(!body) return;
-  body.innerHTML = rematriculas.map(r=>`<tr>
+// REMATRÍCULA MENSAL POR ANO E MÊS
+function addNewYearRemat(){
+  const inp = document.getElementById('addYearRemat');
+  const val = inp.value.trim();
+  if(val && !anosCriados.includes(val)){
+    anosCriados.push(val);
+    persistAnos();
+    selectedRematYear = val;
+    renderRematModule();
+  }
+  inp.value = '';
+}
+
+function renderRematModule(){
+  const wrapYears = document.getElementById('rematYearsPills'); if(!wrapYears) return;
+  wrapYears.innerHTML = '';
+  sortYears();
+  anosCriados.forEach(y=>{
+    const d = document.createElement('div'); d.className = 'tab' + (y === selectedRematYear ? ' active' : '');
+    d.textContent = '📅 Ano ' + y;
+    d.onclick = () => { selectedRematYear = y; renderRematModule(); };
+    wrapYears.appendChild(d);
+  });
+
+  document.getElementById('rematYearTitle').textContent = `Selecione o Mês (${selectedRematYear}):`;
+  const wrapMonths = document.getElementById('rematMonthsGrid');
+  wrapMonths.innerHTML = MESES.map(m => `<div class="month-card ${m === selectedRematMonth ? 'active' : ''}" onclick="selectRematMonth('${m}')">🗓️ ${m}</div>`).join('');
+
+  renderRematTable();
+}
+
+function selectRematMonth(m){
+  selectedRematMonth = m;
+  renderRematModule();
+}
+
+function renderRematTable(){
+  const detail = document.getElementById('rematMonthDetail');
+  detail.classList.remove('hidden');
+  document.getElementById('rematMonthTitle').textContent = `Rematrículas do Mês: ${selectedRematMonth} / ${selectedRematYear}`;
+
+  const filtered = rematriculas.filter(r => (r.mes === selectedRematMonth) && (r.ano === selectedRematYear || !r.ano));
+  const body = document.getElementById('rematBody');
+  body.innerHTML = filtered.map(r=>`<tr>
     <td>${r.aluno||''}</td>
     <td>${r.mat||''}</td>
     <td>${toBR(r.ultFreq)}</td>
     <td>${toBR(r.retorno)}</td>
-    <td>${r.mes||''}</td>
+    <td>${r.mes||selectedRematMonth} / ${r.ano||selectedRematYear}</td>
     <td>${r.prof||''}</td>
   </tr>`).join('');
-  document.getElementById('rematEmpty').classList.toggle('hidden', rematriculas.length>0);
+  document.getElementById('rematEmpty').classList.toggle('hidden', filtered.length>0);
 }
 
-function renderFarol(){
+// FAROL DE REMATRÍCULA POR ANO E MÊS
+function renderFarolModule(){
+  const wrapYears = document.getElementById('farolYearsPills'); if(!wrapYears) return;
+  wrapYears.innerHTML = '';
+  sortYears();
+  anosCriados.forEach(y=>{
+    const d = document.createElement('div'); d.className = 'tab' + (y === selectedFarolYear ? ' active' : '');
+    d.textContent = '📅 Ano ' + y;
+    d.onclick = () => { selectedFarolYear = y; renderFarolModule(); };
+    wrapYears.appendChild(d);
+  });
+
+  document.getElementById('farolYearTitle').textContent = `Selecione o Mês (${selectedFarolYear}):`;
+  const wrapMonths = document.getElementById('farolMonthsGrid');
+  wrapMonths.innerHTML = MESES.map(m => `<div class="month-card ${m === selectedFarolMonth ? 'active' : ''}" onclick="selectFarolMonth('${m}')">🚨 ${m}</div>`).join('');
+
+  renderFarolTable();
+}
+
+function selectFarolMonth(m){
+  selectedFarolMonth = m;
+  renderFarolModule();
+}
+
+function renderFarolTable(){
+  document.getElementById('farolMonthDetail').classList.remove('hidden');
+  document.getElementById('farolMonthTitle').textContent = `Ranking Farol: ${selectedFarolMonth} / ${selectedFarolYear}`;
+
   const body = document.getElementById('rankBody'); if(!body) return;
   const counts = {};
   PROFESSORES.forEach(p=>counts[p]=0);
-  rematriculas.forEach(r=>{ if(counts[r.prof]!==undefined) counts[r.prof]++; });
-  
+
+  rematriculas.forEach(r=>{
+    if((r.mes === selectedFarolMonth) && (r.ano === selectedFarolYear || !r.ano)){
+      if(counts[r.prof]!==undefined) counts[r.prof]++;
+    }
+  });
+
   const sorted = PROFESSORES.map(p=>({name:p, count:counts[p]})).sort((a,b)=>b.count-a.count);
   body.innerHTML = sorted.map(item=>{
     let badge = '<span class="badge r">Vermelho</span>';
@@ -662,13 +980,34 @@ function renderFarol(){
   }).join('');
 }
 
+// MÓDULO CERTIFICAÇÃO
+function renderCertificacaoModule(){
+  const concludentes = students.filter(s => s.concludente && s.ano === currentAno);
+  const efCount = concludentes.filter(s => s.nivel === 'EF').length;
+  const emCount = concludentes.filter(s => s.nivel === 'EM').length;
+
+  document.getElementById('countCertEF').textContent = efCount;
+  document.getElementById('countCertEM').textContent = emCount;
+  document.querySelectorAll('.currentYearLabel').forEach(el=>el.textContent = currentAno);
+
+  const body = document.getElementById('certificacaoBody');
+  body.innerHTML = concludentes.map(s => `<tr>
+    <td>${s.mat||'--'}</td>
+    <td><b>${s.aluno}</b></td>
+    <td><span class="badge g">${s.nivel||'EM'}</span></td>
+    <td>${s.contato||'--'}</td>
+    <td>${s.professor||'--'}</td>
+    <td>${s.ano}</td>
+  </tr>`).join('');
+}
+
 function renderProfView(){
   if(!session || session.role!=='professor') return;
   const myName = session.name;
   const bodyTurma = document.getElementById('profStudentsBody');
   if(bodyTurma){
     const myStudents = filterStudentsList(students, currentSubTab2, currentAno, myName);
-    bodyTurma.innerHTML = myStudents.map(s=>buildStudentRowHTML(s)).join('');
+    bodyTurma.innerHTML = myStudents.map(s=>buildStudentRowHTML(s, false)).join('');
   }
   const bodyRemat = document.getElementById('profRematBody');
   if(bodyRemat){
@@ -676,11 +1015,11 @@ function renderProfView(){
     bodyRemat.innerHTML = myRemat.map((r,idx)=>`<tr>
       <td><input class="cell" value="${r.aluno||''}" onchange="updateProfRemat(${idx},'aluno',this.value)"></td>
       <td><input class="cell" value="${r.mat||''}" onchange="updateProfRemat(${idx},'mat',this.value)"></td>
-      <td><input class="cell" type="date" value="${r.ultFreq||''}" onchange="updateProfRemat(${idx},'ultFreq',this.value)"></td>
-      <td><input class="cell" type="date" value="${r.retorno||''}" onchange="updateProfRemat(${idx},'retorno',this.value)"></td>
-      <td><input class="cell" value="${r.mes||''}" onchange="updateProfRemat(${idx},'mes',this.value)"></td>
+      <td><input class="cell" value="${toBR(r.ultFreq)}" onchange="updateProfRemat(${idx},'ultFreq',this.value)" placeholder="DD/MM/AAAA"></td>
+      <td><input class="cell" value="${toBR(r.retorno)}" onchange="updateProfRemat(${idx},'retorno',this.value)" placeholder="DD/MM/AAAA"></td>
+      <td><input class="cell" value="${r.mes||selectedRematMonth}" onchange="updateProfRemat(${idx},'mes',this.value)"></td>
       <td>${myName}</td>
-      <td><button class="btn red sm" onclick="deleteProfRematRow(${idx})">🗑</button></td>
+      <td><button class="btn red sm" onclick="deleteProfRematRow(${idx})"><i class="fa-solid fa-trash"></i></button></td>
     </tr>`).join('');
   }
 }
@@ -691,6 +1030,7 @@ function addProfessor(){
   if(!name) return;
   if(!PROFESSORES.includes(name)){
     PROFESSORES.push(name);
+    sortProfessors();
     saveProfessors();
   }
   inp.value = '';
@@ -699,13 +1039,14 @@ function addProfessor(){
 function deleteProfessor(name){
   if(confirm(`Deseja remover o professor "${name}"?`)){
     PROFESSORES = PROFESSORES.filter(p=>p!==name);
+    sortProfessors();
     saveProfessors();
   }
 }
 
 function copyProfLink(p){
   const link = window.location.origin + window.location.pathname + '?prof=' + encodeURIComponent(p);
-  navigator.clipboard.writeText(link).then(()=>alert('Link copiado!'));
+  navigator.clipboard.writeText(link).then(()=>alert('Link copiado com sucesso!'));
 }
 
 async function saveEstudantesModule(){
@@ -726,9 +1067,14 @@ async function saveAllStudents(){
     const st = students.find(s=>s.id===id);
     if(st){
       row.querySelectorAll('[data-field]').forEach(input=>{
-        st[input.dataset.field] = input.value;
+        if(input.type === 'checkbox'){
+          st[input.dataset.field] = input.checked;
+        } else if(input.dataset.field === 'ultimaFreq'){
+          st[input.dataset.field] = toISO(input.value);
+        } else {
+          st[input.dataset.field] = input.value;
+        }
       });
-      if(dbNS){ await dbNS.doc('students/'+st.id).set(st); }
     }
   }
   persistLocal();
@@ -738,13 +1084,21 @@ async function saveAllStudents(){
 function updateProfRemat(idx, field, val){
   const myRemat = rematriculas.filter(r=>r.prof===session.name);
   if(myRemat[idx]){
-    myRemat[idx][field] = val;
+    myRemat[idx][field] = (field==='ultFreq'||field==='retorno') ? toISO(val) : val;
   }
 }
 
 function addProfRematRow(){
   if(!session || session.role!=='professor') return;
-  rematriculas.push({aluno:'', mat:'', ultFreq:'', retorno:'', mes:'', prof:session.name});
+  rematriculas.push({
+    aluno:'', 
+    mat:'', 
+    ultFreq: toISO(new Date().toLocaleDateString('pt-BR')), 
+    retorno: toISO(new Date().toLocaleDateString('pt-BR')), 
+    mes: selectedRematMonth, 
+    ano: selectedRematYear,
+    prof: session.name
+  });
   renderProfView();
 }
 
@@ -758,8 +1112,7 @@ function deleteProfRematRow(idx){
 }
 
 async function saveAllRemat(){
-  if(dbNS){ try{ await dbNS.doc('meta/rematriculas').set({list:rematriculas, counts:remCounts}); }catch(e){} }
-  else { localStorage.setItem('dc_remat', JSON.stringify(rematriculas)); }
+  localStorage.setItem('dc_remat', JSON.stringify(rematriculas));
   renderAll();
   alert('Rematrículas salvas com sucesso!');
 }
@@ -772,6 +1125,7 @@ function adminChangePass(){
   if(!user || !p1 || p1!==p2){ err.textContent='Selecione um usuário e digite senhas coincidentes.'; return; }
   if(user==='Secretária'){
     localStorage.setItem('sec_pass_current', p1);
+    localStorage.setItem('dc_saved_sec_pass', p1);
   } else {
     localStorage.setItem('prof_pass_'+user, p1);
   }
@@ -780,25 +1134,26 @@ function adminChangePass(){
 }
 
 function exportCSV(){
-  let csv = "MAT;ALUNO;CONTATO;ULTIMA_FREQ;SITUACAO;REMATRICULAS;PROFESSOR\n";
+  let csv = "MAT;ALUNO;NIVEL;CONTATO;ULTIMA_FREQ;SITUACAO;REMATRICULAS;PROFESSOR;CONCLUDENTE\n";
   students.forEach(s=>{
     const st = situacaoStatus(s.ultimaFreq);
-    csv += `"${s.mat||''}';'${s.aluno||''}';'${s.contato||''}';'${s.ultimaFreq||''}';'${st.situacao}';'${s.rematricula||0}';'${s.professor||''}"\n`;
+    csv += `"${s.mat||''}';'${s.aluno||''}';'${s.nivel||'EM'}';'${s.contato||''}';'${toBR(s.ultimaFreq)}';'${st.situacao}';'${s.rematricula||0}';'${s.professor||''}';'${s.concludente?'SIM':'NÃO'}"\n`;
   });
   downloadFile(csv, 'estudantes.csv', 'text/csv;charset=utf-8;');
 }
 
 function exportCSVRemat(){
-  let csv = "ESTUDANTE;MATRICULA;ULT_FREQ;RETORNO;MES;PROFESSOR\n";
-  rematriculas.forEach(r=>{
-    csv += `"${r.aluno||''}';'${r.mat||''}';'${r.ultFreq||''}';'${r.retorno||''}';'${r.mes||''}';'${r.prof||''}"\n`;
+  let csv = "ESTUDANTE;MATRICULA;ULT_FREQ;RETORNO;MES_ANO;PROFESSOR\n";
+  const filtered = rematriculas.filter(r => (r.mes === selectedRematMonth) && (r.ano === selectedRematYear || !r.ano));
+  filtered.forEach(r=>{
+    csv += `"${r.aluno||''}';'${r.mat||''}';'${toBR(r.ultFreq)}';'${toBR(r.retorno)}';'${r.mes}/${r.ano}';'${r.prof||''}"\n`;
   });
-  downloadFile(csv, 'rematriculas.csv', 'text/csv;charset=utf-8;');
+  downloadFile(csv, `rematriculas_${selectedRematMonth}_${selectedRematYear}.csv`, 'text/csv;charset=utf-8;');
 }
 
 function exportFarolWord(){
   const html = document.getElementById('printFarol').outerHTML;
-  downloadFile(html, 'farol.doc', 'application/msword');
+  downloadFile(html, `farol_${selectedFarolMonth}_${selectedFarolYear}.doc`, 'application/msword');
 }
 
 function printSection(id){
@@ -817,7 +1172,8 @@ function downloadFile(content, fileName, contentType){
   a.click();
 }
 
-// Mapeamento global para manipuladores de evento do HTML
+// Mapeamento para Módulos Globais
+window.togglePass = togglePass;
 window.setLoginTab = setLoginTab;
 window.openReset = openReset;
 window.closeReset = closeReset;
@@ -834,6 +1190,11 @@ window.deleteProfessor = deleteProfessor;
 window.copyProfLink = copyProfLink;
 window.saveEstudantesModule = saveEstudantesModule;
 window.saveAllStudents = saveAllStudents;
+window.addNewStudentRow = addNewStudentRow;
+window.saveProfessors = saveProfessors;
+window.addNewYearRemat = addNewYearRemat;
+window.selectRematMonth = selectRematMonth;
+window.selectFarolMonth = selectFarolMonth;
 window.updateProfRemat = updateProfRemat;
 window.addProfRematRow = addProfRematRow;
 window.deleteProfRematRow = deleteProfRematRow;
@@ -844,7 +1205,7 @@ window.exportCSVRemat = exportCSVRemat;
 window.exportFarolWord = exportFarolWord;
 window.printSection = printSection;
 
-// Inicialização da Aplicação
+// Inicializar Aplicação
 boot();
 </script>
 </body>
