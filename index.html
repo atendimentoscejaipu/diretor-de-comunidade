@@ -244,7 +244,7 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
                 <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
                 <th>SITUAÇÃO</th>
                 <th>STATUS</th>
-                <th>REMATRÍCULA</th>
+                <th>INFREQUÊNCIA</th>
                 <th>PROFESSOR</th>
                 <th style="text-align:center">CONCLUDENTE</th>
               </tr>
@@ -419,7 +419,7 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
                   <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
                   <th>SITUAÇÃO</th>
                   <th>STATUS</th>
-                  <th>REMATRÍCULA</th>
+                  <th>INFREQUÊNCIA</th>
                   <th>PROFESSOR</th>
                   <th style="text-align:center">CONCLUDENTE</th>
                 </tr>
@@ -450,6 +450,17 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import {
   getFirestore, collection, doc, getDoc, getDocs, setDoc, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB8Uf77lKEjPHNqiHP7tbJjLg6sgJHz43Y",
+  authDomain: "diretor-de-comunidade.firebaseapp.com",
+  projectId: "diretor-de-comunidade",
+  storageBucket: "diretor-de-comunidade.firebasestorage.app",
+  messagingSenderId: "618211503376",
+  appId: "1:618211503376:web:672da6a25ec0820083c995"
+};
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp);
 
 // CARREGAMENTO INTELIGENTE DO BRASÃO / LOGO
 function setupLogos() {
@@ -500,6 +511,8 @@ let selectedCertYear='2026';
 let currentSubTab = 'atuais';
 let currentSubTab2 = 'atuais';
 let currentProfTab = 'turma';
+let authData = { secPass:"Secretaria23231939", secFirstDone:false, secEmail:"", profPasswords:{}, profEmails:{} };
+let lockedProfLink = null; // quando o acesso vem por link, trava no nome do professor
 
 function sortProfessors(){
   PROFESSORES.sort((a,b)=>a.localeCompare(b, 'pt-BR', {sensitivity:'base'}));
@@ -508,61 +521,84 @@ function sortProfessors(){
 function normName(n){ return (n||'').trim().toLowerCase(); }
 
 async function boot(){
-  loadProfessorsLocal(); 
-  loadAnosLocal();
-  loadSavedLoginCredentials();
-  
-  const local = localStorage.getItem('dc_students');
-  students = local ? JSON.parse(local) : seedData();
-  rematriculas = JSON.parse(localStorage.getItem('dc_remat')||'[]');
-  remCounts = JSON.parse(localStorage.getItem('dc_remcounts')||'{}');
-  
-  sortYears();
-  currentAno = '2026';
-  selectedRematYear = currentAno;
-  selectedFarolYear = currentAno;
-  selectedCertYear = currentAno;
+  // Estudantes - sincronizados em tempo real
+  onSnapshot(collection(db,'students'), (snap)=>{
+    students = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    seedIfEmpty();
+    renderAll();
+  });
+  // Professores
+  onSnapshot(doc(db,'meta','professors'), (d)=>{
+    const dt = d.data();
+    if(dt && dt.list && dt.list.length){ PROFESSORES = dt.list; sortProfessors(); }
+    else { seedProfessorsIfEmpty(); }
+    buildProfessorFilter();
+    renderAll();
+  });
+  // Anos
+  onSnapshot(doc(db,'meta','anos'), (d)=>{
+    const dt = d.data();
+    if(dt && dt.list && dt.list.length){ anosCriados = dt.list; sortYears(); if(!anosCriados.includes(currentAno)) currentAno = anosCriados[0]; }
+    renderAll();
+  });
+  // Rematrículas mensais
+  onSnapshot(doc(db,'meta','rematriculas'), (d)=>{
+    const dt = d.data();
+    rematriculas = (dt && dt.list) ? dt.list : [];
+    renderAll();
+  });
+  // Autenticação (senhas) - compartilhada entre todos os navegadores
+  onSnapshot(doc(db,'meta','auth'), (d)=>{
+    const dt = d.data();
+    if(dt){ authData = dt; }
+    else { setDoc(doc(db,'meta','auth'), authData).catch(()=>{}); }
+  });
 
-  buildProfessorFilter(); tickClock(); setInterval(tickClock,1000);
+  tickClock(); setInterval(tickClock,1000);
+  loadSavedLoginCredentials();
   prefillFromLink();
   tryAutoLogin();
-  renderAll();
+}
+
+let studentsSeeded = false;
+async function seedIfEmpty(){
+  if(studentsSeeded) return; studentsSeeded = true;
+  if(students.length===0){
+    const data = seedData();
+    for(const s of data){ await setDoc(doc(db,'students',s.id), s).catch(()=>{}); }
+  }
+}
+let profsSeeded = false;
+async function seedProfessorsIfEmpty(){
+  if(profsSeeded) return; profsSeeded = true;
+  await setDoc(doc(db,'meta','professors'), {list: PROFESSORES}).catch(()=>{});
 }
 
 function sortYears(){
   anosCriados.sort((a,b)=>parseInt(b)-parseInt(a));
 }
 
-function loadAnosLocal(){ 
-  const l=localStorage.getItem('dc_anos'); 
-  if(l){ const arr=JSON.parse(l); if(arr && arr.length) anosCriados=arr; } 
-  else { anosCriados = ['2026']; }
-  sortYears();
-}
-
 async function persistAnos(){
   sortYears();
-  localStorage.setItem('dc_anos', JSON.stringify(anosCriados));
+  await setDoc(doc(db,'meta','anos'), {list: anosCriados}).catch(()=>{});
 }
 
 function prefillFromLink(){
   const p=new URLSearchParams(location.search).get('prof');
-  if(p){ setLoginTab('prof'); const inp=document.getElementById('profNameInput'); if(inp) inp.value=p; }
-}
-
-function loadProfessorsLocal(){ 
-  const l=localStorage.getItem('dc_professors'); 
-  if(l) PROFESSORES=JSON.parse(l); 
-  sortProfessors();
-}
-
-function persistProfessorsLocal(){ 
-  sortProfessors();
-  localStorage.setItem('dc_professors', JSON.stringify(PROFESSORES)); 
+  if(p){
+    lockedProfLink = p;
+    setLoginTab('prof');
+    document.getElementById('pillSec').classList.add('hidden');
+    document.getElementById('pillProf').classList.add('hidden');
+    const inp=document.getElementById('profNameInput');
+    if(inp){ inp.value=p; inp.readOnly = true; inp.style.background = 'var(--bg)'; }
+    document.getElementById('profPass').focus();
+  }
 }
 
 async function saveProfessors(){
-  persistProfessorsLocal();
+  sortProfessors();
+  await setDoc(doc(db,'meta','professors'), {list: PROFESSORES}).catch(()=>{});
   buildProfessorFilter();
   renderAll();
   alert('Lista de professores atualizada e salva!');
@@ -579,7 +615,6 @@ function seedData(){
   return base.map((r,i)=>({id:'s'+Date.now()+i,mat:r[0],aluno:r[1],nivel:r[2],contato:r[3],ultimaFreq:r[4],rematricula:r[5],professor:r[6],concludente:r[7],ano:'2026'}));
 }
 
-function persistLocal(){ localStorage.setItem('dc_students', JSON.stringify(students)); }
 
 // Conversão de datas DD/MM/AAAA <-> YYYY-MM-DD
 function toBR(dateStr){ 
@@ -662,12 +697,12 @@ function setLoginTab(t){
 }
 
 function loadSavedLoginCredentials(){
-  const secPass = localStorage.getItem('dc_saved_sec_pass') || 'Secretaria23231939';
-  document.getElementById('secPass').value = secPass;
+  const secPass = localStorage.getItem('dc_saved_sec_pass') || '';
+  if(secPass) document.getElementById('secPass').value = secPass;
 
   const profName = localStorage.getItem('dc_saved_prof_name') || '';
   const profPass = localStorage.getItem('dc_saved_prof_pass') || '';
-  if(profName) document.getElementById('profNameInput').value = profName;
+  if(profName && !lockedProfLink) document.getElementById('profNameInput').value = profName;
   if(profPass) document.getElementById('profPass').value = profPass;
 }
 
@@ -681,29 +716,29 @@ function openReset(which){
 
 function closeReset(){ document.getElementById('loginFormArea').classList.remove('hidden'); document.getElementById('resetArea').classList.add('hidden'); }
 
-function doReset(){
+async function doReset(){
   const p1=document.getElementById('resetPass1').value, p2=document.getElementById('resetPass2').value;
   const err=document.getElementById('resetErr');
   if(!p1||p1!==p2){ err.textContent='As senhas não coincidem.'; return; }
-  if(resetTarget==='sec'){ 
-    localStorage.setItem('sec_pass_current',p1); 
-    localStorage.setItem('dc_saved_sec_pass', p1);
+  if(resetTarget==='sec'){
+    authData.secPass = p1;
   } else {
-    const name=document.getElementById('resetProfName').value.trim();
+    const name = (lockedProfLink || document.getElementById('resetProfName').value).trim();
     const match=PROFESSORES.find(p=>normName(p)===normName(name));
     if(!match){ err.textContent='Nome de professor não encontrado.'; return; }
-    localStorage.setItem('prof_pass_'+match,p1);
-    localStorage.setItem('dc_saved_prof_pass', p1);
+    authData.profPasswords = authData.profPasswords || {};
+    authData.profPasswords[match] = p1;
   }
+  await setDoc(doc(db,'meta','auth'), authData).catch(()=>{});
   closeReset();
   alert('Senha redefinida com sucesso.');
 }
 
 function loginSecretaria(){
   const pass=document.getElementById('secPass').value;
-  const currentPass = localStorage.getItem('sec_pass_current') || SEC_PASS_KEY_DEFAULT;
+  const currentPass = authData.secPass || SEC_PASS_KEY_DEFAULT;
   if(pass!==currentPass){ document.getElementById('secErr').textContent='Senha incorreta.'; return; }
-  
+
   if(document.getElementById('secKeep').checked){
     localStorage.setItem('dc_saved_sec_pass', pass);
   }
@@ -714,14 +749,13 @@ function loginSecretaria(){
 }
 
 function loginProfessor(){
-  const name=document.getElementById('profNameInput').value.trim();
+  const name=(lockedProfLink || document.getElementById('profNameInput').value).trim();
   const pass=document.getElementById('profPass').value;
   const err=document.getElementById('profErr');
   const match=PROFESSORES.find(p=>normName(p)===normName(name));
   if(!match){ err.textContent='Professor não encontrado. Verifique o nome.'; return; }
-  
-  const key='prof_pass_'+match;
-  const stored=localStorage.getItem(key) || '12345';
+
+  const stored=(authData.profPasswords && authData.profPasswords[match]) || '12345';
   if(pass!==stored){ err.textContent='Senha incorreta.'; return; }
 
   if(document.getElementById('profKeep').checked){
@@ -839,7 +873,7 @@ function buildStudentRowHTML(s, isSecretaria=true){
     <td><input class="cell" value="${dateFormatted}" data-field="ultimaFreq" placeholder="DD/MM/AAAA" style="width:105px"></td>
     <td>${st.situacao}</td>
     <td><span class="badge ${st.cls}">${st.situacao}</span></td>
-    <td><input class="cell" type="number" value="${s.rematricula||0}" data-field="rematricula" style="width:55px"></td>
+    <td style="width:140px;text-align:center;font-weight:700;font-size:.9rem;color:${diasDesde(s.ultimaFreq)>59?'var(--red)':(diasDesde(s.ultimaFreq)>30?'#a67c00':'var(--green)')}">${diasDesde(s.ultimaFreq)} dia${diasDesde(s.ultimaFreq)===1?'':'s'}</td>
     <td><select class="cell" data-field="professor"><option value="">Selecione...</option>${optionsProf}</select></td>
     <td style="text-align:center">
       <input type="checkbox" data-field="concludente" ${s.concludente?'checked':''} style="width:18px;height:18px;cursor:pointer">
@@ -854,22 +888,19 @@ function renderTable(){
   body.innerHTML = list.map(s => buildStudentRowHTML(s, true)).join('');
 }
 
-function addNewStudentRow(){
+async function addNewStudentRow(){
   const newStudent = {
-    id: 's' + Date.now(),
     mat: '',
     aluno: 'NOVO ESTUDANTE',
     nivel: 'EM',
     contato: '',
     ultimaFreq: toISO(new Date().toLocaleDateString('pt-BR')),
-    rematricula: 0,
     professor: session?.role === 'professor' ? session.name : '',
     concludente: false,
     ano: currentAno
   };
-  students.push(newStudent);
-  persistLocal();
-  renderAll();
+  const id = 's' + Date.now();
+  await setDoc(doc(db,'students',id), newStudent).catch(()=>{});
 }
 
 function renderProfs(){
@@ -1100,10 +1131,10 @@ async function saveAllStudents(){
           st[input.dataset.field] = input.value;
         }
       });
+      const { id:_id, ...data } = st;
+      await setDoc(doc(db,'students',id), data).catch(()=>{});
     }
   }
-  persistLocal();
-  renderAll();
 }
 
 function updateProfRemat(idx, field, val){
@@ -1113,7 +1144,7 @@ function updateProfRemat(idx, field, val){
   }
 }
 
-function addProfRematRow(){
+async function addProfRematRow(){
   if(!session || session.role!=='professor') return;
   rematriculas.push({
     aluno:'', 
@@ -1124,7 +1155,7 @@ function addProfRematRow(){
     ano: selectedRematYear,
     prof: session.name
   });
-  renderProfView();
+  await setDoc(doc(db,'meta','rematriculas'), {list: rematriculas}).catch(()=>{});
 }
 
 function deleteProfRematRow(idx){
@@ -1132,37 +1163,37 @@ function deleteProfRematRow(idx){
   const target = myRemat[idx];
   if(target){
     rematriculas = rematriculas.filter(r=>r!==target);
-    saveAllRemat();
+    saveAllRemat(true);
   }
 }
 
-async function saveAllRemat(){
-  localStorage.setItem('dc_remat', JSON.stringify(rematriculas));
-  renderAll();
-  alert('Rematrículas salvas com sucesso!');
+async function saveAllRemat(silent){
+  await setDoc(doc(db,'meta','rematriculas'), {list: rematriculas}).catch(()=>{});
+  if(!silent) alert('Rematrículas salvas com sucesso!');
 }
 
-function adminChangePass(){
+async function adminChangePass(){
   const user = document.getElementById('secSelUser').value;
   const p1 = document.getElementById('secNewPassAdmin').value;
   const p2 = document.getElementById('secNewPassAdmin2').value;
   const err = document.getElementById('secAdminErr');
   if(!user || !p1 || p1!==p2){ err.textContent='Selecione um usuário e digite senhas coincidentes.'; return; }
   if(user==='Secretária'){
-    localStorage.setItem('sec_pass_current', p1);
-    localStorage.setItem('dc_saved_sec_pass', p1);
+    authData.secPass = p1;
   } else {
-    localStorage.setItem('prof_pass_'+user, p1);
+    authData.profPasswords = authData.profPasswords || {};
+    authData.profPasswords[user] = p1;
   }
+  await setDoc(doc(db,'meta','auth'), authData).catch(()=>{});
   err.textContent = '';
   alert(`Senha de ${user} alterada com sucesso!`);
 }
 
 function exportCSV(){
-  let csv = "MAT;ALUNO;NIVEL;CONTATO;ULTIMA_FREQ;SITUACAO;REMATRICULAS;PROFESSOR;CONCLUDENTE\n";
+  let csv = "MAT;ALUNO;NIVEL;CONTATO;ULTIMA_FREQ;SITUACAO;INFREQUENCIA_DIAS;PROFESSOR;CONCLUDENTE\n";
   students.forEach(s=>{
     const st = situacaoStatus(s.ultimaFreq);
-    csv += `"${s.mat||''}';'${s.aluno||''}';'${s.nivel||'EM'}';'${s.contato||''}';'${toBR(s.ultimaFreq)}';'${st.situacao}';'${s.rematricula||0}';'${s.professor||''}';'${s.concludente?'SIM':'NÃO'}"\n`;
+    csv += `"${s.mat||''}';'${s.aluno||''}';'${s.nivel||'EM'}';'${s.contato||''}';'${toBR(s.ultimaFreq)}';'${st.situacao}';'${diasDesde(s.ultimaFreq)}';'${s.professor||''}';'${s.concludente?'SIM':'NÃO'}"\n`;
   });
   downloadFile(csv, 'estudantes.csv', 'text/csv;charset=utf-8;');
 }
