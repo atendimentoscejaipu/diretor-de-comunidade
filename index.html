@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Diretor de Comunidade - CEJA Dr. Gerardo Camelo Madeira</title>
+<!-- Ativa a instalação do site como App (PWA) -->
+<link rel="manifest" href="manifest.json">
 <!-- Font Awesome para Ícones -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
@@ -96,6 +98,43 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
 .stat-card .num{font-size:2.2rem;font-weight:800;color:var(--green);}
 .stat-card .label{font-size:.82rem;color:var(--muted);font-weight:600;}
 .add-row-bar{display:flex;align-items:center;justify-content:center;padding:10px;background:var(--bg);border-top:1px solid var(--border);}
+
+/* Otimiza o espaço das margens no celular */
+.container, .main-module {
+    width: 100%;
+    max-width: 98%;
+    padding: 5px;
+    margin: 0 auto;
+}
+/* Aumenta o tamanho da coluna de nomes para caber nome e sobrenome */
+th.col-aluno, td.col-aluno {
+    min-width: 180px; 
+}
+td.col-aluno input {
+    width: 100%;
+    min-width: 170px;
+    font-size: 14px;
+}
+/* Estilos para os novos botões */
+.btn-excluir {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+.btn-zerar {
+    background-color: #8b0000;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
 </style>
 </head>
 <body>
@@ -220,6 +259,7 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
         <h1 class="pg">Gestão de Estudantes</h1>
         <p class="sub-pg">Acompanhamento e controle de evasão escolar do CEJA Dr. Gerardo Camelo Madeira</p>
         <div class="toolbar">
+          <button class="btn-zerar" onclick="zerarBancoDeDados()">⚠️ Zerar Banco de Dados (Novo Semestre)</button>
           <button class="btn sm" style="background:var(--navy)" onclick="saveEstudantesModule()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
           <button class="btn dark sm" onclick="exportCSV()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
           <button class="btn red sm" onclick="printSection('printAlunos')"><i class="fa-solid fa-file-pdf"></i> Gerar PDF</button>
@@ -238,7 +278,7 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
             <thead class="blue">
               <tr>
                 <th>MAT</th>
-                <th>ALUNO(A)</th>
+                <th class="col-aluno">ALUNO(A)</th>
                 <th>NÍVEL</th>
                 <th>CONTATO</th>
                 <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
@@ -247,6 +287,7 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
                 <th>REMATRÍCULA</th>
                 <th>PROFESSOR</th>
                 <th style="text-align:center">CONCLUDENTE</th>
+                <th style="text-align:center">AÇÕES</th>
               </tr>
             </thead>
             <tbody id="studentsBody"></tbody>
@@ -414,7 +455,7 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
               <thead class="blue">
                 <tr>
                   <th>MAT</th>
-                  <th>ALUNO(A)</th>
+                  <th class="col-aluno">ALUNO(A)</th>
                   <th>NÍVEL</th>
                   <th>CONTATO</th>
                   <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
@@ -455,7 +496,7 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getFirestore, collection, doc, setDoc, onSnapshot
+  getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc, getDocs, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -880,7 +921,7 @@ function buildStudentRowHTML(s, isSecretaria=true){
 
   return `<tr data-id="${s.id}">
     <td><input class="cell" value="${s.mat||''}" data-field="mat" style="width:65px"></td>
-    <td><input class="cell" value="${s.aluno||''}" data-field="aluno"></td>
+    <td class="col-aluno"><input class="cell" value="${s.aluno||''}" data-field="aluno"></td>
     <td>
       <select class="cell" data-field="nivel">
         <option value="EF" ${s.nivel==='EF'?'selected':''}>EF</option>
@@ -896,6 +937,7 @@ function buildStudentRowHTML(s, isSecretaria=true){
     <td style="text-align:center">
       <input type="checkbox" data-field="concludente" ${s.concludente?'checked':''} style="width:18px;height:18px;cursor:pointer">
     </td>
+    ${isSecretaria ? `<td><button class="btn-excluir" onclick="deletarAluno('${s.id}')">🗑️ Excluir</button></td>` : ''}
   </tr>`;
 }
 
@@ -1295,6 +1337,40 @@ function downloadFile(content, fileName, contentType){
   a.click();
 }
 
+// Novas Funções
+async function deletarAluno(id) {
+    if(confirm("Tem certeza que deseja excluir este aluno definitivamente?")) {
+        try {
+            await deleteDoc(doc(db, "students", id));
+            alert("Aluno excluído com sucesso!");
+        } catch (error) {
+            console.error("Erro ao deletar aluno:", error);
+            alert("Erro ao excluir o aluno.");
+        }
+    }
+}
+
+async function zerarBancoDeDados() {
+    let confirmacao = prompt("ATENÇÃO! Digite 'CONFIRMAR' (em maiúsculas) para apagar TODOS os alunos do sistema. Essa ação não tem volta.");
+    
+    if(confirmacao === "CONFIRMAR") {
+        try {
+            const snapshot = await getDocs(collection(db, 'students'));
+            const batch = writeBatch(db);
+            snapshot.docs.forEach((d) => {
+                batch.delete(d.ref);
+            });
+            await batch.commit();
+            alert("Banco de dados zerado com sucesso! O sistema está pronto para um novo ciclo.");
+        } catch (error) {
+            console.error("Erro ao zerar o banco de dados:", error);
+            alert("Ocorreu um erro ao tentar limpar os dados. Verifique o console.");
+        }
+    } else {
+        alert("Ação cancelada. Nenhum dado foi apagado.");
+    }
+}
+
 // Mapeamento Global
 window.togglePass = togglePass;
 window.setLoginTab = setLoginTab;
@@ -1328,6 +1404,8 @@ window.exportCSV = exportCSV;
 window.exportCSVRemat = exportCSVRemat;
 window.exportFarolWord = exportFarolWord;
 window.printSection = printSection;
+window.deletarAluno = deletarAluno;
+window.zerarBancoDeDados = zerarBancoDeDados;
 
 // Inicialização
 boot();
