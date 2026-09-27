@@ -276,7 +276,7 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
         <div class="prof-grid" id="profList"></div>
       </div>
 
-      <!-- REMATRICULA MENSAL -->
+      <!-- REMATRICULA MENSAL (SECRETARIA) -->
       <div id="mod-remat" class="hidden">
         <h1 class="pg">Rematrícula Mensal</h1>
         <p class="sub-pg">Registro unificado dos alunos que retornaram por ano e mês</p>
@@ -303,7 +303,7 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
         </div>
       </div>
 
-      <!-- FAROL -->
+      <!-- FAROL DE REMATRÍCULA (SECRETARIA) -->
       <div id="mod-farol" class="hidden">
         <h1 class="pg">Farol de Rematrícula (Ranking em Tempo Real)</h1>
         <p class="sub-pg">Monitoramento do empenho nas rematrículas ativas por ano e mês</p>
@@ -333,7 +333,7 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
         </div>
       </div>
 
-      <!-- MÓDULO CERTIFICAÇÃO COM FILTRO DE ANOS -->
+      <!-- CERTIFICAÇÃO -->
       <div id="mod-certificacao" class="hidden">
         <h1 class="pg">Certificação e Concludentes</h1>
         <p class="sub-pg">Acompanhamento dos alunos diplomados por ano de conclusão (Ensino Fundamental e Médio)</p>
@@ -394,7 +394,7 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
         </div>
       </div>
 
-      <!-- VISÃO DO PROFESSOR -->
+      <!-- VISÃO DO PROFESSOR (COM SELEÇÃO DE ANO E MÊS MENSAL) -->
       <div id="mod-prof-view" class="hidden">
         <h1 class="pg" id="profWelcome"></h1>
         <p class="sub-pg">Acompanhe e registre o retorno de seus alunos evadidos.</p>
@@ -402,6 +402,7 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
           <div class="tab active" id="ptabTurmaBtn" onclick="setProfTab('turma')">📋 Minha Turma (Monitoramento)</div>
           <div class="tab" id="ptabRematBtn" onclick="setProfTab('remat')">📝 Minhas Rematrículas Mensais</div>
         </div>
+
         <div id="ptab-turma">
           <div class="toolbar"><button class="btn sm" style="background:var(--navy)" onclick="saveAllStudents()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button></div>
           <div class="tabs">
@@ -428,17 +429,23 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
             </table>
           </div>
         </div>
+
         <div id="ptab-remat" class="hidden">
+          <h3>Selecione o Ano e Mês da Rematrícula:</h3>
+          <div class="tabs" id="profRematYearsPills" style="margin-bottom:10px;"></div>
+          <div class="months-grid" id="profRematMonthsGrid"></div>
+          
+          <h3 id="profRematMonthTitle" style="margin-top:16px;color:var(--green)"></h3>
           <div class="tablewrap">
             <table>
               <thead class="darkgreen">
-                <tr><th>NOME DO ALUNO</th><th>MATRÍCULA</th><th>ÚLT. FREQ. (DD/MM/AAAA)</th><th>RETORNO (DD/MM/AAAA)</th><th>MÊS DA REMATRÍCULA</th><th>PROFESSOR</th><th>AÇÃO</th></tr>
+                <tr><th>NOME DO ALUNO</th><th>MATRÍCULA</th><th>ÚLT. FREQ. (DD/MM/AAAA)</th><th>RETORNO (DD/MM/AAAA)</th><th>MÊS / ANO</th><th>PROFESSOR</th><th>AÇÃO</th></tr>
               </thead>
               <tbody id="profRematBody"></tbody>
             </table>
           </div>
-          <button class="btn sm" style="margin-top:10px" onclick="addProfRematRow()"><i class="fa-solid fa-plus"></i> Adicionar Linha à Tabela</button>
-          <button class="btn sm" style="margin-top:10px;background:var(--navy)" onclick="saveAllRemat()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
+          <button class="btn sm" style="margin-top:12px" onclick="addProfRematRow()"><i class="fa-solid fa-plus"></i> Adicionar Aluno Rematriculado</button>
+          <button class="btn sm" style="margin-top:12px;background:var(--navy)" onclick="saveAllRemat()"><i class="fa-solid fa-floppy-disk"></i> Salvar e Sincronizar com a Secretária</button>
         </div>
       </div>
     </div>
@@ -448,7 +455,7 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot
+  getFirestore, collection, doc, setDoc, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -508,6 +515,11 @@ let anosCriados=['2026'], currentAno='2026';
 let selectedRematYear='2026', selectedRematMonth='Setembro';
 let selectedFarolYear='2026', selectedFarolMonth='Setembro';
 let selectedCertYear='2026';
+
+// VARIÁVEIS DE SELEÇÃO DE ANO/MÊS DO PROFESSOR
+let profSelectedRematYear='2026';
+let profSelectedRematMonth='Setembro';
+
 let currentSubTab = 'atuais';
 let currentSubTab2 = 'atuais';
 let currentProfTab = 'turma';
@@ -520,7 +532,6 @@ function sortProfessors(){
 
 function normName(n){ return (n||'').trim().toLowerCase(); }
 
-// FUNÇÃO DE LINK ATUALIZADO DO PROFESSOR
 function getProfLink(profName){
   const baseUrl = window.location.origin + window.location.pathname;
   return `${baseUrl}?prof=${encodeURIComponent(profName)}`;
@@ -550,7 +561,7 @@ async function boot(){
     renderAll();
   });
 
-  // Escutador em Tempo Real das Rematrículas
+  // Escutador em Tempo Real das Rematrículas (SECR. E PROFESSOR)
   onSnapshot(doc(db,'meta','rematriculas'), (d)=>{
     const dt = d.data();
     rematriculas = (dt && dt.list) ? dt.list : [];
@@ -933,7 +944,7 @@ function copyProfLink(p){
   navigator.clipboard.writeText(link).then(()=>alert(`Link do professor(a) ${p} copiado com sucesso!\n\n${link}`));
 }
 
-// REMATRÍCULA MENSAL POR ANO E MÊS
+// REMATRÍCULA MENSAL POR ANO E MÊS (SECRETARIA)
 async function addNewYearRemat(){
   const inp = document.getElementById('addYearRemat');
   const val = inp.value.trim();
@@ -986,7 +997,7 @@ function renderRematTable(){
   document.getElementById('rematEmpty').classList.toggle('hidden', filtered.length>0);
 }
 
-// FAROL DE REMATRÍCULA
+// FAROL DE REMATRÍCULA (SECRETARIA)
 function renderFarolModule(){
   const wrapYears = document.getElementById('farolYearsPills'); if(!wrapYears) return;
   wrapYears.innerHTML = '';
@@ -1033,7 +1044,7 @@ function renderFarolTable(){
   }).join('');
 }
 
-// MÓDULO CERTIFICAÇÃO POR ANO
+// CERTIFICAÇÃO POR ANO
 function renderCertificacaoModule(){
   const wrapYears = document.getElementById('certYearsPills'); 
   if(wrapYears){
@@ -1069,26 +1080,100 @@ function renderCertificacaoModule(){
   }
 }
 
+// RENDERIZAR VISÃO DO PROFESSOR (INCLUINDO SELETOR MENSAL)
 function renderProfView(){
   if(!session || session.role!=='professor') return;
   const myName = session.name;
+
+  // Renderizar Turma
   const bodyTurma = document.getElementById('profStudentsBody');
   if(bodyTurma){
     const myStudents = filterStudentsList(students, currentSubTab2, currentAno, myName);
     bodyTurma.innerHTML = myStudents.map(s=>buildStudentRowHTML(s, false)).join('');
   }
+
+  // Renderizar Rematrículas do Professor por Ano e Mês
+  renderProfRematModule();
+}
+
+function renderProfRematModule(){
+  if(!session || session.role!=='professor') return;
+  const myName = session.name;
+
+  // Renderizar pílulas de Ano no perfil do Professor
+  const wrapYears = document.getElementById('profRematYearsPills');
+  if(wrapYears){
+    wrapYears.innerHTML = '';
+    sortYears();
+    anosCriados.forEach(y=>{
+      const d = document.createElement('div');
+      d.className = 'tab' + (y === profSelectedRematYear ? ' active' : '');
+      d.textContent = '📅 Ano ' + y;
+      d.onclick = () => { profSelectedRematYear = y; renderProfRematModule(); };
+      wrapYears.appendChild(d);
+    });
+  }
+
+  // Renderizar pílulas de Mês no perfil do Professor
+  const wrapMonths = document.getElementById('profRematMonthsGrid');
+  if(wrapMonths){
+    wrapMonths.innerHTML = MESES.map(m => `<div class="month-card ${m === profSelectedRematMonth ? 'active' : ''}" onclick="selectProfRematMonth('${m}')">🗓️ ${m}</div>`).join('');
+  }
+
+  // Atualizar título
+  const titleEl = document.getElementById('profRematMonthTitle');
+  if(titleEl){
+    titleEl.textContent = `Rematrículas Registradas em ${profSelectedRematMonth} / ${profSelectedRematYear} por ${myName}`;
+  }
+
+  // Tabela de rematrículas filtradas para o professor, mês e ano selecionados
   const bodyRemat = document.getElementById('profRematBody');
   if(bodyRemat){
-    const myRemat = rematriculas.filter(r=>r.prof===myName);
-    bodyRemat.innerHTML = myRemat.map((r,idx)=>`<tr>
-      <td><input class="cell" value="${r.aluno||''}" onchange="updateProfRemat(${idx},'aluno',this.value)"></td>
-      <td><input class="cell" value="${r.mat||''}" onchange="updateProfRemat(${idx},'mat',this.value)"></td>
-      <td><input class="cell" value="${toBR(r.ultFreq)}" onchange="updateProfRemat(${idx},'ultFreq',this.value)" placeholder="DD/MM/AAAA"></td>
-      <td><input class="cell" value="${toBR(r.retorno)}" onchange="updateProfRemat(${idx},'retorno',this.value)" placeholder="DD/MM/AAAA"></td>
-      <td><input class="cell" value="${r.mes||selectedRematMonth}" onchange="updateProfRemat(${idx},'mes',this.value)"></td>
-      <td>${myName}</td>
-      <td><button class="btn red sm" onclick="deleteProfRematRow(${idx})"><i class="fa-solid fa-trash"></i></button></td>
-    </tr>`).join('');
+    const myRemat = rematriculas.filter(r => r.prof === myName && r.mes === profSelectedRematMonth && (r.ano === profSelectedRematYear || !r.ano));
+    bodyRemat.innerHTML = myRemat.map((r) => {
+      const globalIdx = rematriculas.indexOf(r);
+      return `<tr>
+        <td><input class="cell" value="${r.aluno||''}" onchange="updateProfRematItem(${globalIdx},'aluno',this.value)"></td>
+        <td><input class="cell" value="${r.mat||''}" onchange="updateProfRematItem(${globalIdx},'mat',this.value)"></td>
+        <td><input class="cell" value="${toBR(r.ultFreq)}" onchange="updateProfRematItem(${globalIdx},'ultFreq',this.value)" placeholder="DD/MM/AAAA"></td>
+        <td><input class="cell" value="${toBR(r.retorno)}" onchange="updateProfRematItem(${globalIdx},'retorno',this.value)" placeholder="DD/MM/AAAA"></td>
+        <td>${r.mes||profSelectedRematMonth} / ${r.ano||profSelectedRematYear}</td>
+        <td>${myName}</td>
+        <td><button class="btn red sm" onclick="deleteProfRematItem(${globalIdx})"><i class="fa-solid fa-trash"></i></button></td>
+      </tr>`;
+    }).join('');
+  }
+}
+
+function selectProfRematMonth(m){
+  profSelectedRematMonth = m;
+  renderProfRematModule();
+}
+
+function updateProfRematItem(globalIdx, field, val){
+  if(rematriculas[globalIdx]){
+    rematriculas[globalIdx][field] = (field==='ultFreq'||field==='retorno') ? toISO(val) : val;
+  }
+}
+
+function addProfRematRow(){
+  if(!session || session.role!=='professor') return;
+  rematriculas.push({
+    aluno:'', 
+    mat:'', 
+    ultFreq: toISO(new Date().toLocaleDateString('pt-BR')), 
+    retorno: toISO(new Date().toLocaleDateString('pt-BR')), 
+    mes: profSelectedRematMonth, 
+    ano: profSelectedRematYear,
+    prof: session.name
+  });
+  renderProfRematModule();
+}
+
+async function deleteProfRematItem(globalIdx){
+  if(globalIdx >= 0 && globalIdx < rematriculas.length){
+    rematriculas.splice(globalIdx, 1);
+    await saveAllRemat();
   }
 }
 
@@ -1149,39 +1234,9 @@ async function saveAllStudents(){
   alert('Alterações salvas e sincronizadas em tempo real!');
 }
 
-function updateProfRemat(idx, field, val){
-  const myRemat = rematriculas.filter(r=>r.prof===session.name);
-  if(myRemat[idx]){
-    myRemat[idx][field] = (field==='ultFreq'||field==='retorno') ? toISO(val) : val;
-  }
-}
-
-function addProfRematRow(){
-  if(!session || session.role!=='professor') return;
-  rematriculas.push({
-    aluno:'', 
-    mat:'', 
-    ultFreq: toISO(new Date().toLocaleDateString('pt-BR')), 
-    retorno: toISO(new Date().toLocaleDateString('pt-BR')), 
-    mes: selectedRematMonth, 
-    ano: selectedRematYear,
-    prof: session.name
-  });
-  renderProfView();
-}
-
-async function deleteProfRematRow(idx){
-  const myRemat = rematriculas.filter(r=>r.prof===session.name);
-  const target = myRemat[idx];
-  if(target){
-    rematriculas = rematriculas.filter(r=>r!==target);
-    await saveAllRemat();
-  }
-}
-
 async function saveAllRemat(){
   await setDoc(doc(db, 'meta', 'rematriculas'), { list: rematriculas }).catch(console.error);
-  alert('Rematrículas salvas e sincronizadas em tempo real!');
+  alert('Rematrículas salvas e sincronizadas em tempo real com a Secretária!');
 }
 
 async function adminChangePass(){
@@ -1263,9 +1318,10 @@ window.saveProfessors = saveProfessors;
 window.addNewYearRemat = addNewYearRemat;
 window.selectRematMonth = selectRematMonth;
 window.selectFarolMonth = selectFarolMonth;
-window.updateProfRemat = updateProfRemat;
+window.selectProfRematMonth = selectProfRematMonth;
+window.updateProfRematItem = updateProfRematItem;
 window.addProfRematRow = addProfRematRow;
-window.deleteProfRematRow = deleteProfRematRow;
+window.deleteProfRematItem = deleteProfRematItem;
 window.saveAllRemat = saveAllRemat;
 window.adminChangePass = adminChangePass;
 window.exportCSV = exportCSV;
