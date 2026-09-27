@@ -244,7 +244,7 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
                 <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
                 <th>SITUAÇÃO</th>
                 <th>STATUS</th>
-                <th>INFREQUÊNCIA</th>
+                <th>REMATRÍCULA</th>
                 <th>PROFESSOR</th>
                 <th style="text-align:center">CONCLUDENTE</th>
               </tr>
@@ -419,7 +419,7 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
                   <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
                   <th>SITUAÇÃO</th>
                   <th>STATUS</th>
-                  <th>INFREQUÊNCIA</th>
+                  <th>REMATRÍCULA</th>
                   <th>PROFESSOR</th>
                   <th style="text-align:center">CONCLUDENTE</th>
                 </tr>
@@ -448,7 +448,7 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getFirestore, collection, doc, getDoc, getDocs, setDoc, onSnapshot
+  getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -503,7 +503,7 @@ let PROFESSORES = ["Aldânia Maria de Melo Lima Soares","Aline Dantas Moreira","
 sortProfessors();
 
 const SEC_PASS_KEY_DEFAULT = "Secretaria23231939";
-let dbNS=null, session=null, students=[], rematriculas=[], remCounts={}, resetTarget='sec';
+let session=null, students=[], rematriculas=[], resetTarget='sec';
 let anosCriados=['2026'], currentAno='2026';
 let selectedRematYear='2026', selectedRematMonth='Setembro';
 let selectedFarolYear='2026', selectedFarolMonth='Setembro';
@@ -511,8 +511,8 @@ let selectedCertYear='2026';
 let currentSubTab = 'atuais';
 let currentSubTab2 = 'atuais';
 let currentProfTab = 'turma';
-let authData = { secPass:"Secretaria23231939", secFirstDone:false, secEmail:"", profPasswords:{}, profEmails:{} };
-let lockedProfLink = null; // quando o acesso vem por link, trava no nome do professor
+let authData = { secPass:"Secretaria23231939", profPasswords:{} };
+let lockedProfLink = null;
 
 function sortProfessors(){
   PROFESSORES.sort((a,b)=>a.localeCompare(b, 'pt-BR', {sensitivity:'base'}));
@@ -520,14 +520,21 @@ function sortProfessors(){
 
 function normName(n){ return (n||'').trim().toLowerCase(); }
 
+// FUNÇÃO DE LINK ATUALIZADO DO PROFESSOR
+function getProfLink(profName){
+  const baseUrl = window.location.origin + window.location.pathname;
+  return `${baseUrl}?prof=${encodeURIComponent(profName)}`;
+}
+
 async function boot(){
-  // Estudantes - sincronizados em tempo real
+  // Escutador em Tempo Real dos Estudantes
   onSnapshot(collection(db,'students'), (snap)=>{
     students = snap.docs.map(d=>({id:d.id, ...d.data()}));
     seedIfEmpty();
     renderAll();
   });
-  // Professores
+
+  // Escutador em Tempo Real dos Professores
   onSnapshot(doc(db,'meta','professors'), (d)=>{
     const dt = d.data();
     if(dt && dt.list && dt.list.length){ PROFESSORES = dt.list; sortProfessors(); }
@@ -535,19 +542,22 @@ async function boot(){
     buildProfessorFilter();
     renderAll();
   });
-  // Anos
+
+  // Escutador em Tempo Real dos Anos
   onSnapshot(doc(db,'meta','anos'), (d)=>{
     const dt = d.data();
     if(dt && dt.list && dt.list.length){ anosCriados = dt.list; sortYears(); if(!anosCriados.includes(currentAno)) currentAno = anosCriados[0]; }
     renderAll();
   });
-  // Rematrículas mensais
+
+  // Escutador em Tempo Real das Rematrículas
   onSnapshot(doc(db,'meta','rematriculas'), (d)=>{
     const dt = d.data();
     rematriculas = (dt && dt.list) ? dt.list : [];
     renderAll();
   });
-  // Autenticação (senhas) - compartilhada entre todos os navegadores
+
+  // Escutador em Tempo Real de Autenticação
   onSnapshot(doc(db,'meta','auth'), (d)=>{
     const dt = d.data();
     if(dt){ authData = dt; }
@@ -568,6 +578,7 @@ async function seedIfEmpty(){
     for(const s of data){ await setDoc(doc(db,'students',s.id), s).catch(()=>{}); }
   }
 }
+
 let profsSeeded = false;
 async function seedProfessorsIfEmpty(){
   if(profsSeeded) return; profsSeeded = true;
@@ -584,24 +595,18 @@ async function persistAnos(){
 }
 
 function prefillFromLink(){
-  const p=new URLSearchParams(location.search).get('prof');
+  const p = new URLSearchParams(location.search).get('prof');
   if(p){
     lockedProfLink = p;
     setLoginTab('prof');
-    document.getElementById('pillSec').classList.add('hidden');
-    document.getElementById('pillProf').classList.add('hidden');
-    const inp=document.getElementById('profNameInput');
-    if(inp){ inp.value=p; inp.readOnly = true; inp.style.background = 'var(--bg)'; }
-    document.getElementById('profPass').focus();
+    const pillSec = document.getElementById('pillSec');
+    if(pillSec) pillSec.classList.add('hidden');
+    const inp = document.getElementById('profNameInput');
+    if(inp){
+      inp.value = p;
+      inp.readOnly = true;
+    }
   }
-}
-
-async function saveProfessors(){
-  sortProfessors();
-  await setDoc(doc(db,'meta','professors'), {list: PROFESSORES}).catch(()=>{});
-  buildProfessorFilter();
-  renderAll();
-  alert('Lista de professores atualizada e salva!');
 }
 
 function seedData(){
@@ -615,8 +620,7 @@ function seedData(){
   return base.map((r,i)=>({id:'s'+Date.now()+i,mat:r[0],aluno:r[1],nivel:r[2],contato:r[3],ultimaFreq:r[4],rematricula:r[5],professor:r[6],concludente:r[7],ano:'2026'}));
 }
 
-
-// Conversão de datas DD/MM/AAAA <-> YYYY-MM-DD
+// Conversão de datas
 function toBR(dateStr){ 
   if(!dateStr) return ''; 
   if(dateStr.match(/^\d{4}-\d{2}-\d{2}$/)){
@@ -697,12 +701,12 @@ function setLoginTab(t){
 }
 
 function loadSavedLoginCredentials(){
-  const secPass = localStorage.getItem('dc_saved_sec_pass') || '';
-  if(secPass) document.getElementById('secPass').value = secPass;
+  const secPass = authData.secPass || SEC_PASS_KEY_DEFAULT;
+  document.getElementById('secPass').value = localStorage.getItem('dc_saved_sec_pass') || secPass;
 
-  const profName = localStorage.getItem('dc_saved_prof_name') || '';
+  const profName = localStorage.getItem('dc_saved_prof_name') || lockedProfLink || '';
   const profPass = localStorage.getItem('dc_saved_prof_pass') || '';
-  if(profName && !lockedProfLink) document.getElementById('profNameInput').value = profName;
+  if(profName) document.getElementById('profNameInput').value = profName;
   if(profPass) document.getElementById('profPass').value = profPass;
 }
 
@@ -720,25 +724,28 @@ async function doReset(){
   const p1=document.getElementById('resetPass1').value, p2=document.getElementById('resetPass2').value;
   const err=document.getElementById('resetErr');
   if(!p1||p1!==p2){ err.textContent='As senhas não coincidem.'; return; }
-  if(resetTarget==='sec'){
+  if(resetTarget==='sec'){ 
     authData.secPass = p1;
+    await setDoc(doc(db,'meta','auth'), authData);
+    localStorage.setItem('dc_saved_sec_pass', p1);
   } else {
-    const name = (lockedProfLink || document.getElementById('resetProfName').value).trim();
+    const name=document.getElementById('resetProfName').value.trim();
     const match=PROFESSORES.find(p=>normName(p)===normName(name));
     if(!match){ err.textContent='Nome de professor não encontrado.'; return; }
-    authData.profPasswords = authData.profPasswords || {};
+    if(!authData.profPasswords) authData.profPasswords = {};
     authData.profPasswords[match] = p1;
+    await setDoc(doc(db,'meta','auth'), authData);
+    localStorage.setItem('dc_saved_prof_pass', p1);
   }
-  await setDoc(doc(db,'meta','auth'), authData).catch(()=>{});
   closeReset();
-  alert('Senha redefinida com sucesso.');
+  alert('Senha redefinida com sucesso!');
 }
 
 function loginSecretaria(){
   const pass=document.getElementById('secPass').value;
   const currentPass = authData.secPass || SEC_PASS_KEY_DEFAULT;
   if(pass!==currentPass){ document.getElementById('secErr').textContent='Senha incorreta.'; return; }
-
+  
   if(document.getElementById('secKeep').checked){
     localStorage.setItem('dc_saved_sec_pass', pass);
   }
@@ -749,14 +756,14 @@ function loginSecretaria(){
 }
 
 function loginProfessor(){
-  const name=(lockedProfLink || document.getElementById('profNameInput').value).trim();
+  const name=document.getElementById('profNameInput').value.trim();
   const pass=document.getElementById('profPass').value;
   const err=document.getElementById('profErr');
   const match=PROFESSORES.find(p=>normName(p)===normName(name));
   if(!match){ err.textContent='Professor não encontrado. Verifique o nome.'; return; }
-
-  const stored=(authData.profPasswords && authData.profPasswords[match]) || '12345';
-  if(pass!==stored){ err.textContent='Senha incorreta.'; return; }
+  
+  const storedPass = (authData.profPasswords && authData.profPasswords[match]) || '12345';
+  if(pass!==storedPass){ err.textContent='Senha incorreta.'; return; }
 
   if(document.getElementById('profKeep').checked){
     localStorage.setItem('dc_saved_prof_name', match);
@@ -873,7 +880,7 @@ function buildStudentRowHTML(s, isSecretaria=true){
     <td><input class="cell" value="${dateFormatted}" data-field="ultimaFreq" placeholder="DD/MM/AAAA" style="width:105px"></td>
     <td>${st.situacao}</td>
     <td><span class="badge ${st.cls}">${st.situacao}</span></td>
-    <td style="width:140px;text-align:center;font-weight:700;font-size:.9rem;color:${diasDesde(s.ultimaFreq)>59?'var(--red)':(diasDesde(s.ultimaFreq)>30?'#a67c00':'var(--green)')}">${diasDesde(s.ultimaFreq)} dia${diasDesde(s.ultimaFreq)===1?'':'s'}</td>
+    <td><input class="cell" type="number" value="${s.rematricula||0}" data-field="rematricula" style="width:55px"></td>
     <td><select class="cell" data-field="professor"><option value="">Selecione...</option>${optionsProf}</select></td>
     <td style="text-align:center">
       <input type="checkbox" data-field="concludente" ${s.concludente?'checked':''} style="width:18px;height:18px;cursor:pointer">
@@ -890,17 +897,18 @@ function renderTable(){
 
 async function addNewStudentRow(){
   const newStudent = {
+    id: 's' + Date.now(),
     mat: '',
     aluno: 'NOVO ESTUDANTE',
     nivel: 'EM',
     contato: '',
     ultimaFreq: toISO(new Date().toLocaleDateString('pt-BR')),
+    rematricula: 0,
     professor: session?.role === 'professor' ? session.name : '',
     concludente: false,
     ano: currentAno
   };
-  const id = 's' + Date.now();
-  await setDoc(doc(db,'students',id), newStudent).catch(()=>{});
+  await setDoc(doc(db,'students',newStudent.id), newStudent).catch(console.error);
 }
 
 function renderProfs(){
@@ -908,27 +916,31 @@ function renderProfs(){
   sortProfessors();
   document.getElementById('profCount').textContent = PROFESSORES.length;
   list.innerHTML = PROFESSORES.map(p => {
-    const link = window.location.origin + window.location.pathname + '?prof=' + encodeURIComponent(p);
+    const link = getProfLink(p);
     return `<div class="prof-card">
-      <b>${p}</b>
-      <div class="muted" style="margin-top:4px;word-break:break-all">${link}</div>
-      <div style="margin-top:8px;display:flex;gap:6px">
-        <button class="btn sm" onclick="copyProfLink('${p}')"><i class="fa-solid fa-copy"></i> Copiar Link</button>
+      <b><i class="fa-solid fa-chalkboard-user"></i> ${p}</b>
+      <div class="muted" style="margin-top:6px;word-break:break-all;font-size:0.75rem;background:var(--bg);padding:6px;border-radius:6px;border:1px solid var(--border);">${link}</div>
+      <div style="margin-top:10px;display:flex;gap:6px">
+        <button class="btn sm" onclick="copyProfLink('${p}')"><i class="fa-solid fa-copy"></i> Copiar Link Atualizado</button>
         <button class="btn red sm" onclick="deleteProfessor('${p}')"><i class="fa-solid fa-trash"></i> Excluir</button>
       </div>
     </div>`;
   }).join('');
 }
 
+function copyProfLink(p){
+  const link = getProfLink(p);
+  navigator.clipboard.writeText(link).then(()=>alert(`Link do professor(a) ${p} copiado com sucesso!\n\n${link}`));
+}
+
 // REMATRÍCULA MENSAL POR ANO E MÊS
-function addNewYearRemat(){
+async function addNewYearRemat(){
   const inp = document.getElementById('addYearRemat');
   const val = inp.value.trim();
   if(val && !anosCriados.includes(val)){
     anosCriados.push(val);
-    persistAnos();
     selectedRematYear = val;
-    renderRematModule();
+    await persistAnos();
   }
   inp.value = '';
 }
@@ -1080,29 +1092,30 @@ function renderProfView(){
   }
 }
 
-function addProfessor(){
+async function addProfessor(){
   const inp = document.getElementById('newProfName');
   const name = inp.value.trim();
   if(!name) return;
   if(!PROFESSORES.includes(name)){
     PROFESSORES.push(name);
     sortProfessors();
-    saveProfessors();
+    await saveProfessors();
   }
   inp.value = '';
 }
 
-function deleteProfessor(name){
+async function deleteProfessor(name){
   if(confirm(`Deseja remover o professor "${name}"?`)){
     PROFESSORES = PROFESSORES.filter(p=>p!==name);
     sortProfessors();
-    saveProfessors();
+    await saveProfessors();
   }
 }
 
-function copyProfLink(p){
-  const link = window.location.origin + window.location.pathname + '?prof=' + encodeURIComponent(p);
-  navigator.clipboard.writeText(link).then(()=>alert('Link copiado com sucesso!'));
+async function saveProfessors(){
+  sortProfessors();
+  await setDoc(doc(db, 'meta', 'professors'), { list: PROFESSORES }).catch(console.error);
+  alert('Lista de professores atualizada com sucesso no banco de dados!');
 }
 
 async function saveEstudantesModule(){
@@ -1113,7 +1126,6 @@ async function saveEstudantesModule(){
     await persistAnos();
   }
   await saveAllStudents();
-  alert('Alterações salvas com sucesso!');
 }
 
 async function saveAllStudents(){
@@ -1131,10 +1143,10 @@ async function saveAllStudents(){
           st[input.dataset.field] = input.value;
         }
       });
-      const { id:_id, ...data } = st;
-      await setDoc(doc(db,'students',id), data).catch(()=>{});
+      await setDoc(doc(db,'students',id), st, {merge:true}).catch(console.error);
     }
   }
+  alert('Alterações salvas e sincronizadas em tempo real!');
 }
 
 function updateProfRemat(idx, field, val){
@@ -1144,7 +1156,7 @@ function updateProfRemat(idx, field, val){
   }
 }
 
-async function addProfRematRow(){
+function addProfRematRow(){
   if(!session || session.role!=='professor') return;
   rematriculas.push({
     aluno:'', 
@@ -1155,21 +1167,21 @@ async function addProfRematRow(){
     ano: selectedRematYear,
     prof: session.name
   });
-  await setDoc(doc(db,'meta','rematriculas'), {list: rematriculas}).catch(()=>{});
+  renderProfView();
 }
 
-function deleteProfRematRow(idx){
+async function deleteProfRematRow(idx){
   const myRemat = rematriculas.filter(r=>r.prof===session.name);
   const target = myRemat[idx];
   if(target){
     rematriculas = rematriculas.filter(r=>r!==target);
-    saveAllRemat(true);
+    await saveAllRemat();
   }
 }
 
-async function saveAllRemat(silent){
-  await setDoc(doc(db,'meta','rematriculas'), {list: rematriculas}).catch(()=>{});
-  if(!silent) alert('Rematrículas salvas com sucesso!');
+async function saveAllRemat(){
+  await setDoc(doc(db, 'meta', 'rematriculas'), { list: rematriculas }).catch(console.error);
+  alert('Rematrículas salvas e sincronizadas em tempo real!');
 }
 
 async function adminChangePass(){
@@ -1181,19 +1193,19 @@ async function adminChangePass(){
   if(user==='Secretária'){
     authData.secPass = p1;
   } else {
-    authData.profPasswords = authData.profPasswords || {};
+    if(!authData.profPasswords) authData.profPasswords = {};
     authData.profPasswords[user] = p1;
   }
-  await setDoc(doc(db,'meta','auth'), authData).catch(()=>{});
+  await setDoc(doc(db,'meta','auth'), authData).catch(console.error);
   err.textContent = '';
   alert(`Senha de ${user} alterada com sucesso!`);
 }
 
 function exportCSV(){
-  let csv = "MAT;ALUNO;NIVEL;CONTATO;ULTIMA_FREQ;SITUACAO;INFREQUENCIA_DIAS;PROFESSOR;CONCLUDENTE\n";
+  let csv = "MAT;ALUNO;NIVEL;CONTATO;ULTIMA_FREQ;SITUACAO;REMATRICULAS;PROFESSOR;CONCLUDENTE\n";
   students.forEach(s=>{
     const st = situacaoStatus(s.ultimaFreq);
-    csv += `"${s.mat||''}';'${s.aluno||''}';'${s.nivel||'EM'}';'${s.contato||''}';'${toBR(s.ultimaFreq)}';'${st.situacao}';'${diasDesde(s.ultimaFreq)}';'${s.professor||''}';'${s.concludente?'SIM':'NÃO'}"\n`;
+    csv += `"${s.mat||''}';'${s.aluno||''}';'${s.nivel||'EM'}';'${s.contato||''}';'${toBR(s.ultimaFreq)}';'${st.situacao}';'${s.rematricula||0}';'${s.professor||''}';'${s.concludente?'SIM':'NÃO'}"\n`;
   });
   downloadFile(csv, 'estudantes.csv', 'text/csv;charset=utf-8;');
 }
