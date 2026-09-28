@@ -340,7 +340,7 @@ td.col-aluno input {
           <div class="tablewrap" id="printRemat">
             <table>
               <thead class="darkgreen">
-                <tr><th>ESTUDANTE</th><th>MATRÍCULA</th><th>ÚLT. FREQ. (DD/MM/AAAA)</th><th>DATA DO RETORNO (DD/MM/AAAA)</th><th>MÊS/ANO</th><th>PROFESSOR</th></tr>
+                <tr><th>ESTUDANTE</th><th>MATRÍCULA</th><th>ÚLT. FREQ. (DD/MM/AAAA)</th><th>DATA DO RETORNO (DD/MM/AAAA)</th><th>MÊS/ANO</th><th>PROFESSOR</th><th class="no-print">STATUS / AÇÃO</th></tr>
               </thead>
               <tbody id="rematBody"></tbody>
             </table>
@@ -383,6 +383,11 @@ td.col-aluno input {
       <div id="mod-certificacao" class="hidden">
         <h1 class="pg">Certificação e Concludentes</h1>
         <p class="sub-pg">Acompanhamento dos alunos diplomados por ano de conclusão (Ensino Fundamental e Médio)</p>
+
+        <div class="grid c5" style="margin-bottom:10px">
+          <div><label>Adicionar Ano de Certificação</label><input type="text" id="addYearCert" maxlength="4" placeholder="Ex: 2026"></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn sm" onclick="addNewYearCert()"><i class="fa-solid fa-plus"></i> Adicionar Ano</button></div>
+        </div>
         
         <div class="tabs" id="certYearsPills" style="margin-bottom:16px;"></div>
 
@@ -486,7 +491,7 @@ td.col-aluno input {
           <div class="tablewrap">
             <table>
               <thead class="darkgreen">
-                <tr><th>NOME DO ALUNO</th><th>MATRÍCULA</th><th>ÚLT. FREQ. (DD/MM/AAAA)</th><th>RETORNO (DD/MM/AAAA)</th><th>MÊS / ANO</th><th>PROFESSOR</th><th>AÇÃO</th></tr>
+                <tr><th>NOME DO ALUNO</th><th>MATRÍCULA</th><th>ÚLT. FREQ. (DD/MM/AAAA)</th><th>RETORNO (DD/MM/AAAA)</th><th>MÊS / ANO</th><th>PROFESSOR</th><th>STATUS</th><th class="no-print">AÇÃO</th></tr>
               </thead>
               <tbody id="profRematBody"></tbody>
             </table>
@@ -585,14 +590,12 @@ function getProfLink(profName){
 }
 
 async function boot(){
-  // Escutador em Tempo Real dos Estudantes
   onSnapshot(collection(db,'students'), (snap)=>{
     students = snap.docs.map(d=>({id:d.id, ...d.data()}));
     seedIfEmpty();
     renderAll();
   });
 
-  // Escutador em Tempo Real dos Professores
   onSnapshot(doc(db,'meta','professors'), (d)=>{
     const dt = d.data();
     if(dt && dt.list && dt.list.length){ PROFESSORES = dt.list; sortProfessors(); }
@@ -601,21 +604,18 @@ async function boot(){
     renderAll();
   });
 
-  // Escutador em Tempo Real dos Anos
   onSnapshot(doc(db,'meta','anos'), (d)=>{
     const dt = d.data();
     if(dt && dt.list && dt.list.length){ anosCriados = dt.list; sortYears(); if(!anosCriados.includes(currentAno)) currentAno = anosCriados[0]; }
     renderAll();
   });
 
-  // Escutador em Tempo Real das Rematrículas (SECR. E PROFESSOR)
   onSnapshot(doc(db,'meta','rematriculas'), (d)=>{
     const dt = d.data();
     rematriculas = (dt && dt.list) ? dt.list : [];
     renderAll();
   });
 
-  // Escutador em Tempo Real de Autenticação
   onSnapshot(doc(db,'meta','auth'), (d)=>{
     const dt = d.data();
     if(dt){ authData = dt; }
@@ -678,7 +678,6 @@ function seedData(){
   return base.map((r,i)=>({id:'s'+Date.now()+i,mat:r[0],aluno:r[1],nivel:r[2],contato:r[3],ultimaFreq:r[4],rematricula:r[5],professor:r[6],concludente:r[7],ano:'2026'}));
 }
 
-// Conversão de datas
 function toBR(dateStr){ 
   if(!dateStr) return ''; 
   if(dateStr.match(/^\d{4}-\d{2}-\d{2}$/)){
@@ -700,7 +699,6 @@ function toISO(brStr){
 function diasDesde(dateStr){ 
   if(!dateStr) return 999; 
   const iso = toISO(dateStr);
-  // Normalizar para meia noite para não ter erro de fuso
   const d = new Date(iso + 'T00:00:00');
   const now = new Date();
   now.setHours(0, 0, 0, 0);
@@ -959,6 +957,10 @@ function renderTable(){
 }
 
 async function addNewStudentRow(){
+  let targetAno = currentAno;
+  if(currentSubTab === 'antigas') {
+      targetAno = (parseInt(currentAno) - 1).toString();
+  }
   const newStudent = {
     id: 's' + Date.now(),
     mat: '',
@@ -969,7 +971,7 @@ async function addNewStudentRow(){
     rematricula: 0,
     professor: session?.role === 'professor' ? session.name : '',
     concludente: false,
-    ano: currentAno
+    ano: targetAno
   };
   await setDoc(doc(db,'students',newStudent.id), newStudent).catch(console.error);
 }
@@ -996,7 +998,6 @@ function copyProfLink(p){
   navigator.clipboard.writeText(link).then(()=>alert(`Link do professor(a) ${p} copiado com sucesso!\n\n${link}`));
 }
 
-// REMATRÍCULA MENSAL POR ANO E MÊS (SECRETARIA)
 async function addNewYearRemat(){
   const inp = document.getElementById('addYearRemat');
   const val = inp.value.trim();
@@ -1038,18 +1039,47 @@ function renderRematTable(){
 
   const filtered = rematriculas.filter(r => (r.mes === selectedRematMonth) && (r.ano === selectedRematYear || !r.ano));
   const body = document.getElementById('rematBody');
-  body.innerHTML = filtered.map(r=>`<tr>
-    <td>${r.aluno||''}</td>
-    <td>${r.mat||''}</td>
-    <td>${toBR(r.ultFreq)}</td>
-    <td>${toBR(r.retorno)}</td>
-    <td>${r.mes||selectedRematMonth} / ${r.ano||selectedRematYear}</td>
-    <td>${r.prof||''}</td>
-  </tr>`).join('');
+  body.innerHTML = filtered.map(r=>{
+    const globalIdx = rematriculas.indexOf(r);
+    const isApproved = (r.status !== 'pendente');
+    const action = isApproved ? '<span class="badge g">Confirmado</span>' : `<button class="btn sm orange" onclick="aprovarRematricula(${globalIdx})">Confirmar</button>`;
+    return `<tr>
+      <td>${r.aluno||''}</td>
+      <td>${r.mat||''}</td>
+      <td>${toBR(r.ultFreq)}</td>
+      <td>${toBR(r.retorno)}</td>
+      <td>${r.mes||selectedRematMonth} / ${r.ano||selectedRematYear}</td>
+      <td>${r.prof||''}</td>
+      <td class="no-print">${action}</td>
+    </tr>`;
+  }).join('');
   document.getElementById('rematEmpty').classList.toggle('hidden', filtered.length>0);
 }
 
-// FAROL DE REMATRÍCULA (SECRETARIA)
+async function aprovarRematricula(idx) {
+   if(rematriculas[idx]) {
+       rematriculas[idx].status = 'aprovado';
+       await saveAllRemat();
+       const alunoNome = rematriculas[idx].aluno.trim().toLowerCase();
+       const exists = students.find(s => s.aluno.trim().toLowerCase() === alunoNome);
+       if(!exists) {
+           const newStudent = {
+                id: 's' + Date.now(),
+                mat: rematriculas[idx].mat || '',
+                aluno: rematriculas[idx].aluno,
+                nivel: 'EM',
+                contato: '',
+                ultimaFreq: rematriculas[idx].ultFreq || toISO(new Date().toLocaleDateString('pt-BR')),
+                rematricula: 1,
+                professor: rematriculas[idx].prof,
+                concludente: false,
+                ano: rematriculas[idx].ano || currentAno
+              };
+            await setDoc(doc(db,'students',newStudent.id), newStudent).catch(console.error);
+       }
+   }
+}
+
 function renderFarolModule(){
   const wrapYears = document.getElementById('farolYearsPills'); if(!wrapYears) return;
   wrapYears.innerHTML = '';
@@ -1083,7 +1113,9 @@ function renderFarolTable(){
 
   rematriculas.forEach(r=>{
     if((r.mes === selectedFarolMonth) && (r.ano === selectedFarolYear || !r.ano)){
-      if(counts[r.prof]!==undefined) counts[r.prof]++;
+      if(r.status === 'aprovado' || !r.status){
+         if(counts[r.prof]!==undefined) counts[r.prof]++;
+      }
     }
   });
 
@@ -1096,7 +1128,17 @@ function renderFarolTable(){
   }).join('');
 }
 
-// CERTIFICAÇÃO POR ANO
+async function addNewYearCert(){
+  const inp = document.getElementById('addYearCert');
+  const val = inp.value.trim();
+  if(val && !anosCriados.includes(val)){
+    anosCriados.push(val);
+    selectedCertYear = val;
+    await persistAnos();
+  }
+  inp.value = '';
+}
+
 function renderCertificacaoModule(){
   const wrapYears = document.getElementById('certYearsPills'); 
   if(wrapYears){
@@ -1132,19 +1174,16 @@ function renderCertificacaoModule(){
   }
 }
 
-// RENDERIZAR VISÃO DO PROFESSOR (INCLUINDO SELETOR MENSAL)
 function renderProfView(){
   if(!session || session.role!=='professor') return;
   const myName = session.name;
 
-  // Renderizar Turma
   const bodyTurma = document.getElementById('profStudentsBody');
   if(bodyTurma){
     const myStudents = filterStudentsList(students, currentSubTab2, currentAno, myName);
     bodyTurma.innerHTML = myStudents.map(s=>buildStudentRowHTML(s, false)).join('');
   }
 
-  // Renderizar Rematrículas do Professor por Ano e Mês
   renderProfRematModule();
 }
 
@@ -1152,7 +1191,6 @@ function renderProfRematModule(){
   if(!session || session.role!=='professor') return;
   const myName = session.name;
 
-  // Renderizar pílulas de Ano no perfil do Professor
   const wrapYears = document.getElementById('profRematYearsPills');
   if(wrapYears){
     wrapYears.innerHTML = '';
@@ -1166,24 +1204,22 @@ function renderProfRematModule(){
     });
   }
 
-  // Renderizar pílulas de Mês no perfil do Professor
   const wrapMonths = document.getElementById('profRematMonthsGrid');
   if(wrapMonths){
     wrapMonths.innerHTML = MESES.map(m => `<div class="month-card ${m === profSelectedRematMonth ? 'active' : ''}" onclick="selectProfRematMonth('${m}')">🗓️ ${m}</div>`).join('');
   }
 
-  // Atualizar título
   const titleEl = document.getElementById('profRematMonthTitle');
   if(titleEl){
     titleEl.textContent = `Rematrículas Registradas em ${profSelectedRematMonth} / ${profSelectedRematYear} por ${myName}`;
   }
 
-  // Tabela de rematrículas filtradas para o professor, mês e ano selecionados
   const bodyRemat = document.getElementById('profRematBody');
   if(bodyRemat){
     const myRemat = rematriculas.filter(r => r.prof === myName && r.mes === profSelectedRematMonth && (r.ano === profSelectedRematYear || !r.ano));
     bodyRemat.innerHTML = myRemat.map((r) => {
       const globalIdx = rematriculas.indexOf(r);
+      const stBadge = r.status === 'pendente' ? '<span class="badge y">Pendente</span>' : '<span class="badge g">Confirmado</span>';
       return `<tr>
         <td><input class="cell" value="${r.aluno||''}" onchange="updateProfRematItem(${globalIdx},'aluno',this.value)"></td>
         <td><input class="cell" value="${r.mat||''}" onchange="updateProfRematItem(${globalIdx},'mat',this.value)"></td>
@@ -1191,6 +1227,7 @@ function renderProfRematModule(){
         <td><input class="cell" value="${toBR(r.retorno)}" onchange="updateProfRematItem(${globalIdx},'retorno',this.value)" placeholder="DD/MM/AAAA"></td>
         <td>${r.mes||profSelectedRematMonth} / ${r.ano||profSelectedRematYear}</td>
         <td>${myName}</td>
+        <td>${stBadge}</td>
         <td class="no-print"><button class="btn red sm" onclick="deleteProfRematItem(${globalIdx})"><i class="fa-solid fa-trash"></i></button></td>
       </tr>`;
     }).join('');
@@ -1205,6 +1242,10 @@ function selectProfRematMonth(m){
 function updateProfRematItem(globalIdx, field, val){
   if(rematriculas[globalIdx]){
     rematriculas[globalIdx][field] = (field==='ultFreq'||field==='retorno') ? toISO(val) : val;
+    if(field === 'aluno') {
+       const exist = students.find(s => s.aluno.trim().toLowerCase() === val.trim().toLowerCase());
+       rematriculas[globalIdx].status = exist ? 'aprovado' : 'pendente';
+    }
   }
 }
 
@@ -1217,7 +1258,8 @@ function addProfRematRow(){
     retorno: toISO(new Date().toLocaleDateString('pt-BR')), 
     mes: profSelectedRematMonth, 
     ano: profSelectedRematYear,
-    prof: session.name
+    prof: session.name,
+    status: 'pendente'
   });
   renderProfRematModule();
 }
@@ -1330,12 +1372,10 @@ function exportWord(id, prefix) {
   const el = document.getElementById(id);
   if(!el) return;
   
-  // Clona o HTML para remover as coisas que não devem ser impressas (como os botões de ação e lixeiras)
   const clone = el.cloneNode(true);
   const elementsToRemove = clone.querySelectorAll('.no-print, input[type="button"], button');
   elementsToRemove.forEach(e => e.parentNode.removeChild(e));
   
-  // Converte <input> e <select> para textos normais no Word
   const inputs = clone.querySelectorAll('input, select');
   inputs.forEach(input => {
     let span = document.createElement('span');
@@ -1393,7 +1433,6 @@ function downloadFile(content, fileName, contentType){
   a.click();
 }
 
-// Novas Funções
 async function deletarAluno(id) {
     if(confirm("Tem certeza que deseja excluir este aluno definitivamente?")) {
         try {
@@ -1427,7 +1466,6 @@ async function zerarBancoDeDados() {
     }
 }
 
-// Mapeamento Global
 window.togglePass = togglePass;
 window.setLoginTab = setLoginTab;
 window.openReset = openReset;
@@ -1455,6 +1493,8 @@ window.updateProfRematItem = updateProfRematItem;
 window.addProfRematRow = addProfRematRow;
 window.deleteProfRematItem = deleteProfRematItem;
 window.saveAllRemat = saveAllRemat;
+window.aprovarRematricula = aprovarRematricula;
+window.addNewYearCert = addNewYearCert;
 window.adminChangePass = adminChangePass;
 window.exportCSV = exportCSV;
 window.exportCSVRemat = exportCSVRemat;
@@ -1463,7 +1503,6 @@ window.printSection = printSection;
 window.deletarAluno = deletarAluno;
 window.zerarBancoDeDados = zerarBancoDeDados;
 
-// Inicialização
 boot();
 </script>
 </body>
