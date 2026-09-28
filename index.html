@@ -706,6 +706,14 @@ function toISO(brStr){
   return brStr;
 }
 
+// AUXILIAR PARA ORDENAÇÃO POR DATA DA ÚLTIMA FREQUÊNCIA
+function parseDateForSort(dateStr) {
+  if (!dateStr) return 0;
+  const iso = toISO(dateStr);
+  const d = new Date(iso + 'T00:00:00');
+  return isNaN(d.getTime()) ? 0 : d.getTime();
+}
+
 function diasDesde(dateStr){ 
   if(!dateStr) return 999; 
   const iso = toISO(dateStr);
@@ -921,13 +929,22 @@ function renderAll(){
   if(session && session.role==='professor') renderProfView();
 }
 
+// FILTRA E ORDENA OS ESTUDANTES DO MENOR NÚMERO DE MATRÍCULA PARA O MAIOR
 function filterStudentsList(list, subtabFilter, yearFilter, profFilter){
-  return list.filter(s=>{
+  const filtered = list.filter(s=>{
     if(profFilter && s.professor !== profFilter) return false;
     if(subtabFilter==='atuais'){
       return (s.ano === yearFilter) && (!s.concludente);
     }
     return (s.concludente) || (s.ano < yearFilter);
+  });
+
+  // Ordenação crescente por número de matrícula (menor número em cima)
+  return filtered.sort((a, b) => {
+    const numA = parseFloat(a.mat) || 0;
+    const numB = parseFloat(b.mat) || 0;
+    if (numA !== numB) return numA - numB;
+    return (a.mat || '').localeCompare(b.mat || '', undefined, {numeric: true});
   });
 }
 
@@ -1034,7 +1051,6 @@ function renderRematModule(){
   const wrapMonths = document.getElementById('rematMonthsGrid');
   wrapMonths.innerHTML = MESES.map(m => `<div class="month-card ${m === selectedRematMonth ? 'active' : ''}" onclick="selectRematMonth('${m}')">🗓️ ${m}</div>`).join('');
 
-  // RENDERIZAÇÃO CONECTADA DOS PROFESSORES DENTRO DA REMATRÍCULA
   renderRematProfPills();
   renderRematTable();
 }
@@ -1043,22 +1059,18 @@ function renderRematProfPills(){
   const wrapProfs = document.getElementById('rematProfPills'); if(!wrapProfs) return;
   wrapProfs.innerHTML = '';
 
-  // Se o professor selecionado anteriormente não existe mais, reseta para 'todos'
   if(selectedRematProf !== 'todos' && !PROFESSORES.some(p=>normName(p)===normName(selectedRematProf))){
     selectedRematProf = 'todos';
   }
 
-  // Total de rematrículas gerais no mês/ano
   const totalGeral = rematriculas.filter(r => (r.mes === selectedRematMonth) && (r.ano === selectedRematYear || !r.ano)).length;
 
-  // Botão para exibir Todos os Professores
   const divTodos = document.createElement('div');
   divTodos.className = 'tab' + (selectedRematProf === 'todos' ? ' active' : '');
   divTodos.textContent = `👥 Todos os Professores (${totalGeral})`;
   divTodos.onclick = () => { selectedRematProf = 'todos'; renderRematProfPills(); renderRematTable(); };
   wrapProfs.appendChild(divTodos);
 
-  // Botões dinâmicos para cada professor cadastrado
   sortProfessors();
   PROFESSORES.forEach(p => {
     const countProf = rematriculas.filter(r => 
@@ -1086,6 +1098,7 @@ function selectRematMonth(m){
   renderRematModule();
 }
 
+// RENDERIZA A TABELA DA REMATRÍCULA ORGANIZADA DA MENOR PARA A MAIOR DATA DE ÚLTIMA FREQUÊNCIA
 function renderRematTable(){
   const detail = document.getElementById('rematMonthDetail');
   detail.classList.remove('hidden');
@@ -1099,6 +1112,9 @@ function renderRematTable(){
     const matchProf = (selectedRematProf === 'todos') || (normName(r.prof) === normName(selectedRematProf));
     return matchMonth && matchYear && matchProf;
   });
+
+  // Ordenação por Data de Última Frequência (menor data primeiro, maior data em baixo)
+  filtered.sort((a, b) => parseDateForSort(a.ultFreq) - parseDateForSort(b.ultFreq));
 
   const body = document.getElementById('rematBody');
   body.innerHTML = filtered.map(r=>{
@@ -1174,7 +1190,6 @@ function renderFarolTable(){
   sortProfessors();
   PROFESSORES.forEach(p=>counts[p]=0);
 
-  // Contabiliza rematrículas ativas registradas no mês/ano
   rematriculas.forEach(r=>{
     const rMes = r.mes;
     const rAno = r.ano || selectedFarolYear;
@@ -1188,20 +1203,16 @@ function renderFarolTable(){
 
   const sorted = PROFESSORES.map(p=>({name:p, count:counts[p]})).sort((a,b)=>b.count-a.count);
   
-  // Regra do Farol:
-  // 4 ou mais (>= 4) -> Verde
-  // 1 a 3 (1, 2 ou 3) -> Amarelo
-  // 0 -> Vermelho
   body.innerHTML = sorted.map(item=>{
     let badge = '<span class="badge r">Vermelho</span>';
-    let profColor = '#c62828'; // Vermelho
+    let profColor = '#c62828';
     
     if(item.count >= 4) {
       badge = '<span class="badge g">Verde</span>';
-      profColor = '#1E7A34'; // Verde
+      profColor = '#1E7A34';
     } else if(item.count >= 1) {
       badge = '<span class="badge y">Amarelo</span>';
-      profColor = '#d48800'; // Amarelo/Dourado visível
+      profColor = '#d48800';
     }
 
     return `<tr>
@@ -1238,6 +1249,15 @@ function renderCertificacaoModule(){
   }
 
   const concludentes = students.filter(s => s.concludente && (s.ano === selectedCertYear));
+  
+  // Ordena os concludentes do menor para o maior número de matrícula
+  concludentes.sort((a, b) => {
+    const numA = parseFloat(a.mat) || 0;
+    const numB = parseFloat(b.mat) || 0;
+    if (numA !== numB) return numA - numB;
+    return (a.mat || '').localeCompare(b.mat || '', undefined, {numeric: true});
+  });
+
   const efCount = concludentes.filter(s => s.nivel === 'EF').length;
   const emCount = concludentes.filter(s => s.nivel === 'EM').length;
 
@@ -1271,6 +1291,7 @@ function renderProfView(){
   renderProfRematModule();
 }
 
+// RENDERIZA AS REMATRÍCULAS DO PROFESSOR ORGANIZADAS DA MENOR PARA A MAIOR DATA DE ÚLTIMA FREQUÊNCIA
 function renderProfRematModule(){
   if(!session || session.role!=='professor') return;
   const myName = session.name;
@@ -1301,6 +1322,10 @@ function renderProfRematModule(){
   const bodyRemat = document.getElementById('profRematBody');
   if(bodyRemat){
     const myRemat = rematriculas.filter(r => normName(r.prof) === normName(myName) && r.mes === profSelectedRematMonth && (r.ano === profSelectedRematYear || !r.ano));
+    
+    // Ordena por Data de Última Frequência (menor data em cima, maior data em baixo)
+    myRemat.sort((a, b) => parseDateForSort(a.ultFreq) - parseDateForSort(b.ultFreq));
+
     bodyRemat.innerHTML = myRemat.map((r) => {
       const globalIdx = rematriculas.indexOf(r);
       const stBadge = r.status === 'pendente' ? '<span class="badge y">Pendente</span>' : '<span class="badge g">Confirmado</span>';
@@ -1446,6 +1471,7 @@ function exportCSV(){
 function exportCSVRemat(){
   let csv = "ESTUDANTE;MATRICULA;ULT_FREQ;RETORNO;MES_ANO;PROFESSOR\n";
   const filtered = rematriculas.filter(r => (r.mes === selectedRematMonth) && (r.ano === selectedRematYear || !r.ano));
+  filtered.sort((a, b) => parseDateForSort(a.ultFreq) - parseDateForSort(b.ultFreq));
   filtered.forEach(r=>{
     csv += `"${r.aluno||''}';'${r.mat||''}';'${toBR(r.ultFreq)}';'${toBR(r.retorno)}';'${r.mes}/${r.ano}';'${r.prof||''}"\n`;
   });
