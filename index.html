@@ -330,6 +330,12 @@ td.col-aluno input {
         <h3 id="rematYearTitle" style="margin-top:10px">Selecione o Mês:</h3>
         <div class="months-grid" id="rematMonthsGrid"></div>
         
+        <!-- PROFESSORES CONECTADOS NA REMATRÍCULA -->
+        <div id="rematProfSection" style="margin-top:16px;">
+          <h3 style="margin-bottom:8px;"><i class="fa-solid fa-chalkboard-user"></i> Professores Cadastrados no Mês (Selecione para filtrar):</h3>
+          <div class="tabs" id="rematProfPills" style="margin-bottom:16px;"></div>
+        </div>
+
         <div id="rematMonthDetail" class="hidden">
           <h3 id="rematMonthTitle"></h3>
           <div class="toolbar">
@@ -345,7 +351,7 @@ td.col-aluno input {
               <tbody id="rematBody"></tbody>
             </table>
           </div>
-          <p class="muted hidden" id="rematEmpty">Nenhuma rematrícula efetuada neste mês.</p>
+          <p class="muted hidden" id="rematEmpty">Nenhuma rematrícula efetuada neste mês para o professor selecionado.</p>
         </div>
       </div>
 
@@ -360,9 +366,9 @@ td.col-aluno input {
         <div id="farolMonthDetail" class="hidden">
           <h3 id="farolMonthTitle"></h3>
           <div class="legend">
-            <div class="g"><b>Acima de 4 Rematrículas</b><br>Desempenho Excelente (Verde)</div>
-            <div class="y"><b>Até 3 Rematrículas</b><br>Desempenho em Progresso (Amarelo)</div>
-            <div class="r"><b>Nenhuma Rematrícula</b><br>Sem Alunos Recuperados (Vermelho)</div>
+            <div class="g"><b>4 ou Mais Rematrículas</b><br>Desempenho Excelente (Verde)</div>
+            <div class="y"><b>De 1 a 3 Rematrículas</b><br>Desempenho em Progresso (Amarelo)</div>
+            <div class="r"><b>0 Rematrículas</b><br>Sem Alunos Recuperados (Vermelho)</div>
           </div>
           <div class="toolbar">
             <button class="btn dark sm" onclick="exportWord('printFarol', 'Farol_Rematricula')"><i class="fa-solid fa-file-word"></i> Exportar Word</button>
@@ -371,7 +377,11 @@ td.col-aluno input {
           <div class="tablewrap" id="printFarol">
             <table>
               <thead class="navy">
-                <tr><th>NOME DO PROFESSOR</th><th>QTD. REMATRÍCULAS NO MÊS</th><th>STATUS FAROL</th></tr>
+                <tr>
+                  <th style="text-align:center">NOME DO PROFESSOR</th>
+                  <th style="text-align:center">QTD. REMATRÍCULAS NO MÊS</th>
+                  <th style="text-align:center">STATUS FAROL</th>
+                </tr>
               </thead>
               <tbody id="rankBody"></tbody>
             </table>
@@ -564,7 +574,7 @@ sortProfessors();
 const SEC_PASS_KEY_DEFAULT = "Secretaria23231939";
 let session=null, students=[], rematriculas=[], resetTarget='sec';
 let anosCriados=['2026'], currentAno='2026';
-let selectedRematYear='2026', selectedRematMonth='Setembro';
+let selectedRematYear='2026', selectedRematMonth='Setembro', selectedRematProf='todos';
 let selectedFarolYear='2026', selectedFarolMonth='Setembro';
 let selectedCertYear='2026';
 
@@ -1024,6 +1034,50 @@ function renderRematModule(){
   const wrapMonths = document.getElementById('rematMonthsGrid');
   wrapMonths.innerHTML = MESES.map(m => `<div class="month-card ${m === selectedRematMonth ? 'active' : ''}" onclick="selectRematMonth('${m}')">🗓️ ${m}</div>`).join('');
 
+  // RENDERIZAÇÃO CONECTADA DOS PROFESSORES DENTRO DA REMATRÍCULA
+  renderRematProfPills();
+  renderRematTable();
+}
+
+function renderRematProfPills(){
+  const wrapProfs = document.getElementById('rematProfPills'); if(!wrapProfs) return;
+  wrapProfs.innerHTML = '';
+
+  // Se o professor selecionado anteriormente não existe mais, reseta para 'todos'
+  if(selectedRematProf !== 'todos' && !PROFESSORES.some(p=>normName(p)===normName(selectedRematProf))){
+    selectedRematProf = 'todos';
+  }
+
+  // Total de rematrículas gerais no mês/ano
+  const totalGeral = rematriculas.filter(r => (r.mes === selectedRematMonth) && (r.ano === selectedRematYear || !r.ano)).length;
+
+  // Botão para exibir Todos os Professores
+  const divTodos = document.createElement('div');
+  divTodos.className = 'tab' + (selectedRematProf === 'todos' ? ' active' : '');
+  divTodos.textContent = `👥 Todos os Professores (${totalGeral})`;
+  divTodos.onclick = () => { selectedRematProf = 'todos'; renderRematProfPills(); renderRematTable(); };
+  wrapProfs.appendChild(divTodos);
+
+  // Botões dinâmicos para cada professor cadastrado
+  sortProfessors();
+  PROFESSORES.forEach(p => {
+    const countProf = rematriculas.filter(r => 
+      (r.mes === selectedRematMonth) && 
+      (r.ano === selectedRematYear || !r.ano) && 
+      (normName(r.prof) === normName(p))
+    ).length;
+
+    const d = document.createElement('div');
+    d.className = 'tab' + (selectedRematProf === p ? ' active' : '');
+    d.textContent = `👤 ${p} (${countProf})`;
+    d.onclick = () => { selectRematProf(p); };
+    wrapProfs.appendChild(d);
+  });
+}
+
+function selectRematProf(profName){
+  selectedRematProf = profName;
+  renderRematProfPills();
   renderRematTable();
 }
 
@@ -1035,9 +1089,17 @@ function selectRematMonth(m){
 function renderRematTable(){
   const detail = document.getElementById('rematMonthDetail');
   detail.classList.remove('hidden');
-  document.getElementById('rematMonthTitle').textContent = `Rematrículas do Mês: ${selectedRematMonth} / ${selectedRematYear}`;
 
-  const filtered = rematriculas.filter(r => (r.mes === selectedRematMonth) && (r.ano === selectedRematYear || !r.ano));
+  const profLabel = selectedRematProf === 'todos' ? 'Todos os Professores' : selectedRematProf;
+  document.getElementById('rematMonthTitle').textContent = `Rematrículas do Mês: ${selectedRematMonth} / ${selectedRematYear} — (${profLabel})`;
+
+  const filtered = rematriculas.filter(r => {
+    const matchMonth = (r.mes === selectedRematMonth);
+    const matchYear = (r.ano === selectedRematYear || !r.ano);
+    const matchProf = (selectedRematProf === 'todos') || (normName(r.prof) === normName(selectedRematProf));
+    return matchMonth && matchYear && matchProf;
+  });
+
   const body = document.getElementById('rematBody');
   body.innerHTML = filtered.map(r=>{
     const globalIdx = rematriculas.indexOf(r);
@@ -1109,22 +1171,44 @@ function renderFarolTable(){
 
   const body = document.getElementById('rankBody'); if(!body) return;
   const counts = {};
+  sortProfessors();
   PROFESSORES.forEach(p=>counts[p]=0);
 
+  // Contabiliza rematrículas ativas registradas no mês/ano
   rematriculas.forEach(r=>{
-    if((r.mes === selectedFarolMonth) && (r.ano === selectedFarolYear || !r.ano)){
-      if(r.status === 'aprovado' || !r.status){
-         if(counts[r.prof]!==undefined) counts[r.prof]++;
+    const rMes = r.mes;
+    const rAno = r.ano || selectedFarolYear;
+    if(rMes === selectedFarolMonth && rAno === selectedFarolYear){
+      const foundProf = PROFESSORES.find(p => normName(p) === normName(r.prof));
+      if(foundProf){
+        counts[foundProf]++;
       }
     }
   });
 
   const sorted = PROFESSORES.map(p=>({name:p, count:counts[p]})).sort((a,b)=>b.count-a.count);
+  
+  // Regra do Farol:
+  // 4 ou mais (>= 4) -> Verde
+  // 1 a 3 (1, 2 ou 3) -> Amarelo
+  // 0 -> Vermelho
   body.innerHTML = sorted.map(item=>{
     let badge = '<span class="badge r">Vermelho</span>';
-    if(item.count > 4) badge = '<span class="badge g">Verde</span>';
-    else if(item.count > 0) badge = '<span class="badge y">Amarelo</span>';
-    return `<tr><td>${item.name}</td><td><b>${item.count}</b></td><td>${badge}</td></tr>`;
+    let profColor = '#c62828'; // Vermelho
+    
+    if(item.count >= 4) {
+      badge = '<span class="badge g">Verde</span>';
+      profColor = '#1E7A34'; // Verde
+    } else if(item.count >= 1) {
+      badge = '<span class="badge y">Amarelo</span>';
+      profColor = '#d48800'; // Amarelo/Dourado visível
+    }
+
+    return `<tr>
+      <td style="text-align:center; font-weight:bold; color:${profColor};">${item.name}</td>
+      <td style="text-align:center; font-weight:bold;">${item.count}</td>
+      <td style="text-align:center;">${badge}</td>
+    </tr>`;
   }).join('');
 }
 
@@ -1216,7 +1300,7 @@ function renderProfRematModule(){
 
   const bodyRemat = document.getElementById('profRematBody');
   if(bodyRemat){
-    const myRemat = rematriculas.filter(r => r.prof === myName && r.mes === profSelectedRematMonth && (r.ano === profSelectedRematYear || !r.ano));
+    const myRemat = rematriculas.filter(r => normName(r.prof) === normName(myName) && r.mes === profSelectedRematMonth && (r.ano === profSelectedRematYear || !r.ano));
     bodyRemat.innerHTML = myRemat.map((r) => {
       const globalIdx = rematriculas.indexOf(r);
       const stBadge = r.status === 'pendente' ? '<span class="badge y">Pendente</span>' : '<span class="badge g">Confirmado</span>';
@@ -1386,8 +1470,12 @@ function exportWord(id, prefix) {
   const html = `<html>
     <head><meta charset='utf-8'><style>
       table { width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 12px; }
-      th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
-      th { background-color: #f4f4f4; }
+      th, td { border: 1px solid #ccc; padding: 8px; }
+      th { background-color: #f4f4f4; text-align: center; }
+      .badge { padding: 4px 10px; border-radius: 12px; font-weight: bold; color: #fff; display: inline-block; }
+      .g { background-color: #1E7A34 !important; color: #ffffff !important; }
+      .y { background-color: #F2B705 !important; color: #5a4200 !important; }
+      .r { background-color: #c62828 !important; color: #ffffff !important; }
     </style></head>
     <body>${clone.outerHTML}</body>
   </html>`;
@@ -1411,14 +1499,14 @@ function printSection(id){
 
   const win = window.open('','_blank');
   win.document.write(`<html><head><title>Impressão</title><style>
-    body { font-family: sans-serif; }
-    table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 20px;}
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background-color: #f4f4f4; }
-    .badge { padding: 3px 6px; border-radius: 4px; color: #fff; font-weight: bold; }
-    .g { background: #1E7A34; }
-    .y { background: #F2B705; color:#000; }
-    .r { background: #c62828; }
+    body { font-family: sans-serif; margin: 20px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 15px; }
+    th, td { border: 1px solid #ccc; padding: 8px; }
+    th { background-color: #f4f4f4; text-align: center; }
+    .badge { padding: 4px 10px; border-radius: 12px; font-weight: bold; color: #fff; display: inline-block; }
+    .g { background: #1E7A34 !important; color: #fff !important; }
+    .y { background: #F2B705 !important; color: #5a4200 !important; }
+    .r { background: #c62828 !important; color: #fff !important; }
   </style></head><body><h2>Relatório do Sistema</h2>${clone.outerHTML}</body></html>`);
   win.document.close();
   win.focus();
@@ -1487,6 +1575,7 @@ window.addNewStudentRow = addNewStudentRow;
 window.saveProfessors = saveProfessors;
 window.addNewYearRemat = addNewYearRemat;
 window.selectRematMonth = selectRematMonth;
+window.selectRematProf = selectRematProf;
 window.selectFarolMonth = selectFarolMonth;
 window.selectProfRematMonth = selectProfRematMonth;
 window.updateProfRematItem = updateProfRematItem;
