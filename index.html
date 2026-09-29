@@ -612,6 +612,7 @@ let currentSubTab = 'atuais';
 let currentSubTab2 = 'atuais';
 let authData = { secPass:"Secretaria23231939", profPasswords:{} };
 let lockedProfLink = null;
+let pendingFocusStudentId = null;
 
 function sortProfessors(){
   PROFESSORES.sort((a,b)=>a.localeCompare(b, 'pt-BR', {sensitivity:'base'}));
@@ -1050,11 +1051,48 @@ function buildStudentRowHTML(s, isSecretaria=true){
   </tr>`;
 }
 
+// PRESERVA O FOCO E O CURSOR DO USUÁRIO AO REINSERIR OS DADOS DA TABELA
+function renderTableWithFocus(bodyId, renderContentFn){
+  const body = document.getElementById(bodyId); if(!body) return;
+  const activeEl = document.activeElement;
+  let activeStudentId = pendingFocusStudentId;
+  let activeField = pendingFocusStudentId ? 'mat' : null;
+  let selStart = null, selEnd = null;
+
+  if(activeEl && body.contains(activeEl)){
+    const tr = activeEl.closest('tr');
+    if(tr && tr.dataset.id) activeStudentId = tr.dataset.id;
+    if(activeEl.dataset && activeEl.dataset.field) activeField = activeEl.dataset.field;
+    try {
+      selStart = activeEl.selectionStart;
+      selEnd = activeEl.selectionEnd;
+    } catch(e){}
+  }
+
+  renderContentFn(body);
+
+  if(activeStudentId && activeField){
+    const newTr = body.querySelector(`tr[data-id="${activeStudentId}"]`);
+    if(newTr){
+      const targetInp = newTr.querySelector(`[data-field="${activeField}"]`);
+      if(targetInp){
+        targetInp.focus();
+        try {
+          if(selStart !== null && selEnd !== null && targetInp.setSelectionRange){
+            targetInp.setSelectionRange(selStart, selEnd);
+          }
+        } catch(e){}
+      }
+    }
+  }
+}
+
 function renderTable(){
-  const body = document.getElementById('studentsBody'); if(!body) return;
-  const filterP = document.getElementById('filtroProfessor')?.value || '';
-  const list = filterStudentsList(students, currentSubTab, currentAno, filterP);
-  body.innerHTML = list.map(s => buildStudentRowHTML(s, true)).join('');
+  renderTableWithFocus('studentsBody', (body)=>{
+    const filterP = document.getElementById('filtroProfessor')?.value || '';
+    const list = filterStudentsList(students, currentSubTab, currentAno, filterP);
+    body.innerHTML = list.map(s => buildStudentRowHTML(s, true)).join('');
+  });
 }
 
 function renderSecPorProfModule(){
@@ -1078,18 +1116,17 @@ function renderSecPorProfModule(){
   const titleEl = document.getElementById('secProfSelectedTitle');
   if(titleEl) titleEl.textContent = `Planilha de Estudantes do Professor(a): ${selectedSecProfName}`;
 
-  const body = document.getElementById('secProfStudentsBody');
-  if(body){
+  renderTableWithFocus('secProfStudentsBody', (body)=>{
     const list = filterStudentsList(students, 'atuais', currentAno, selectedSecProfName);
     body.innerHTML = list.map(s => buildStudentRowHTML(s, true)).join('');
-  }
+  });
 }
 
 function renderSecGeralPorProfModule(){
-  const body = document.getElementById('secGeralPorProfStudentsBody');
-  if(!body) return;
-  const list = filterStudentsListByProf(students, currentSubTab, currentAno);
-  body.innerHTML = list.map(s => buildStudentRowHTML(s, true)).join('');
+  renderTableWithFocus('secGeralPorProfStudentsBody', (body)=>{
+    const list = filterStudentsListByProf(students, currentSubTab, currentAno);
+    body.innerHTML = list.map(s => buildStudentRowHTML(s, true)).join('');
+  });
 }
 
 async function addNewStudentRow(){
@@ -1097,10 +1134,12 @@ async function addNewStudentRow(){
   if(currentSubTab === 'antigas') {
       targetAno = (parseInt(currentAno) - 1).toString();
   }
+  const newId = 's' + Date.now();
+  pendingFocusStudentId = newId;
   const newStudent = {
-    id: 's' + Date.now(),
+    id: newId,
     mat: '',
-    aluno: 'NOVO ESTUDANTE',
+    aluno: '', // NOME EM BRANCO (SEM "NOVO ESTUDANTE")
     turma: '',
     nivel: 'EM',
     contato: '',
@@ -1115,10 +1154,12 @@ async function addNewStudentRow(){
 
 async function addNewStudentRowForProf(){
   if(!selectedSecProfName) return;
+  const newId = 's' + Date.now();
+  pendingFocusStudentId = newId;
   const newStudent = {
-    id: 's' + Date.now(),
+    id: newId,
     mat: '',
-    aluno: 'NOVO ESTUDANTE',
+    aluno: '', // NOME EM BRANCO (SEM "NOVO ESTUDANTE")
     turma: '',
     nivel: 'EM',
     contato: '',
@@ -1270,7 +1311,7 @@ async function updateRematItem(globalIdx, field, val){
 async function addSecRematRow(){
   const defaultProf = selectedRematProf === 'todos' ? (PROFESSORES[0] || '') : selectedRematProf;
   rematriculas.push({
-    aluno: 'NOVO ESTUDANTE REMATRICULADO',
+    aluno: '',
     mat: '',
     ultFreq: toISO(new Date().toLocaleDateString('pt-BR')),
     retorno: toISO(new Date().toLocaleDateString('pt-BR')),
@@ -1415,11 +1456,10 @@ function renderProfView(){
   if(!session || session.role!=='professor') return;
   const myName = session.name;
 
-  const bodyTurma = document.getElementById('profStudentsBody');
-  if(bodyTurma){
+  renderTableWithFocus('profStudentsBody', (bodyTurma)=>{
     const myStudents = filterStudentsList(students, currentSubTab2, currentAno, myName);
     bodyTurma.innerHTML = myStudents.map(s=>buildStudentRowHTML(s, false)).join('');
-  }
+  });
 }
 
 async function addProfessor(){
