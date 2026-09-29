@@ -99,42 +99,14 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
 .stat-card .label{font-size:.82rem;color:var(--muted);font-weight:600;}
 .add-row-bar{display:flex;align-items:center;justify-content:center;padding:10px;background:var(--bg);border-top:1px solid var(--border);}
 
-/* Otimiza o espaço das margens no celular */
-.container, .main-module {
-    width: 100%;
-    max-width: 98%;
-    padding: 5px;
-    margin: 0 auto;
-}
-/* Aumenta o tamanho da coluna de nomes para caber nome e sobrenome */
-th.col-aluno, td.col-aluno {
-    min-width: 180px; 
-}
-td.col-aluno input {
-    width: 100%;
-    min-width: 170px;
-    font-size: 14px;
-}
-/* Estilos para os novos botões */
-.btn-excluir {
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-}
-.btn-zerar {
-    background-color: #8b0000;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    margin-bottom: 15px;
-}
+.container, .main-module { width: 100%; max-width: 98%; padding: 5px; margin: 0 auto; }
+th.col-aluno, td.col-aluno { min-width: 180px; }
+td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
+.btn-excluir { background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+.btn-zerar { background-color: #8b0000; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 0px; }
+.mode-toggle-bar { display: flex; gap: 10px; margin-bottom: 16px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
+.mode-btn { background: var(--bg); color: var(--ink); border: 1px solid var(--border); border-radius: 8px; padding: 10px 18px; font-weight: 700; cursor: pointer; font-size: 0.92rem; display: flex; align-items: center; gap: 8px; transition: all .2s; }
+.mode-btn.active { background: var(--green); color: #fff; border-color: var(--green); }
 </style>
 </head>
 <body>
@@ -163,10 +135,6 @@ td.col-aluno input {
           <input type="password" id="secPass" placeholder="Senha da secretária">
           <button type="button" class="eye-btn" onclick="togglePass('secPass', this)"><i class="fa-solid fa-eye"></i></button>
         </div>
-        <div id="secRecovery" class="hidden">
-          <label>E-mail de recuperação (1º acesso)</label>
-          <input type="email" id="secEmail">
-        </div>
         <div class="checkline"><input type="checkbox" id="secKeep" checked> Lembrar login e senha</div>
         <div id="secErr" class="err"></div>
         <button class="btn" style="width:100%" onclick="loginSecretaria()">Acessar Sistema</button>
@@ -181,15 +149,6 @@ td.col-aluno input {
         <div class="pass-wrap">
           <input type="password" id="profPass" placeholder="Senha (padrão: 12345)">
           <button type="button" class="eye-btn" onclick="togglePass('profPass', this)"><i class="fa-solid fa-eye"></i></button>
-        </div>
-        <div id="profFirstAccess" class="hidden">
-          <label>Nova senha</label>
-          <div class="pass-wrap">
-            <input type="password" id="profNewPass">
-            <button type="button" class="eye-btn" onclick="togglePass('profNewPass', this)"><i class="fa-solid fa-eye"></i></button>
-          </div>
-          <label>E-mail de recuperação</label>
-          <input type="email" id="profEmail">
         </div>
         <div class="checkline"><input type="checkbox" id="profKeep" checked> Lembrar login e senha</div>
         <div id="profErr" class="err"></div>
@@ -258,44 +217,96 @@ td.col-aluno input {
       <div id="mod-alunos">
         <h1 class="pg">Gestão de Estudantes</h1>
         <p class="sub-pg">Acompanhamento e controle de evasão escolar do CEJA Dr. Gerardo Camelo Madeira</p>
-        <div class="toolbar">
-          <button class="btn-zerar" onclick="zerarBancoDeDados()">⚠️ Zerar Banco de Dados (Novo Semestre)</button>
-          <button class="btn sm" style="background:var(--navy)" onclick="saveEstudantesModule()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
-          <button class="btn dark sm" onclick="exportCSV()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
-          <button class="btn dark sm" onclick="exportWord('printAlunos', 'Estudantes')"><i class="fa-solid fa-file-word"></i> Exportar Word</button>
-          <button class="btn red sm" onclick="printSection('printAlunos')"><i class="fa-solid fa-file-pdf"></i> Gerar PDF / Imprimir</button>
+
+        <!-- NAVEGAÇÃO ENTRE MATRÍCULA GERAL E POR PROFESSOR -->
+        <div class="mode-toggle-bar">
+          <button class="mode-btn active" id="btnModeGeral" onclick="setSecViewMode('geral')"><i class="fa-solid fa-list-check"></i> Matrícula Geral</button>
+          <button class="mode-btn" id="btnModePorProf" onclick="setSecViewMode('porProf')"><i class="fa-solid fa-chalkboard-user"></i> Por Professor</button>
         </div>
-        <div class="tabs">
-          <div class="tab active gold" id="tabAtuais" data-subtab="atuais" onclick="setSubTab('atuais')">Matrículas Atuais</div>
-          <div class="tab" id="tabAntigas" data-subtab="antigas" onclick="setSubTab('antigas')">Matrículas Antigas</div>
+
+        <!-- VISUALIZAÇÃO: MATRÍCULA GERAL -->
+        <div id="secViewGeral">
+          <div class="toolbar">
+            <button class="btn-zerar" onclick="zerarBancoDeDados()">⚠️ Zerar Banco de Dados (Novo Semestre)</button>
+            <button class="btn sm" style="background:var(--navy)" onclick="saveEstudantesModule()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
+            <button class="btn dark sm" onclick="exportCSV()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
+            <button class="btn dark sm" onclick="exportWord('printAlunos', 'Estudantes')"><i class="fa-solid fa-file-word"></i> Exportar Word</button>
+            <button class="btn red sm" onclick="printSection('printAlunos')"><i class="fa-solid fa-file-pdf"></i> Gerar PDF / Imprimir</button>
+          </div>
+          <div class="tabs">
+            <div class="tab active gold" id="tabAtuais" data-subtab="atuais" onclick="setSubTab('atuais')">Matrículas Atuais</div>
+            <div class="tab" id="tabAntigas" data-subtab="antigas" onclick="setSubTab('antigas')">Matrículas Antigas</div>
+          </div>
+          <div class="grid c5" style="margin-bottom:6px;">
+            <div><label>Ano Letivo (digite e clique em Salvar)</label><input type="text" id="anoLetivoInput" maxlength="4" placeholder="Ex: 2027"></div>
+            <div><label>Professor</label><select id="filtroProfessor"></select></div>
+          </div>
+          <div class="tabs" id="anosPills" style="margin-bottom:10px;"></div>
+          <div class="tablewrap" id="printAlunos">
+            <table>
+              <thead class="blue">
+                <tr>
+                  <th>MAT</th>
+                  <th class="col-aluno">ALUNO(A)</th>
+                  <th>NÍVEL</th>
+                  <th>CONTATO</th>
+                  <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
+                  <th>SITUAÇÃO</th>
+                  <th>STATUS</th>
+                  <th style="text-align:center">DIAS AUSENTE</th>
+                  <th>PROFESSOR</th>
+                  <th style="text-align:center">CONCLUDENTE</th>
+                  <th style="text-align:center" class="no-print">AÇÕES</th>
+                </tr>
+              </thead>
+              <tbody id="studentsBody"></tbody>
+            </table>
+            <div class="add-row-bar no-print">
+              <button type="button" class="btn-plus" onclick="addNewStudentRow()" title="Adicionar Novo Estudante">+</button>
+              <span style="font-size:0.85rem;margin-left:8px;font-weight:700;color:var(--green)">Adicionar Novo Estudante</span>
+            </div>
+          </div>
         </div>
-        <div class="grid c5" style="margin-bottom:6px;">
-          <div><label>Ano Letivo (digite e clique em Salvar)</label><input type="text" id="anoLetivoInput" maxlength="4" placeholder="Ex: 2027"></div>
-          <div><label>Professor</label><select id="filtroProfessor"></select></div>
-        </div>
-        <div class="tabs" id="anosPills" style="margin-bottom:10px;"></div>
-        <div class="tablewrap" id="printAlunos">
-          <table>
-            <thead class="blue">
-              <tr>
-                <th>MAT</th>
-                <th class="col-aluno">ALUNO(A)</th>
-                <th>NÍVEL</th>
-                <th>CONTATO</th>
-                <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
-                <th>SITUAÇÃO</th>
-                <th>STATUS</th>
-                <th style="text-align:center">DIAS AUSENTE</th>
-                <th>PROFESSOR</th>
-                <th style="text-align:center">CONCLUDENTE</th>
-                <th style="text-align:center" class="no-print">AÇÕES</th>
-              </tr>
-            </thead>
-            <tbody id="studentsBody"></tbody>
-          </table>
-          <div class="add-row-bar no-print">
-            <button type="button" class="btn-plus" onclick="addNewStudentRow()" title="Adicionar Novo Estudante">+</button>
-            <span style="font-size:0.8rem;margin-left:8px;font-weight:600;color:var(--green)">Adicionar Novo Estudante</span>
+
+        <!-- VISUALIZAÇÃO: POR PROFESSOR -->
+        <div id="secViewPorProf" class="hidden">
+          <h3 style="margin-bottom:8px;"><i class="fa-solid fa-arrow-down-a-z"></i> Selecione o Professor (Ordem Alfabética):</h3>
+          <div class="tabs" id="secProfsPills" style="margin-bottom:16px;"></div>
+
+          <div id="secProfDetail">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
+              <h3 id="secProfSelectedTitle" style="margin:0; color:var(--green)"></h3>
+              <div class="toolbar" style="margin:0">
+                <button class="btn sm" style="background:var(--navy)" onclick="saveEstudantesModule()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
+                <button class="btn dark sm" onclick="exportCSVPorProf()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
+                <button class="btn red sm" onclick="printSection('printAlunosPorProf')"><i class="fa-solid fa-file-pdf"></i> Gerar PDF / Imprimir</button>
+              </div>
+            </div>
+
+            <div class="tablewrap" id="printAlunosPorProf">
+              <table>
+                <thead class="blue">
+                  <tr>
+                    <th>MAT</th>
+                    <th class="col-aluno">ALUNO(A)</th>
+                    <th>NÍVEL</th>
+                    <th>CONTATO</th>
+                    <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
+                    <th>SITUAÇÃO</th>
+                    <th>STATUS</th>
+                    <th style="text-align:center">DIAS AUSENTE</th>
+                    <th>PROFESSOR</th>
+                    <th style="text-align:center">CONCLUDENTE</th>
+                    <th style="text-align:center" class="no-print">AÇÕES</th>
+                  </tr>
+                </thead>
+                <tbody id="secProfStudentsBody"></tbody>
+              </table>
+              <div class="add-row-bar no-print">
+                <button type="button" class="btn-plus" onclick="addNewStudentRowForProf()" title="Adicionar Estudante para Este Professor">+</button>
+                <span style="font-size:0.85rem;margin-left:8px;font-weight:700;color:var(--green)">Adicionar Estudante para Este Professor</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -321,7 +332,7 @@ td.col-aluno input {
       <!-- REMATRICULA MENSAL (SECRETARIA) -->
       <div id="mod-remat" class="hidden">
         <h1 class="pg">Rematrícula Mensal</h1>
-        <p class="sub-pg">Registro unificado dos alunos que retornaram por ano e mês</p>
+        <p class="sub-pg">Registro unificado e acompanhamento de retornos de responsabilidade da Secretaria</p>
         <div class="grid c5" style="margin-bottom:10px">
           <div><label>Adicionar Próximo Ano</label><input type="text" id="addYearRemat" maxlength="4" placeholder="Ex: 2027"></div>
           <div style="display:flex;align-items:flex-end"><button class="btn sm" onclick="addNewYearRemat()"><i class="fa-solid fa-plus"></i> Adicionar Ano</button></div>
@@ -332,13 +343,15 @@ td.col-aluno input {
         
         <!-- PROFESSORES CONECTADOS NA REMATRÍCULA -->
         <div id="rematProfSection" style="margin-top:16px;">
-          <h3 style="margin-bottom:8px;"><i class="fa-solid fa-chalkboard-user"></i> Professores Cadastrados no Mês (Selecione para filtrar):</h3>
+          <h3 style="margin-bottom:8px;"><i class="fa-solid fa-chalkboard-user"></i> Filtrar por Professor:</h3>
           <div class="tabs" id="rematProfPills" style="margin-bottom:16px;"></div>
         </div>
 
         <div id="rematMonthDetail" class="hidden">
           <h3 id="rematMonthTitle"></h3>
           <div class="toolbar">
+            <button class="btn sm" style="background:var(--green)" onclick="addSecRematRow()"><i class="fa-solid fa-plus"></i> acrescentar Estudante</button>
+            <button class="btn sm" style="background:var(--navy)" onclick="saveAllRemat()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
             <button class="btn dark sm" onclick="exportCSVRemat()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
             <button class="btn dark sm" onclick="exportWord('printRemat', 'Rematricula_Mensal')"><i class="fa-solid fa-file-word"></i> Exportar Word</button>
             <button class="btn red sm" onclick="printSection('printRemat')"><i class="fa-solid fa-file-pdf"></i> Exportar PDF / Imprimir</button>
@@ -346,12 +359,12 @@ td.col-aluno input {
           <div class="tablewrap" id="printRemat">
             <table>
               <thead class="darkgreen">
-                <tr><th>ESTUDANTE</th><th>MATRÍCULA</th><th>ÚLT. FREQ. (DD/MM/AAAA)</th><th>DATA DO RETORNO (DD/MM/AAAA)</th><th>MÊS/ANO</th><th>PROFESSOR</th><th class="no-print">STATUS / AÇÃO</th></tr>
+                <tr><th>ESTUDANTE</th><th>MATRÍCULA</th><th>ÚLT. FREQ. (DD/MM/AAAA)</th><th>DATA DO RETORNO (DD/MM/AAAA)</th><th>MÊS/ANO</th><th>PROFESSOR</th><th class="no-print">AÇÃO</th></tr>
               </thead>
               <tbody id="rematBody"></tbody>
             </table>
           </div>
-          <p class="muted hidden" id="rematEmpty">Nenhuma rematrícula efetuada neste mês para o professor selecionado.</p>
+          <p class="muted hidden" id="rematEmpty">Nenhuma rematrícula efetuada neste mês para o filtro selecionado.</p>
         </div>
       </div>
 
@@ -456,14 +469,10 @@ td.col-aluno input {
         </div>
       </div>
 
-      <!-- VISÃO DO PROFESSOR (COM SELEÇÃO DE ANO E MÊS MENSAL) -->
+      <!-- VISÃO DO PROFESSOR (SOMENTE MONITORAMENTO DA TURMA) -->
       <div id="mod-prof-view" class="hidden">
         <h1 class="pg" id="profWelcome"></h1>
-        <p class="sub-pg">Acompanhe e registre o retorno de seus alunos evadidos.</p>
-        <div class="tabs">
-          <div class="tab active" id="ptabTurmaBtn" onclick="setProfTab('turma')">📋 Minha Turma (Monitoramento)</div>
-          <div class="tab" id="ptabRematBtn" onclick="setProfTab('remat')">📝 Minhas Rematrículas Mensais</div>
-        </div>
+        <p class="sub-pg">Acompanhe seus alunos evadidos e ativos em tempo real.</p>
 
         <div id="ptab-turma">
           <div class="toolbar"><button class="btn sm" style="background:var(--navy)" onclick="saveAllStudents()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button></div>
@@ -491,24 +500,6 @@ td.col-aluno input {
             </table>
           </div>
         </div>
-
-        <div id="ptab-remat" class="hidden">
-          <h3>Selecione o Ano e Mês da Rematrícula:</h3>
-          <div class="tabs" id="profRematYearsPills" style="margin-bottom:10px;"></div>
-          <div class="months-grid" id="profRematMonthsGrid"></div>
-          
-          <h3 id="profRematMonthTitle" style="margin-top:16px;color:var(--green)"></h3>
-          <div class="tablewrap">
-            <table>
-              <thead class="darkgreen">
-                <tr><th>NOME DO ALUNO</th><th>MATRÍCULA</th><th>ÚLT. FREQ. (DD/MM/AAAA)</th><th>RETORNO (DD/MM/AAAA)</th><th>MÊS / ANO</th><th>PROFESSOR</th><th>STATUS</th><th class="no-print">AÇÃO</th></tr>
-              </thead>
-              <tbody id="profRematBody"></tbody>
-            </table>
-          </div>
-          <button class="btn sm" style="margin-top:12px" onclick="addProfRematRow()"><i class="fa-solid fa-plus"></i> Adicionar Aluno Rematriculado</button>
-          <button class="btn sm" style="margin-top:12px;background:var(--navy)" onclick="saveAllRemat()"><i class="fa-solid fa-floppy-disk"></i> Salvar e Sincronizar com a Secretária</button>
-        </div>
       </div>
     </div>
   </div>
@@ -531,7 +522,6 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
 
-// CARREGAMENTO INTELIGENTE DO BRASÃO / LOGO
 function setupLogos() {
   const sources = [
     './assets/ceja-logo.webp',
@@ -578,13 +568,11 @@ let selectedRematYear='2026', selectedRematMonth='Setembro', selectedRematProf='
 let selectedFarolYear='2026', selectedFarolMonth='Setembro';
 let selectedCertYear='2026';
 
-// VARIÁVEIS DE SELEÇÃO DE ANO/MÊS DO PROFESSOR
-let profSelectedRematYear='2026';
-let profSelectedRematMonth='Setembro';
+let currentSecViewMode = 'geral'; // 'geral' ou 'porProf'
+let selectedSecProfName = '';     // Nome do professor ativo na view "Por Professor"
 
 let currentSubTab = 'atuais';
 let currentSubTab2 = 'atuais';
-let currentProfTab = 'turma';
 let authData = { secPass:"Secretaria23231939", profPasswords:{} };
 let lockedProfLink = null;
 
@@ -610,6 +598,7 @@ async function boot(){
     const dt = d.data();
     if(dt && dt.list && dt.list.length){ PROFESSORES = dt.list; sortProfessors(); }
     else { seedProfessorsIfEmpty(); }
+    if(!selectedSecProfName && PROFESSORES.length) selectedSecProfName = PROFESSORES[0];
     buildProfessorFilter();
     renderAll();
   });
@@ -706,7 +695,6 @@ function toISO(brStr){
   return brStr;
 }
 
-// AUXILIAR PARA ORDENAÇÃO POR DATA DA ÚLTIMA FREQUÊNCIA
 function parseDateForSort(dateStr) {
   if (!dateStr) return 0;
   const iso = toISO(dateStr);
@@ -744,6 +732,7 @@ function renderAnosPills(){
 function buildProfessorFilter(){
   const sel=document.getElementById('filtroProfessor'); if(!sel) return; sel.innerHTML='<option value="">Todos os Professores</option>';
   const sel2=document.getElementById('secSelUser'); if(sel2) sel2.innerHTML='<option value="">Selecione um perfil...</option><option value="Secretária">Secretária</option>';
+  sortProfessors();
   PROFESSORES.forEach(p=>{
     const o=document.createElement('option');o.value=p;o.textContent=p;sel.appendChild(o);
     if(sel2){ const o2=document.createElement('option');o2.value=p;o2.textContent=p;sel2.appendChild(o2); }
@@ -879,7 +868,6 @@ function enterApp(){
     setModule('alunos'); 
   } else { 
     document.getElementById('profWelcome').textContent = 'Bem-vindo(a), ' + session.name;
-    setProfTab('turma');
     setSubTab2('atuais');
   }
   renderAll();
@@ -896,20 +884,21 @@ function setModule(mod){
   renderAll();
 }
 
+function setSecViewMode(mode){
+  currentSecViewMode = mode;
+  document.getElementById('btnModeGeral').classList.toggle('active', mode==='geral');
+  document.getElementById('btnModePorProf').classList.toggle('active', mode==='porProf');
+  document.getElementById('secViewGeral').classList.toggle('hidden', mode!=='geral');
+  document.getElementById('secViewPorProf').classList.toggle('hidden', mode!=='porProf');
+  if(mode === 'porProf') renderSecPorProfModule();
+  else renderTable();
+}
+
 function setSubTab(tab){
   currentSubTab = tab;
   document.getElementById('tabAtuais').classList.toggle('active', tab==='atuais');
   document.getElementById('tabAntigas').classList.toggle('active', tab==='antigas');
   renderTable();
-}
-
-function setProfTab(tab){
-  currentProfTab = tab;
-  document.getElementById('ptabTurmaBtn').classList.toggle('active', tab==='turma');
-  document.getElementById('ptabRematBtn').classList.toggle('active', tab==='remat');
-  document.getElementById('ptab-turma').classList.toggle('hidden', tab!=='turma');
-  document.getElementById('ptab-remat').classList.toggle('hidden', tab!=='remat');
-  renderProfView();
 }
 
 function setSubTab2(tab){
@@ -922,6 +911,7 @@ function setSubTab2(tab){
 function renderAll(){
   renderAnosPills();
   renderTable();
+  renderSecPorProfModule();
   renderProfs();
   renderRematModule();
   renderFarolModule();
@@ -932,14 +922,13 @@ function renderAll(){
 // FILTRA E ORDENA OS ESTUDANTES DO MENOR NÚMERO DE MATRÍCULA PARA O MAIOR
 function filterStudentsList(list, subtabFilter, yearFilter, profFilter){
   const filtered = list.filter(s=>{
-    if(profFilter && s.professor !== profFilter) return false;
+    if(profFilter && normName(s.professor) !== normName(profFilter)) return false;
     if(subtabFilter==='atuais'){
       return (s.ano === yearFilter) && (!s.concludente);
     }
     return (s.concludente) || (s.ano < yearFilter);
   });
 
-  // Ordenação crescente por número de matrícula (menor número em cima)
   return filtered.sort((a, b) => {
     const numA = parseFloat(a.mat) || 0;
     const numB = parseFloat(b.mat) || 0;
@@ -950,7 +939,7 @@ function filterStudentsList(list, subtabFilter, yearFilter, profFilter){
 
 function buildStudentRowHTML(s, isSecretaria=true){
   const st = situacaoStatus(s.ultimaFreq);
-  let optionsProf = PROFESSORES.map(p=>`<option value="${p}" ${s.professor===p?'selected':''}>${p}</option>`).join('');
+  let optionsProf = PROFESSORES.map(p=>`<option value="${p}" ${normName(s.professor)===normName(p)?'selected':''}>${p}</option>`).join('');
   const dateFormatted = toBR(s.ultimaFreq);
   const diasSemFreq = s.ultimaFreq ? `${diasDesde(s.ultimaFreq)} dias` : '---';
 
@@ -983,6 +972,32 @@ function renderTable(){
   body.innerHTML = list.map(s => buildStudentRowHTML(s, true)).join('');
 }
 
+function renderSecPorProfModule(){
+  const wrap = document.getElementById('secProfsPills'); if(!wrap) return;
+  wrap.innerHTML = '';
+  sortProfessors();
+  
+  if(!selectedSecProfName && PROFESSORES.length) selectedSecProfName = PROFESSORES[0];
+
+  PROFESSORES.forEach(p=>{
+    const count = students.filter(s => normName(s.professor) === normName(p) && s.ano === currentAno && !s.concludente).length;
+    const d = document.createElement('div');
+    d.className = 'tab' + (normName(p) === normName(selectedSecProfName) ? ' active gold' : '');
+    d.textContent = `👤 ${p} (${count})`;
+    d.onclick = () => { selectedSecProfName = p; renderSecPorProfModule(); };
+    wrap.appendChild(d);
+  });
+
+  const titleEl = document.getElementById('secProfSelectedTitle');
+  if(titleEl) titleEl.textContent = `Planilha de Estudantes do Professor(a): ${selectedSecProfName}`;
+
+  const body = document.getElementById('secProfStudentsBody');
+  if(body){
+    const list = filterStudentsList(students, 'atuais', currentAno, selectedSecProfName);
+    body.innerHTML = list.map(s => buildStudentRowHTML(s, true)).join('');
+  }
+}
+
 async function addNewStudentRow(){
   let targetAno = currentAno;
   if(currentSubTab === 'antigas') {
@@ -996,9 +1011,26 @@ async function addNewStudentRow(){
     contato: '',
     ultimaFreq: toISO(new Date().toLocaleDateString('pt-BR')),
     rematricula: 0,
-    professor: session?.role === 'professor' ? session.name : '',
+    professor: document.getElementById('filtroProfessor')?.value || '',
     concludente: false,
     ano: targetAno
+  };
+  await setDoc(doc(db,'students',newStudent.id), newStudent).catch(console.error);
+}
+
+async function addNewStudentRowForProf(){
+  if(!selectedSecProfName) return;
+  const newStudent = {
+    id: 's' + Date.now(),
+    mat: '',
+    aluno: 'NOVO ESTUDANTE',
+    nivel: 'EM',
+    contato: '',
+    ultimaFreq: toISO(new Date().toLocaleDateString('pt-BR')),
+    rematricula: 0,
+    professor: selectedSecProfName,
+    concludente: false,
+    ano: currentAno
   };
   await setDoc(doc(db,'students',newStudent.id), newStudent).catch(console.error);
 }
@@ -1098,7 +1130,6 @@ function selectRematMonth(m){
   renderRematModule();
 }
 
-// RENDERIZA A TABELA DA REMATRÍCULA ORGANIZADA DA MENOR PARA A MAIOR DATA DE ÚLTIMA FREQUÊNCIA
 function renderRematTable(){
   const detail = document.getElementById('rematMonthDetail');
   detail.classList.remove('hidden');
@@ -1113,49 +1144,57 @@ function renderRematTable(){
     return matchMonth && matchYear && matchProf;
   });
 
-  // Ordenação por Data de Última Frequência (menor data primeiro, maior data em baixo)
+  // Ordenação por Data da Última Frequência (menor data primeiro, maior data em baixo)
   filtered.sort((a, b) => parseDateForSort(a.ultFreq) - parseDateForSort(b.ultFreq));
 
   const body = document.getElementById('rematBody');
+  let profOptionsHTML = PROFESSORES.map(p=>`<option value="${p}">${p}</option>`).join('');
+
   body.innerHTML = filtered.map(r=>{
     const globalIdx = rematriculas.indexOf(r);
-    const isApproved = (r.status !== 'pendente');
-    const action = isApproved ? '<span class="badge g">Confirmado</span>' : `<button class="btn sm orange" onclick="aprovarRematricula(${globalIdx})">Confirmar</button>`;
+    let profSelect = `<select class="cell" onchange="updateRematItem(${globalIdx}, 'prof', this.value)"><option value="">Selecione...</option>${PROFESSORES.map(p=>`<option value="${p}" ${normName(r.prof)===normName(p)?'selected':''}>${p}</option>`).join('')}</select>`;
+    
     return `<tr>
-      <td>${r.aluno||''}</td>
-      <td>${r.mat||''}</td>
-      <td>${toBR(r.ultFreq)}</td>
-      <td>${toBR(r.retorno)}</td>
+      <td><input class="cell" value="${r.aluno||''}" onchange="updateRematItem(${globalIdx},'aluno',this.value)"></td>
+      <td><input class="cell" value="${r.mat||''}" onchange="updateRematItem(${globalIdx},'mat',this.value)" style="width:70px"></td>
+      <td><input class="cell" value="${toBR(r.ultFreq)}" onchange="updateRematItem(${globalIdx},'ultFreq',this.value)" placeholder="DD/MM/AAAA" style="width:105px"></td>
+      <td><input class="cell" value="${toBR(r.retorno)}" onchange="updateRematItem(${globalIdx},'retorno',this.value)" placeholder="DD/MM/AAAA" style="width:105px"></td>
       <td>${r.mes||selectedRematMonth} / ${r.ano||selectedRematYear}</td>
-      <td>${r.prof||''}</td>
-      <td class="no-print">${action}</td>
+      <td>${profSelect}</td>
+      <td class="no-print"><button class="btn red sm" onclick="deletarRematricula(${globalIdx})"><i class="fa-solid fa-trash"></i> Excluir</button></td>
     </tr>`;
   }).join('');
   document.getElementById('rematEmpty').classList.toggle('hidden', filtered.length>0);
 }
 
-async function aprovarRematricula(idx) {
-   if(rematriculas[idx]) {
-       rematriculas[idx].status = 'aprovado';
-       await saveAllRemat();
-       const alunoNome = rematriculas[idx].aluno.trim().toLowerCase();
-       const exists = students.find(s => s.aluno.trim().toLowerCase() === alunoNome);
-       if(!exists) {
-           const newStudent = {
-                id: 's' + Date.now(),
-                mat: rematriculas[idx].mat || '',
-                aluno: rematriculas[idx].aluno,
-                nivel: 'EM',
-                contato: '',
-                ultimaFreq: rematriculas[idx].ultFreq || toISO(new Date().toLocaleDateString('pt-BR')),
-                rematricula: 1,
-                professor: rematriculas[idx].prof,
-                concludente: false,
-                ano: rematriculas[idx].ano || currentAno
-              };
-            await setDoc(doc(db,'students',newStudent.id), newStudent).catch(console.error);
-       }
-   }
+function updateRematItem(globalIdx, field, val){
+  if(rematriculas[globalIdx]){
+    rematriculas[globalIdx][field] = (field==='ultFreq'||field==='retorno') ? toISO(val) : val;
+  }
+}
+
+async function addSecRematRow(){
+  const defaultProf = selectedRematProf === 'todos' ? (PROFESSORES[0] || '') : selectedRematProf;
+  rematriculas.push({
+    aluno: 'NOVO ESTUDANTE REMATRICULADO',
+    mat: '',
+    ultFreq: toISO(new Date().toLocaleDateString('pt-BR')),
+    retorno: toISO(new Date().toLocaleDateString('pt-BR')),
+    mes: selectedRematMonth,
+    ano: selectedRematYear,
+    prof: defaultProf,
+    status: 'aprovado'
+  });
+  await saveAllRemat();
+  renderRematModule();
+}
+
+async function deletarRematricula(globalIdx){
+  if(confirm("Deseja remover este registro de rematrícula?")){
+    rematriculas.splice(globalIdx, 1);
+    await saveAllRemat();
+    renderRematModule();
+  }
 }
 
 function renderFarolModule(){
@@ -1250,7 +1289,6 @@ function renderCertificacaoModule(){
 
   const concludentes = students.filter(s => s.concludente && (s.ano === selectedCertYear));
   
-  // Ordena os concludentes do menor para o maior número de matrícula
   concludentes.sort((a, b) => {
     const numA = parseFloat(a.mat) || 0;
     const numB = parseFloat(b.mat) || 0;
@@ -1287,97 +1325,6 @@ function renderProfView(){
     const myStudents = filterStudentsList(students, currentSubTab2, currentAno, myName);
     bodyTurma.innerHTML = myStudents.map(s=>buildStudentRowHTML(s, false)).join('');
   }
-
-  renderProfRematModule();
-}
-
-// RENDERIZA AS REMATRÍCULAS DO PROFESSOR ORGANIZADAS DA MENOR PARA A MAIOR DATA DE ÚLTIMA FREQUÊNCIA
-function renderProfRematModule(){
-  if(!session || session.role!=='professor') return;
-  const myName = session.name;
-
-  const wrapYears = document.getElementById('profRematYearsPills');
-  if(wrapYears){
-    wrapYears.innerHTML = '';
-    sortYears();
-    anosCriados.forEach(y=>{
-      const d = document.createElement('div');
-      d.className = 'tab' + (y === profSelectedRematYear ? ' active' : '');
-      d.textContent = '📅 Ano ' + y;
-      d.onclick = () => { profSelectedRematYear = y; renderProfRematModule(); };
-      wrapYears.appendChild(d);
-    });
-  }
-
-  const wrapMonths = document.getElementById('profRematMonthsGrid');
-  if(wrapMonths){
-    wrapMonths.innerHTML = MESES.map(m => `<div class="month-card ${m === profSelectedRematMonth ? 'active' : ''}" onclick="selectProfRematMonth('${m}')">🗓️ ${m}</div>`).join('');
-  }
-
-  const titleEl = document.getElementById('profRematMonthTitle');
-  if(titleEl){
-    titleEl.textContent = `Rematrículas Registradas em ${profSelectedRematMonth} / ${profSelectedRematYear} por ${myName}`;
-  }
-
-  const bodyRemat = document.getElementById('profRematBody');
-  if(bodyRemat){
-    const myRemat = rematriculas.filter(r => normName(r.prof) === normName(myName) && r.mes === profSelectedRematMonth && (r.ano === profSelectedRematYear || !r.ano));
-    
-    // Ordena por Data de Última Frequência (menor data em cima, maior data em baixo)
-    myRemat.sort((a, b) => parseDateForSort(a.ultFreq) - parseDateForSort(b.ultFreq));
-
-    bodyRemat.innerHTML = myRemat.map((r) => {
-      const globalIdx = rematriculas.indexOf(r);
-      const stBadge = r.status === 'pendente' ? '<span class="badge y">Pendente</span>' : '<span class="badge g">Confirmado</span>';
-      return `<tr>
-        <td><input class="cell" value="${r.aluno||''}" onchange="updateProfRematItem(${globalIdx},'aluno',this.value)"></td>
-        <td><input class="cell" value="${r.mat||''}" onchange="updateProfRematItem(${globalIdx},'mat',this.value)"></td>
-        <td><input class="cell" value="${toBR(r.ultFreq)}" onchange="updateProfRematItem(${globalIdx},'ultFreq',this.value)" placeholder="DD/MM/AAAA"></td>
-        <td><input class="cell" value="${toBR(r.retorno)}" onchange="updateProfRematItem(${globalIdx},'retorno',this.value)" placeholder="DD/MM/AAAA"></td>
-        <td>${r.mes||profSelectedRematMonth} / ${r.ano||profSelectedRematYear}</td>
-        <td>${myName}</td>
-        <td>${stBadge}</td>
-        <td class="no-print"><button class="btn red sm" onclick="deleteProfRematItem(${globalIdx})"><i class="fa-solid fa-trash"></i></button></td>
-      </tr>`;
-    }).join('');
-  }
-}
-
-function selectProfRematMonth(m){
-  profSelectedRematMonth = m;
-  renderProfRematModule();
-}
-
-function updateProfRematItem(globalIdx, field, val){
-  if(rematriculas[globalIdx]){
-    rematriculas[globalIdx][field] = (field==='ultFreq'||field==='retorno') ? toISO(val) : val;
-    if(field === 'aluno') {
-       const exist = students.find(s => s.aluno.trim().toLowerCase() === val.trim().toLowerCase());
-       rematriculas[globalIdx].status = exist ? 'aprovado' : 'pendente';
-    }
-  }
-}
-
-function addProfRematRow(){
-  if(!session || session.role!=='professor') return;
-  rematriculas.push({
-    aluno:'', 
-    mat:'', 
-    ultFreq: toISO(new Date().toLocaleDateString('pt-BR')), 
-    retorno: toISO(new Date().toLocaleDateString('pt-BR')), 
-    mes: profSelectedRematMonth, 
-    ano: profSelectedRematYear,
-    prof: session.name,
-    status: 'pendente'
-  });
-  renderProfRematModule();
-}
-
-async function deleteProfRematItem(globalIdx){
-  if(globalIdx >= 0 && globalIdx < rematriculas.length){
-    rematriculas.splice(globalIdx, 1);
-    await saveAllRemat();
-  }
 }
 
 async function addProfessor(){
@@ -1407,7 +1354,7 @@ async function saveProfessors(){
 }
 
 async function saveEstudantesModule(){
-  const anoInp = document.getElementById('anoLetivoInput').value.trim();
+  const anoInp = document.getElementById('anoLetivoInput')?.value.trim();
   if(anoInp && !anosCriados.includes(anoInp)){
     anosCriados.push(anoInp);
     currentAno = anoInp;
@@ -1439,7 +1386,7 @@ async function saveAllStudents(){
 
 async function saveAllRemat(){
   await setDoc(doc(db, 'meta', 'rematriculas'), { list: rematriculas }).catch(console.error);
-  alert('Rematrículas salvas e sincronizadas em tempo real com a Secretária!');
+  alert('Rematrículas salvas e sincronizadas em tempo real!');
 }
 
 async function adminChangePass(){
@@ -1466,6 +1413,16 @@ function exportCSV(){
     csv += `"${s.mat||''}';'${s.aluno||''}';'${s.nivel||'EM'}';'${s.contato||''}';'${toBR(s.ultimaFreq)}';'${st.situacao}';'${s.rematricula||0}';'${s.professor||''}';'${s.concludente?'SIM':'NÃO'}"\n`;
   });
   downloadFile(csv, 'estudantes.csv', 'text/csv;charset=utf-8;');
+}
+
+function exportCSVPorProf(){
+  let csv = "MAT;ALUNO;NIVEL;CONTATO;ULTIMA_FREQ;SITUACAO;PROFESSOR;CONCLUDENTE\n";
+  const list = filterStudentsList(students, 'atuais', currentAno, selectedSecProfName);
+  list.forEach(s=>{
+    const st = situacaoStatus(s.ultimaFreq);
+    csv += `"${s.mat||''}';'${s.aluno||''}';'${s.nivel||'EM'}';'${s.contato||''}';'${toBR(s.ultimaFreq)}';'${st.situacao}';'${s.professor||''}';'${s.concludente?'SIM':'NÃO'}"\n`;
+  });
+  downloadFile(csv, `estudantes_${selectedSecProfName}.csv`, 'text/csv;charset=utf-8;');
 }
 
 function exportCSVRemat(){
@@ -1589,8 +1546,8 @@ window.loginSecretaria = loginSecretaria;
 window.loginProfessor = loginProfessor;
 window.doLogout = doLogout;
 window.setModule = setModule;
+window.setSecViewMode = setSecViewMode;
 window.setSubTab = setSubTab;
-window.setProfTab = setProfTab;
 window.setSubTab2 = setSubTab2;
 window.addProfessor = addProfessor;
 window.deleteProfessor = deleteProfessor;
@@ -1598,20 +1555,20 @@ window.copyProfLink = copyProfLink;
 window.saveEstudantesModule = saveEstudantesModule;
 window.saveAllStudents = saveAllStudents;
 window.addNewStudentRow = addNewStudentRow;
+window.addNewStudentRowForProf = addNewStudentRowForProf;
 window.saveProfessors = saveProfessors;
 window.addNewYearRemat = addNewYearRemat;
 window.selectRematMonth = selectRematMonth;
 window.selectRematProf = selectRematProf;
 window.selectFarolMonth = selectFarolMonth;
-window.selectProfRematMonth = selectProfRematMonth;
-window.updateProfRematItem = updateProfRematItem;
-window.addProfRematRow = addProfRematRow;
-window.deleteProfRematItem = deleteProfRematItem;
+window.updateRematItem = updateRematItem;
+window.addSecRematRow = addSecRematRow;
+window.deletarRematricula = deletarRematricula;
 window.saveAllRemat = saveAllRemat;
-window.aprovarRematricula = aprovarRematricula;
 window.addNewYearCert = addNewYearCert;
 window.adminChangePass = adminChangePass;
 window.exportCSV = exportCSV;
+window.exportCSVPorProf = exportCSVPorProf;
 window.exportCSVRemat = exportCSVRemat;
 window.exportWord = exportWord;
 window.printSection = printSection;
