@@ -88,8 +88,6 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
 .checkline input{width:auto;}
 .linkrow{text-align:center;margin-top:10px;font-size:.82rem;}
 .footer-note{text-align:center;color:var(--muted);font-size:.72rem;margin-top:14px;}
-.btn-plus{background:#1E7A34;color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:1.2rem;font-weight:bold;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.2);transition:all .15s;}
-.btn-plus:hover{transform:scale(1.1);background:#155526;}
 .months-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
 @media(max-width:700px){.months-grid{grid-template-columns:repeat(2,1fr);}}
 .month-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;cursor:pointer;font-weight:700;font-size:.9rem;transition:all .2s;color:var(--ink);}
@@ -97,7 +95,6 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
 .stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;}
 .stat-card .num{font-size:2.2rem;font-weight:800;color:var(--green);}
 .stat-card .label{font-size:.82rem;color:var(--muted);font-weight:600;}
-.add-row-bar{display:flex;align-items:center;justify-content:center;padding:10px;background:var(--bg);border-top:1px solid var(--border);}
 
 .container, .main-module { width: 100%; max-width: 98%; padding: 5px; margin: 0 auto; }
 th.col-aluno, td.col-aluno { min-width: 180px; }
@@ -229,6 +226,20 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
         <div id="secViewGeral">
           <div class="toolbar">
             <button class="btn-zerar" onclick="zerarBancoDeDados()">⚠️ Zerar Banco de Dados (Novo Semestre)</button>
+            
+            <!-- MENU DE AÇÕES -->
+            <div class="actions-dropdown" style="position:relative; display:inline-block;">
+              <button type="button" class="btn orange sm" onclick="toggleAcoesDropdown(event, this)"><i class="fa-solid fa-gears"></i> Ações <i class="fa-solid fa-caret-down"></i></button>
+              <div class="actions-menu hidden" style="position:absolute; top:100%; left:0; margin-top:4px; background:var(--card); border:1px solid var(--border); box-shadow:0 6px 16px rgba(0,0,0,0.15); border-radius:8px; z-index:1000; min-width:170px; overflow:hidden;">
+                <button type="button" onclick="acaoIncluirAluno()" style="width:100%; text-align:left; padding:10px 14px; background:none; border:none; cursor:pointer; color:var(--ink); font-size:0.85rem; display:flex; align-items:center; gap:8px;">
+                  <i class="fa-solid fa-user-plus" style="color:var(--green)"></i> Incluir Aluno
+                </button>
+                <button type="button" onclick="acaoAlternarRetirarAluno()" style="width:100%; text-align:left; padding:10px 14px; background:none; border:none; border-top:1px solid var(--border); cursor:pointer; color:var(--ink); font-size:0.85rem; display:flex; align-items:center; gap:8px;">
+                  <i class="fa-solid fa-user-minus" style="color:var(--red)"></i> Retirar Aluno
+                </button>
+              </div>
+            </div>
+
             <button class="btn sm" style="background:var(--navy)" onclick="saveEstudantesModule()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
             <button class="btn dark sm" onclick="exportCSV()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
             <button class="btn dark sm" onclick="exportWord('printAlunos', 'Estudantes')"><i class="fa-solid fa-file-word"></i> Exportar Word</button>
@@ -263,10 +274,6 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
               </thead>
               <tbody id="studentsBody"></tbody>
             </table>
-            <div class="add-row-bar no-print">
-              <button type="button" class="btn-plus" onclick="addNewStudentRow()" title="Adicionar Novo Estudante">+</button>
-              <span style="font-size:0.85rem;margin-left:8px;font-weight:700;color:var(--green)">Adicionar Novo Estudante</span>
-            </div>
           </div>
         </div>
 
@@ -279,6 +286,19 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
               <h3 id="secProfSelectedTitle" style="margin:0; color:var(--green)"></h3>
               <div class="toolbar" style="margin:0">
+                <!-- MENU DE AÇÕES -->
+                <div class="actions-dropdown" style="position:relative; display:inline-block;">
+                  <button type="button" class="btn orange sm" onclick="toggleAcoesDropdown(event, this)"><i class="fa-solid fa-gears"></i> Ações <i class="fa-solid fa-caret-down"></i></button>
+                  <div class="actions-menu hidden" style="position:absolute; top:100%; left:0; margin-top:4px; background:var(--card); border:1px solid var(--border); box-shadow:0 6px 16px rgba(0,0,0,0.15); border-radius:8px; z-index:1000; min-width:170px; overflow:hidden;">
+                    <button type="button" onclick="acaoIncluirAluno()" style="width:100%; text-align:left; padding:10px 14px; background:none; border:none; cursor:pointer; color:var(--ink); font-size:0.85rem; display:flex; align-items:center; gap:8px;">
+                      <i class="fa-solid fa-user-plus" style="color:var(--green)"></i> Incluir Aluno
+                    </button>
+                    <button type="button" onclick="acaoAlternarRetirarAluno()" style="width:100%; text-align:left; padding:10px 14px; background:none; border:none; border-top:1px solid var(--border); cursor:pointer; color:var(--ink); font-size:0.85rem; display:flex; align-items:center; gap:8px;">
+                      <i class="fa-solid fa-user-minus" style="color:var(--red)"></i> Retirar Aluno
+                    </button>
+                  </div>
+                </div>
+
                 <button class="btn sm" style="background:var(--navy)" onclick="saveEstudantesModule()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
                 <button class="btn dark sm" onclick="exportCSVPorProf()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
                 <button class="btn red sm" onclick="printSection('printAlunosPorProf')"><i class="fa-solid fa-file-pdf"></i> Gerar PDF / Imprimir</button>
@@ -305,10 +325,6 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
                 </thead>
                 <tbody id="secProfStudentsBody"></tbody>
               </table>
-              <div class="add-row-bar no-print">
-                <button type="button" class="btn-plus" onclick="addNewStudentRowForProf()" title="Adicionar Estudante para Este Professor">+</button>
-                <span style="font-size:0.85rem;margin-left:8px;font-weight:700;color:var(--green)">Adicionar Estudante para Este Professor</span>
-              </div>
             </div>
           </div>
         </div>
@@ -316,6 +332,19 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
         <!-- VISUALIZAÇÃO: GERAL POR PROFESSOR -->
         <div id="secViewGeralPorProf" class="hidden">
           <div class="toolbar">
+            <!-- MENU DE AÇÕES -->
+            <div class="actions-dropdown" style="position:relative; display:inline-block;">
+              <button type="button" class="btn orange sm" onclick="toggleAcoesDropdown(event, this)"><i class="fa-solid fa-gears"></i> Ações <i class="fa-solid fa-caret-down"></i></button>
+              <div class="actions-menu hidden" style="position:absolute; top:100%; left:0; margin-top:4px; background:var(--card); border:1px solid var(--border); box-shadow:0 6px 16px rgba(0,0,0,0.15); border-radius:8px; z-index:1000; min-width:170px; overflow:hidden;">
+                <button type="button" onclick="acaoIncluirAluno()" style="width:100%; text-align:left; padding:10px 14px; background:none; border:none; cursor:pointer; color:var(--ink); font-size:0.85rem; display:flex; align-items:center; gap:8px;">
+                  <i class="fa-solid fa-user-plus" style="color:var(--green)"></i> Incluir Aluno
+                </button>
+                <button type="button" onclick="acaoAlternarRetirarAluno()" style="width:100%; text-align:left; padding:10px 14px; background:none; border:none; border-top:1px solid var(--border); cursor:pointer; color:var(--ink); font-size:0.85rem; display:flex; align-items:center; gap:8px;">
+                  <i class="fa-solid fa-user-minus" style="color:var(--red)"></i> Retirar Aluno
+                </button>
+              </div>
+            </div>
+
             <button class="btn sm" style="background:var(--navy)" onclick="saveEstudantesModule()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
             <button class="btn dark sm" onclick="exportCSVGeralPorProf()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
             <button class="btn dark sm" onclick="exportWord('printAlunosGeralPorProf', 'Estudantes_Geral_Por_Professor')"><i class="fa-solid fa-file-word"></i> Exportar Word</button>
@@ -600,6 +629,9 @@ sortProfessors();
 
 const SEC_PASS_KEY_DEFAULT = "Secretaria23231939";
 let session=null, students=[], rematriculas=[], resetTarget='sec';
+let unsavedNewStudents = []; // Armazena novos alunos temporários até clicar em Salvar
+let isRetirarMode = false; // Flag para o modo 'Retirar Aluno'
+
 let anosCriados=['2026'], currentAno='2026';
 let selectedRematYear='2026', selectedRematMonth='Setembro', selectedRematProf='todos';
 let selectedFarolYear='2026', selectedFarolMonth='Setembro';
@@ -612,6 +644,93 @@ let currentSubTab = 'atuais';
 let currentSubTab2 = 'atuais';
 let authData = { secPass:"Secretaria23231939", profPasswords:{} };
 let lockedProfLink = null;
+
+// Fecha os menus de ações ao clicar fora
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.actions-dropdown')) {
+    document.querySelectorAll('.actions-menu').forEach(m => m.classList.add('hidden'));
+  }
+});
+
+function toggleAcoesDropdown(e, btn) {
+  e.stopPropagation();
+  const dropdown = btn.closest('.actions-dropdown');
+  const menu = dropdown.querySelector('.actions-menu');
+  const isHidden = menu.classList.contains('hidden');
+  document.querySelectorAll('.actions-menu').forEach(m => m.classList.add('hidden'));
+  if (isHidden) {
+    menu.classList.remove('hidden');
+  }
+}
+
+function acaoIncluirAluno(){
+  document.querySelectorAll('.actions-menu').forEach(m => m.classList.add('hidden'));
+  
+  let targetProf = '';
+  if(currentSecViewMode === 'porProf'){
+    targetProf = selectedSecProfName;
+  } else {
+    targetProf = document.getElementById('filtroProfessor')?.value || '';
+  }
+
+  let targetAno = currentAno;
+  if(currentSubTab === 'antigas') {
+    targetAno = (parseInt(currentAno) - 1).toString();
+  }
+
+  const tempId = 'temp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+  const newStudent = {
+    id: tempId,
+    mat: '',
+    aluno: '', // Celula do nome em branco conforme solicitado
+    turma: '',
+    nivel: 'EM',
+    contato: '',
+    ultimaFreq: toISO(new Date().toLocaleDateString('pt-BR')),
+    rematricula: 0,
+    professor: targetProf,
+    concludente: false,
+    ano: targetAno,
+    isNew: true
+  };
+
+  // Adiciona SEMPRE no topo (primeira linha)
+  unsavedNewStudents.unshift(newStudent);
+  renderAll();
+}
+
+function acaoAlternarRetirarAluno(){
+  document.querySelectorAll('.actions-menu').forEach(m => m.classList.add('hidden'));
+  isRetirarMode = !isRetirarMode;
+  if(isRetirarMode){
+    alert("Modo 'Retirar Aluno' ATIVADO!\n\nFoi adicionada uma caixa de seleção no número de matrícula dos alunos. Ao clicar na caixa, você será solicitado a confirmar a remoção do aluno.");
+  } else {
+    alert("Modo 'Retirar Aluno' DESATIVADO.");
+  }
+  renderAll();
+}
+
+async function confirmarRetirarAluno(id, chk) {
+  if (!chk.checked) return;
+  
+  const resposta = confirm("Você realmente deseja retirar esse aluno do sistema?");
+  if (resposta) { // SIM
+    if (id.startsWith('temp_')) {
+      unsavedNewStudents = unsavedNewStudents.filter(s => s.id !== id);
+      renderAll();
+    } else {
+      try {
+        await deleteDoc(doc(db, "students", id));
+        alert("Aluno retirado com sucesso!");
+      } catch (error) {
+        console.error("Erro ao retirar aluno:", error);
+        alert("Erro ao retirar o aluno do sistema.");
+      }
+    }
+  } else { // NÃO
+    chk.checked = false;
+  }
+}
 
 function sortProfessors(){
   PROFESSORES.sort((a,b)=>a.localeCompare(b, 'pt-BR', {sensitivity:'base'}));
@@ -1009,7 +1128,19 @@ function filterStudentsListByProf(list, subtabFilter, yearFilter){
 }
 
 async function updateStudentField(id, field, value) {
-  const st = students.find(s => s.id === id);
+  let st = unsavedNewStudents.find(s => s.id === id);
+  if (st) {
+    if (field === 'concludente') {
+      st[field] = !!value;
+    } else if (field === 'ultimaFreq') {
+      st[field] = toISO(value);
+    } else {
+      st[field] = value;
+    }
+    return;
+  }
+
+  st = students.find(s => s.id === id);
   if (!st) return;
   if (field === 'concludente') {
     st[field] = !!value;
@@ -1027,9 +1158,44 @@ function buildStudentRowHTML(s, isSecretaria=true){
   const dateFormatted = toBR(s.ultimaFreq);
   const diasSemFreq = s.ultimaFreq ? `${diasDesde(s.ultimaFreq)} dias` : '---';
 
+  // AMBIENTE DO PROFESSOR: APENAS CONTATO E DATA DE FREQUÊNCIA PODEM SER EDITADOS
+  if (!isSecretaria) {
+    return `<tr data-id="${s.id}">
+      <td><input class="cell" value="${s.mat||''}" disabled style="width:65px; background:rgba(0,0,0,0.04); color:var(--ink);"></td>
+      <td class="col-aluno"><input class="cell" value="${s.aluno||''}" disabled style="background:rgba(0,0,0,0.04); color:var(--ink);"></td>
+      <td><input class="cell" value="${s.turma||''}" disabled style="width:80px; background:rgba(0,0,0,0.04); color:var(--ink);"></td>
+      <td>
+        <select class="cell" disabled style="background:rgba(0,0,0,0.04); color:var(--ink);">
+          <option value="EF" ${s.nivel==='EF'?'selected':''}>EF</option>
+          <option value="EM" ${s.nivel==='EM'?'selected':''}>EM</option>
+        </select>
+      </td>
+      <td><input class="cell" value="${s.contato||''}" data-field="contato" onchange="updateStudentField('${s.id}', 'contato', this.value)" placeholder="Celular"></td>
+      <td><input class="cell" value="${dateFormatted}" data-field="ultimaFreq" onchange="updateStudentField('${s.id}', 'ultimaFreq', this.value)" placeholder="DD/MM/AAAA" style="width:105px"></td>
+      <td>${st.situacao}</td>
+      <td><span class="badge ${st.cls}">${st.situacao}</span></td>
+      <td style="text-align:center; font-weight:bold; color:var(--muted)">${diasSemFreq}</td>
+      <td><input class="cell" value="${s.professor||''}" disabled style="background:rgba(0,0,0,0.04); color:var(--ink);"></td>
+      <td style="text-align:center">
+        <input type="checkbox" disabled ${s.concludente?'checked':''} style="width:18px;height:18px;opacity:0.6;">
+      </td>
+    </tr>`;
+  }
+
+  // AMBIENTE DA SECRETARIA
+  let matColHTML = '';
+  if (isRetirarMode) {
+    matColHTML = `<div style="display:flex; align-items:center; gap:6px;">
+      <input type="checkbox" class="chk-retirar-aluno" onchange="confirmarRetirarAluno('${s.id}', this)" title="Clique para retirar este aluno" style="width:18px; height:18px; cursor:pointer; accent-color:var(--red);">
+      <input class="cell" value="${s.mat||''}" data-field="mat" onchange="updateStudentField('${s.id}', 'mat', this.value)" style="width:55px" placeholder="MAT">
+    </div>`;
+  } else {
+    matColHTML = `<input class="cell" value="${s.mat||''}" data-field="mat" onchange="updateStudentField('${s.id}', 'mat', this.value)" style="width:65px" placeholder="MAT">`;
+  }
+
   return `<tr data-id="${s.id}">
-    <td><input class="cell" value="${s.mat||''}" data-field="mat" onchange="updateStudentField('${s.id}', 'mat', this.value)" style="width:65px"></td>
-    <td class="col-aluno"><input class="cell" value="${s.aluno||''}" data-field="aluno" onchange="updateStudentField('${s.id}', 'aluno', this.value)"></td>
+    <td>${matColHTML}</td>
+    <td class="col-aluno"><input class="cell" value="${s.aluno||''}" data-field="aluno" onchange="updateStudentField('${s.id}', 'aluno', this.value)" placeholder="Nome do Aluno"></td>
     <td><input class="cell" value="${s.turma||''}" data-field="turma" onchange="updateStudentField('${s.id}', 'turma', this.value)" style="width:80px" placeholder="Turma"></td>
     <td>
       <select class="cell" data-field="nivel" onchange="updateStudentField('${s.id}', 'nivel', this.value)">
@@ -1037,7 +1203,7 @@ function buildStudentRowHTML(s, isSecretaria=true){
         <option value="EM" ${s.nivel==='EM'?'selected':''}>EM</option>
       </select>
     </td>
-    <td><input class="cell" value="${s.contato||''}" data-field="contato" onchange="updateStudentField('${s.id}', 'contato', this.value)"></td>
+    <td><input class="cell" value="${s.contato||''}" data-field="contato" onchange="updateStudentField('${s.id}', 'contato', this.value)" placeholder="Contato"></td>
     <td><input class="cell" value="${dateFormatted}" data-field="ultimaFreq" onchange="updateStudentField('${s.id}', 'ultimaFreq', this.value)" placeholder="DD/MM/AAAA" style="width:105px"></td>
     <td>${st.situacao}</td>
     <td><span class="badge ${st.cls}">${st.situacao}</span></td>
@@ -1046,15 +1212,25 @@ function buildStudentRowHTML(s, isSecretaria=true){
     <td style="text-align:center">
       <input type="checkbox" data-field="concludente" ${s.concludente?'checked':''} onchange="updateStudentField('${s.id}', 'concludente', this.checked)" style="width:18px;height:18px;cursor:pointer">
     </td>
-    ${isSecretaria ? `<td class="no-print"><button class="btn-excluir" onclick="deletarAluno('${s.id}')">🗑️ Excluir</button></td>` : ''}
+    <td class="no-print"><button class="btn-excluir" onclick="deletarAluno('${s.id}')">🗑️ Excluir</button></td>
   </tr>`;
 }
 
 function renderTable(){
   const body = document.getElementById('studentsBody'); if(!body) return;
   const filterP = document.getElementById('filtroProfessor')?.value || '';
-  const list = filterStudentsList(students, currentSubTab, currentAno, filterP);
-  body.innerHTML = list.map(s => buildStudentRowHTML(s, true)).join('');
+  
+  const listSaved = filterStudentsList(students, currentSubTab, currentAno, filterP);
+  const listUnsaved = unsavedNewStudents.filter(s => {
+    if(filterP && normName(s.professor) !== normName(filterP)) return false;
+    if(currentSubTab === 'atuais') {
+      return (s.ano === currentAno) && (!s.concludente);
+    }
+    return (s.concludente) || (s.ano < currentAno);
+  });
+
+  const combinedList = [...listUnsaved, ...listSaved];
+  body.innerHTML = combinedList.map(s => buildStudentRowHTML(s, true)).join('');
 }
 
 function renderSecPorProfModule(){
@@ -1067,7 +1243,9 @@ function renderSecPorProfModule(){
   }
 
   PROFESSORES.forEach(p=>{
-    const count = students.filter(s => normName(s.professor) === normName(p) && s.ano === currentAno && !s.concludente).length;
+    const countSaved = students.filter(s => normName(s.professor) === normName(p) && s.ano === currentAno && !s.concludente).length;
+    const countUnsaved = unsavedNewStudents.filter(s => normName(s.professor) === normName(p) && s.ano === currentAno && !s.concludente).length;
+    const count = countSaved + countUnsaved;
     const d = document.createElement('div');
     d.className = 'tab' + (normName(p) === normName(selectedSecProfName) ? ' active gold' : '');
     d.textContent = `👤 ${p} (${count})`;
@@ -1080,55 +1258,25 @@ function renderSecPorProfModule(){
 
   const body = document.getElementById('secProfStudentsBody');
   if(body){
-    const list = filterStudentsList(students, 'atuais', currentAno, selectedSecProfName);
-    body.innerHTML = list.map(s => buildStudentRowHTML(s, true)).join('');
+    const listSaved = filterStudentsList(students, 'atuais', currentAno, selectedSecProfName);
+    const listUnsaved = unsavedNewStudents.filter(s => normName(s.professor) === normName(selectedSecProfName) && s.ano === currentAno && !s.concludente);
+    const combinedList = [...listUnsaved, ...listSaved];
+    body.innerHTML = combinedList.map(s => buildStudentRowHTML(s, true)).join('');
   }
 }
 
 function renderSecGeralPorProfModule(){
   const body = document.getElementById('secGeralPorProfStudentsBody');
   if(!body) return;
-  const list = filterStudentsListByProf(students, currentSubTab, currentAno);
-  body.innerHTML = list.map(s => buildStudentRowHTML(s, true)).join('');
-}
-
-async function addNewStudentRow(){
-  let targetAno = currentAno;
-  if(currentSubTab === 'antigas') {
-      targetAno = (parseInt(currentAno) - 1).toString();
-  }
-  const newStudent = {
-    id: 's' + Date.now(),
-    mat: '',
-    aluno: 'NOVO ESTUDANTE',
-    turma: '',
-    nivel: 'EM',
-    contato: '',
-    ultimaFreq: toISO(new Date().toLocaleDateString('pt-BR')),
-    rematricula: 0,
-    professor: document.getElementById('filtroProfessor')?.value || '',
-    concludente: false,
-    ano: targetAno
-  };
-  await setDoc(doc(db,'students',newStudent.id), newStudent).catch(console.error);
-}
-
-async function addNewStudentRowForProf(){
-  if(!selectedSecProfName) return;
-  const newStudent = {
-    id: 's' + Date.now(),
-    mat: '',
-    aluno: 'NOVO ESTUDANTE',
-    turma: '',
-    nivel: 'EM',
-    contato: '',
-    ultimaFreq: toISO(new Date().toLocaleDateString('pt-BR')),
-    rematricula: 0,
-    professor: selectedSecProfName,
-    concludente: false,
-    ano: currentAno
-  };
-  await setDoc(doc(db,'students',newStudent.id), newStudent).catch(console.error);
+  const listSaved = filterStudentsListByProf(students, currentSubTab, currentAno);
+  const listUnsaved = unsavedNewStudents.filter(s => {
+    if(currentSubTab === 'atuais') {
+      return (s.ano === currentAno) && (!s.concludente);
+    }
+    return (s.concludente) || (s.ano < currentAno);
+  });
+  const combinedList = [...listUnsaved, ...listSaved];
+  body.innerHTML = combinedList.map(s => buildStudentRowHTML(s, true)).join('');
 }
 
 function renderProfs(){
@@ -1270,7 +1418,7 @@ async function updateRematItem(globalIdx, field, val){
 async function addSecRematRow(){
   const defaultProf = selectedRematProf === 'todos' ? (PROFESSORES[0] || '') : selectedRematProf;
   rematriculas.push({
-    aluno: 'NOVO ESTUDANTE REMATRICULADO',
+    aluno: '',
     mat: '',
     ultFreq: toISO(new Date().toLocaleDateString('pt-BR')),
     retorno: toISO(new Date().toLocaleDateString('pt-BR')),
@@ -1462,9 +1610,10 @@ async function saveAllStudents(){
   const rows = document.querySelectorAll('tr[data-id]');
   for(let row of rows){
     const id = row.dataset.id;
-    const st = students.find(s=>s.id===id);
+    let st = unsavedNewStudents.find(s=>s.id===id) || students.find(s=>s.id===id);
     if(st){
       row.querySelectorAll('[data-field]').forEach(input=>{
+        if(input.disabled) return;
         if(input.type === 'checkbox'){
           st[input.dataset.field] = input.checked;
         } else if(input.dataset.field === 'ultimaFreq'){
@@ -1473,10 +1622,44 @@ async function saveAllStudents(){
           st[input.dataset.field] = input.value;
         }
       });
-      await setDoc(doc(db,'students',id), st, {merge:true}).catch(console.error);
     }
   }
+
+  // Persiste novos alunos temporários no Firebase
+  if(unsavedNewStudents.length > 0){
+    for(let tempSt of unsavedNewStudents){
+      const realId = 's' + Date.now() + Math.random().toString(36).substring(2, 5);
+      const studentToSave = {
+        id: realId,
+        mat: tempSt.mat || '',
+        aluno: tempSt.aluno || '',
+        turma: tempSt.turma || '',
+        nivel: tempSt.nivel || 'EM',
+        contato: tempSt.contato || '',
+        ultimaFreq: tempSt.ultimaFreq || toISO(new Date().toLocaleDateString('pt-BR')),
+        rematricula: tempSt.rematricula || 0,
+        professor: tempSt.professor || '',
+        concludente: !!tempSt.concludente,
+        ano: tempSt.ano || currentAno
+      };
+      await setDoc(doc(db, 'students', realId), studentToSave).catch(console.error);
+    }
+    unsavedNewStudents = [];
+  }
+
+  // Atualiza alunos existentes
+  for(let row of rows){
+    const id = row.dataset.id;
+    if(!id.startsWith('temp_')){
+      const st = students.find(s=>s.id===id);
+      if(st){
+        await setDoc(doc(db,'students',id), st, {merge:true}).catch(console.error);
+      }
+    }
+  }
+
   alert('Alterações salvas e sincronizadas em tempo real!');
+  renderAll();
 }
 
 async function saveAllRemat(){
@@ -1660,8 +1843,6 @@ window.copyProfLink = copyProfLink;
 window.saveEstudantesModule = saveEstudantesModule;
 window.saveAllStudents = saveAllStudents;
 window.updateStudentField = updateStudentField;
-window.addNewStudentRow = addNewStudentRow;
-window.addNewStudentRowForProf = addNewStudentRowForProf;
 window.saveProfessors = saveProfessors;
 window.addNewYearRemat = addNewYearRemat;
 window.selectRematMonth = selectRematMonth;
@@ -1681,6 +1862,10 @@ window.exportWord = exportWord;
 window.printSection = printSection;
 window.deletarAluno = deletarAluno;
 window.zerarBancoDeDados = zerarBancoDeDados;
+window.toggleAcoesDropdown = toggleAcoesDropdown;
+window.acaoIncluirAluno = acaoIncluirAluno;
+window.acaoAlternarRetirarAluno = acaoAlternarRetirarAluno;
+window.confirmarRetirarAluno = confirmarRetirarAluno;
 
 boot();
 </script>
