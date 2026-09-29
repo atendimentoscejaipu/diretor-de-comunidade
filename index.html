@@ -248,6 +248,8 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
           <div class="tabs">
             <div class="tab active gold" id="tabAtuais" data-subtab="atuais" onclick="setSubTab('atuais')">Matrículas Atuais</div>
             <div class="tab" id="tabAntigas" data-subtab="antigas" onclick="setSubTab('antigas')">Matrículas Antigas</div>
+            <!-- NOVA ABA ADICIONADA -->
+            <div class="tab" id="tabDuplicados" data-subtab="duplicados" onclick="setSubTab('duplicados')"><i class="fa-solid fa-users-viewfinder"></i> Alunos Duplicados</div>
           </div>
           <div class="grid c5" style="margin-bottom:6px;">
             <div><label>Ano Letivo (digite e clique em Salvar)</label><input type="text" id="anoLetivoInput" maxlength="4" placeholder="Ex: 2027"></div>
@@ -1064,6 +1066,10 @@ function setSubTab(tab){
   currentSubTab = tab;
   document.getElementById('tabAtuais').classList.toggle('active', tab==='atuais');
   document.getElementById('tabAntigas').classList.toggle('active', tab==='antigas');
+  
+  const tabDup = document.getElementById('tabDuplicados');
+  if(tabDup) tabDup.classList.toggle('active', tab==='duplicados');
+
   if(currentSecViewMode === 'geralPorProf'){
     renderSecGeralPorProfModule();
   } else {
@@ -1092,6 +1098,20 @@ function renderAll(){
 
 // FILTRA E ORDENA OS ESTUDANTES DO MENOR NÚMERO DE MATRÍCULA PARA O MAIOR
 function filterStudentsList(list, subtabFilter, yearFilter, profFilter){
+  if (subtabFilter === 'duplicados') {
+    const counts = {};
+    list.forEach(s => {
+      const key = `${(s.mat||'').trim().toLowerCase()}|${(s.aluno||'').trim().toLowerCase()}|${(s.nivel||'').trim().toLowerCase()}|${(s.turma||'').trim().toLowerCase()}`;
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    const filtered = list.filter(s => {
+      if (profFilter && normName(s.professor) !== normName(profFilter)) return false;
+      const key = `${(s.mat||'').trim().toLowerCase()}|${(s.aluno||'').trim().toLowerCase()}|${(s.nivel||'').trim().toLowerCase()}|${(s.turma||'').trim().toLowerCase()}`;
+      return counts[key] > 1;
+    });
+    return filtered.sort((a,b) => (a.aluno||'').localeCompare(b.aluno||'', 'pt-BR'));
+  }
+
   const filtered = list.filter(s=>{
     if(profFilter && normName(s.professor) !== normName(profFilter)) return false;
     if(subtabFilter==='atuais'){
@@ -1110,6 +1130,25 @@ function filterStudentsList(list, subtabFilter, yearFilter, profFilter){
 
 // FILTRA E ORDENA OS ESTUDANTES POR ORDEM ALFABÉTICA DOS PROFESSORES
 function filterStudentsListByProf(list, subtabFilter, yearFilter){
+  if (subtabFilter === 'duplicados') {
+    const counts = {};
+    list.forEach(s => {
+      const key = `${(s.mat||'').trim().toLowerCase()}|${(s.aluno||'').trim().toLowerCase()}|${(s.nivel||'').trim().toLowerCase()}|${(s.turma||'').trim().toLowerCase()}`;
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    const dupList = list.filter(s => {
+      const key = `${(s.mat||'').trim().toLowerCase()}|${(s.aluno||'').trim().toLowerCase()}|${(s.nivel||'').trim().toLowerCase()}|${(s.turma||'').trim().toLowerCase()}`;
+      return counts[key] > 1;
+    });
+    return dupList.sort((a, b) => {
+      const profA = (a.professor || 'ZZZ').trim();
+      const profB = (b.professor || 'ZZZ').trim();
+      const compProf = profA.localeCompare(profB, 'pt-BR', {sensitivity: 'base'});
+      if(compProf !== 0) return compProf;
+      return (a.aluno || '').localeCompare(b.aluno || '', 'pt-BR', {sensitivity: 'base'});
+    });
+  }
+
   const filtered = list.filter(s=>{
     if(subtabFilter==='atuais'){
       return (s.ano === yearFilter) && (!s.concludente);
@@ -1220,16 +1259,23 @@ function renderTable(){
   const body = document.getElementById('studentsBody'); if(!body) return;
   const filterP = document.getElementById('filtroProfessor')?.value || '';
   
-  const listSaved = filterStudentsList(students, currentSubTab, currentAno, filterP);
-  const listUnsaved = unsavedNewStudents.filter(s => {
-    if(filterP && normName(s.professor) !== normName(filterP)) return false;
-    if(currentSubTab === 'atuais') {
-      return (s.ano === currentAno) && (!s.concludente);
-    }
-    return (s.concludente) || (s.ano < currentAno);
-  });
+  let combinedAll = [...unsavedNewStudents, ...students];
+  let combinedList;
 
-  const combinedList = [...listUnsaved, ...listSaved];
+  if (currentSubTab === 'duplicados') {
+      combinedList = filterStudentsList(combinedAll, 'duplicados', currentAno, filterP);
+  } else {
+      const listSaved = filterStudentsList(students, currentSubTab, currentAno, filterP);
+      const listUnsaved = unsavedNewStudents.filter(s => {
+        if(filterP && normName(s.professor) !== normName(filterP)) return false;
+        if(currentSubTab === 'atuais') {
+          return (s.ano === currentAno) && (!s.concludente);
+        }
+        return (s.concludente) || (s.ano < currentAno);
+      });
+      combinedList = [...listUnsaved, ...listSaved];
+  }
+
   body.innerHTML = combinedList.map(s => buildStudentRowHTML(s, true)).join('');
 }
 
@@ -1268,14 +1314,23 @@ function renderSecPorProfModule(){
 function renderSecGeralPorProfModule(){
   const body = document.getElementById('secGeralPorProfStudentsBody');
   if(!body) return;
-  const listSaved = filterStudentsListByProf(students, currentSubTab, currentAno);
-  const listUnsaved = unsavedNewStudents.filter(s => {
-    if(currentSubTab === 'atuais') {
-      return (s.ano === currentAno) && (!s.concludente);
-    }
-    return (s.concludente) || (s.ano < currentAno);
-  });
-  const combinedList = [...listUnsaved, ...listSaved];
+
+  let combinedAll = [...unsavedNewStudents, ...students];
+  let combinedList;
+
+  if (currentSubTab === 'duplicados') {
+      combinedList = filterStudentsListByProf(combinedAll, 'duplicados', currentAno);
+  } else {
+      const listSaved = filterStudentsListByProf(students, currentSubTab, currentAno);
+      const listUnsaved = unsavedNewStudents.filter(s => {
+        if(currentSubTab === 'atuais') {
+          return (s.ano === currentAno) && (!s.concludente);
+        }
+        return (s.concludente) || (s.ano < currentAno);
+      });
+      combinedList = [...listUnsaved, ...listSaved];
+  }
+  
   body.innerHTML = combinedList.map(s => buildStudentRowHTML(s, true)).join('');
 }
 
