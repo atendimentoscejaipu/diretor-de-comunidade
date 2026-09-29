@@ -1,1581 +1,424 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Diretor de Comunidade - CEJA Dr. Gerardo Camelo Madeira</title>
-<!-- Ativa a instalação do site como App (PWA) -->
-<link rel="manifest" href="manifest.json">
-<!-- Font Awesome para Ícones -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<style>
-:root{
-  --bg:#f4f7f4; --card:#ffffff; --ink:#1f2937; --muted:#6b7280;
-  --green:#1E7A34; --green-d:#155526; --gold:#F2B705; --red:#c62828; --navy:#1c2540;
-  --border:#dfe6df;
-  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); box-sizing:border-box;
-}
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#12160f; --card:#1b221a; --ink:#e6e9ef; --muted:#9aa4b2; --border:#2b3327; } }
-:root[data-theme="dark"]{ --bg:#12160f; --card:#1b221a; --ink:#e6e9ef; --muted:#9aa4b2; --border:#2b3327; }
-*{box-sizing:border-box;}
-html{scroll-padding-top:env(safe-area-inset-top,0px);}
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
-a{color:var(--green);text-decoration:none;}
-.top{background:var(--green);color:#fff;padding:10px 16px calc(10px + env(safe-area-inset-top,0px)) 16px;border-bottom:4px solid var(--gold);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
-.top .brand{display:flex;align-items:center;gap:10px;}
-.top .brand img{height:48px;width:48px;border-radius:50%;background:#fff;object-fit:cover;flex-shrink:0;border:2px solid var(--gold);}
-.top .gov{font-size:.72rem;font-weight:700;color:var(--gold);letter-spacing:.5px;display:flex;align-items:center;gap:6px;}
-.badge-seduc{background:rgba(255,255,255,.18);border-radius:6px;padding:1px 6px;font-size:.65rem;}
-.top .school{font-weight:700;font-size:.95rem;}
-.top .sub{font-size:.72rem;opacity:.9;}
-.top .right{display:flex;align-items:center;gap:10px;}
-.clock{background:rgba(0,0,0,.15);border-radius:20px;padding:5px 12px;font-size:.78rem;}
-.btn{background:var(--green);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:.9rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
-.btn:hover{background:var(--green-d);}
-.btn.orange{background:#e08a00;} .btn.orange:hover{background:#c67600;}
-.btn.sm{padding:6px 11px;font-size:.78rem;} .btn.red{background:var(--red);} .btn.dark{background:var(--navy);}
-.btn:disabled{background:#a9b3a9;cursor:not-allowed;}
-.layout{display:flex;max-width:1350px;margin:0 auto;min-height:calc(100vh - 62px);}
-.sidebar{width:240px;flex-shrink:0;padding:18px 10px;border-right:1px solid var(--border);}
-.sidebar h4{font-size:.72rem;color:var(--muted);text-transform:uppercase;margin:4px 8px 10px;}
-.nav-item{display:flex;align-items:center;gap:8px;padding:10px 10px;border-radius:8px;cursor:pointer;color:var(--ink);font-size:.87rem;margin-bottom:4px;transition:all .2s;}
-.nav-item:hover{background:rgba(30,122,52,.08);}
-.nav-item.active{background:rgba(30,122,52,.12);color:var(--green);font-weight:700;border:1px solid rgba(30,122,52,.3);}
-.main{flex:1;padding:20px;min-width:0;}
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px;}
-h1.pg{font-size:1.3rem;margin:0 0 2px;} .sub-pg{color:var(--muted);font-size:.85rem;margin:0 0 16px;}
-label{display:block;font-size:.78rem;color:var(--muted);margin:8px 0 4px;}
-input,select{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--ink);font-size:.87rem;}
-.grid{display:grid;gap:10px;} .grid.c5{grid-template-columns:repeat(5,1fr);} .grid.c2{grid-template-columns:1fr 1fr;} .grid.c4{grid-template-columns:repeat(4,1fr);}
-@media(max-width:900px){.grid.c5,.grid.c4{grid-template-columns:1fr 1fr;} .layout{flex-direction:column;} .sidebar{width:100%;display:flex;flex-wrap:wrap;gap:4px;} .nav-item{flex:1;justify-content:center;}}
-.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
-.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
-.tab{padding:9px 16px;border-radius:20px;cursor:pointer;color:var(--muted);background:var(--bg);border:1px solid var(--border);font-size:.85rem;white-space:nowrap;transition:all .2s;}
-.tab.active{background:var(--green);color:#fff;border-color:var(--green);font-weight:600;}
-.tab.gold.active{background:var(--gold);color:#5a4200;border-color:var(--gold);}
-.tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;background:var(--card);}
-table{border-collapse:collapse;width:100%;min-width:880px;font-size:.8rem;}
-th{padding:9px 6px;text-align:left;position:sticky;top:0;font-weight:700;} thead.blue th{background:#3b5fa8;color:#fff;}
-thead.darkgreen th{background:var(--green-d);color:#fff;} thead.navy th{background:var(--navy);color:#fff;}
-td{padding:6px;border-bottom:1px solid var(--border);vertical-align:middle;}
-tr:nth-child(even) td{background:rgba(30,122,52,.03);}
-input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--border);border-radius:6px;}
-.badge{padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;color:#fff;display:inline-block;}
-.badge.g{background:var(--green);} .badge.y{background:var(--gold);color:#5a4200;} .badge.r{background:var(--red);}
-.muted{color:var(--muted);font-size:.8rem;} .err{color:var(--red);font-size:.82rem;margin-top:6px;}
-.legend{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
-@media(max-width:700px){.legend{grid-template-columns:1fr;}}
-.legend div{border-radius:10px;padding:12px;color:#fff;font-size:.8rem;}
-.legend .g{background:var(--green);} .legend .y{background:var(--gold);color:#5a4200;} .legend .r{background:var(--red);}
-.prof-card{border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;background:var(--card);}
-.prof-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-@media(max-width:700px){.prof-grid{grid-template-columns:1fr;}}
-.hidden{display:none!important;}
-.wrap-login{max-width:420px;margin:40px auto;padding:0 16px;}
-.login-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:0 6px 24px rgba(0,0,0,.06);}
-.login-head{text-align:center;margin-bottom:16px;}
-.login-logo{display:block;margin:0 auto 8px;height:84px;width:84px;border-radius:50%;object-fit:cover;border:3px solid var(--green);background:#fff;}
-.login-head .gov{color:var(--green);font-weight:700;font-size:.78rem;text-transform:uppercase;}
-.login-head h2{margin:2px 0 0;color:var(--navy);font-size:1.05rem;}
-.login-head p{color:var(--muted);font-size:.78rem;margin:2px 0 0;}
-.pill-toggle{display:flex;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:16px;}
-.pill-toggle .pill{flex:1;text-align:center;padding:9px;border-radius:8px;cursor:pointer;font-weight:700;font-size:.85rem;color:var(--muted);}
-.pill-toggle .pill.active{background:var(--green);color:#fff;}
-.pass-wrap{position:relative;display:flex;align-items:center;}
-.pass-wrap input{padding-right:36px;}
-.pass-wrap .eye-btn{position:absolute;right:8px;background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;font-size:.9rem;}
-.checkline{display:flex;align-items:center;gap:6px;margin:10px 0;font-size:.82rem;color:var(--muted);}
-.checkline input{width:auto;}
-.linkrow{text-align:center;margin-top:10px;font-size:.82rem;}
-.footer-note{text-align:center;color:var(--muted);font-size:.72rem;margin-top:14px;}
-.btn-plus{background:#1E7A34;color:#fff;border:none;border-radius:50%;width:30px;height:30px;font-size:1.2rem;font-weight:bold;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.2);transition:all .15s;}
-.btn-plus:hover{transform:scale(1.1);background:#155526;}
-.months-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
-@media(max-width:700px){.months-grid{grid-template-columns:repeat(2,1fr);}}
-.month-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;cursor:pointer;font-weight:700;font-size:.9rem;transition:all .2s;color:var(--ink);}
-.month-card:hover,.month-card.active{background:var(--green);color:#fff;border-color:var(--green);}
-.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;}
-.stat-card .num{font-size:2.2rem;font-weight:800;color:var(--green);}
-.stat-card .label{font-size:.82rem;color:var(--muted);font-weight:600;}
-.add-row-bar{display:flex;align-items:center;justify-content:center;padding:10px;background:var(--bg);border-top:1px solid var(--border);}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestão de Estudantes - CEJA Dr. Gerardo Camelo Madeira</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --ceja-green: #1b5e20;
+      --ceja-light-green: #2e7d32;
+      --ceja-header-bg: #1e4620;
+      --sidebar-bg: #f8f9fa;
+      --table-header-bg: #2d4362;
+    }
 
-.container, .main-module { width: 100%; max-width: 98%; padding: 5px; margin: 0 auto; }
-th.col-aluno, td.col-aluno { min-width: 180px; }
-td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
-.btn-excluir { background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
-.btn-zerar { background-color: #8b0000; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 0px; }
-.mode-toggle-bar { display: flex; gap: 10px; margin-bottom: 16px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
-.mode-btn { background: var(--bg); color: var(--ink); border: 1px solid var(--border); border-radius: 8px; padding: 10px 18px; font-weight: 700; cursor: pointer; font-size: 0.92rem; display: flex; align-items: center; gap: 8px; transition: all .2s; }
-.mode-btn.active { background: var(--green); color: #fff; border-color: var(--green); }
-</style>
+    body {
+      background-color: #f0f2f5;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 0.9rem;
+    }
+
+    /* Topbar styling */
+    .top-header {
+      background-color: var(--ceja-header-bg);
+      color: white;
+      padding: 10px 20px;
+    }
+    .top-header .brand-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      line-height: 1.2;
+    }
+    .top-header .brand-sub {
+      font-size: 0.75rem;
+      opacity: 0.85;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background-color: #e9ecef;
+      min-height: calc(100vh - 60px);
+      padding-top: 15px;
+    }
+    .sidebar .menu-title {
+      font-size: 0.75rem;
+      font-weight: bold;
+      color: #6c757d;
+      padding: 0 15px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+    .sidebar .nav-link {
+      color: #333;
+      font-weight: 600;
+      padding: 10px 15px;
+      border-radius: 6px;
+      margin-bottom: 4px;
+    }
+    .sidebar .nav-link.active {
+      background-color: #c8e6c9;
+      color: #1b5e20;
+    }
+    .sidebar .nav-link i {
+      margin-right: 8px;
+    }
+
+    /* Main Content */
+    .main-content {
+      padding: 20px;
+    }
+    .page-title {
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 2px;
+    }
+    .page-subtitle {
+      font-size: 0.85rem;
+      color: #6c757d;
+      margin-bottom: 20px;
+    }
+
+    /* Custom Buttons */
+    .btn-tab {
+      background-color: #e2e8f0;
+      color: #334155;
+      font-weight: 600;
+      border: 1px solid #cbd5e1;
+    }
+    .btn-tab.active {
+      background-color: #1e6b37;
+      color: white;
+      border-color: #1e6b37;
+    }
+
+    .btn-action-red {
+      background-color: #a81c1c;
+      color: white;
+      font-weight: bold;
+    }
+    .btn-action-red:hover {
+      background-color: #821414;
+      color: white;
+    }
+
+    .btn-action-dark {
+      background-color: #1e293b;
+      color: white;
+      font-weight: 600;
+    }
+    .btn-action-dark:hover {
+      background-color: #0f172a;
+      color: white;
+    }
+
+    .btn-action-blue {
+      background-color: #1d4ed8;
+      color: white;
+      font-weight: 600;
+    }
+
+    /* Sub-tabs */
+    .btn-subtab {
+      border-radius: 20px;
+      padding: 4px 16px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .btn-subtab.active {
+      background-color: #eab308;
+      color: #000;
+    }
+    .btn-subtab.inactive {
+      background-color: #e2e8f0;
+      color: #64748b;
+    }
+
+    /* Table styling */
+    .custom-table {
+      background-color: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .custom-table thead {
+      background-color: var(--table-header-bg);
+      color: white;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      text-align: center;
+    }
+    .custom-table th {
+      padding: 12px 8px;
+      vertical-align: middle;
+    }
+    .custom-table td {
+      vertical-align: middle;
+      padding: 6px;
+      font-size: 0.85rem;
+    }
+    .custom-table input[type="text"], .custom-table select {
+      font-size: 0.85rem;
+      padding: 4px 8px;
+      text-transform: uppercase;
+    }
+
+    /* Badges */
+    .badge-status {
+      padding: 6px 12px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.75rem;
+      display: inline-block;
+      width: 100px;
+      text-align: center;
+    }
+    .badge-ativo { background-color: #16a34a; color: white; }
+    .badge-evadido { background-color: #dc2626; color: white; }
+    .badge-pre-evadido { background-color: #eab308; color: #000; }
+  </style>
 </head>
 <body>
 
-<div id="loginView">
-<div class="wrap-login">
-  <div class="login-card">
-    <div class="login-head">
-      <img class="login-logo" id="imgLoginLogo" alt="Logo CEJA">
-      <div class="gov">Governo do Estado do Ceará · SEDUC</div>
-      <h2>CEJA Dr. Gerardo Camelo Madeira</h2>
-      <p>Ipu · CE — Diretor de Comunidade</p>
-    </div>
-
-    <div id="loginFormArea">
-      <div class="pill-toggle">
-        <div class="pill active" id="pillSec" onclick="setLoginTab('sec')">Secretária</div>
-        <div class="pill" id="pillProf" onclick="setLoginTab('prof')">Professor</div>
+  <!-- TOPBAR -->
+  <div class="top-header d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-3">
+      <div class="bg-white text-dark rounded-circle d-flex justify-content-center align-items-center" style="width: 40px; height: 40px; font-weight: bold;">
+        CEJA
       </div>
-
-      <!-- FORMULÁRIO SECRETÁRIA -->
-      <div id="secForm">
-        <label>Usuário</label><input value="Secretária" disabled>
-        <label>Senha</label>
-        <div class="pass-wrap">
-          <input type="password" id="secPass" placeholder="Senha da secretária">
-          <button type="button" class="eye-btn" onclick="togglePass('secPass', this)"><i class="fa-solid fa-eye"></i></button>
-        </div>
-        <div class="checkline"><input type="checkbox" id="secKeep" checked> Lembrar login e senha</div>
-        <div id="secErr" class="err"></div>
-        <button class="btn" style="width:100%" onclick="loginSecretaria()">Acessar Sistema</button>
-        <div class="linkrow"><a href="#" onclick="openReset('sec');return false;">Esqueci minha senha</a></div>
-      </div>
-
-      <!-- FORMULÁRIO PROFESSOR -->
-      <div id="profForm" class="hidden">
-        <label>Nome completo</label>
-        <input type="text" id="profNameInput" autocomplete="off" placeholder="Digite seu nome completo">
-        <label>Senha</label>
-        <div class="pass-wrap">
-          <input type="password" id="profPass" placeholder="Senha (padrão: 12345)">
-          <button type="button" class="eye-btn" onclick="togglePass('profPass', this)"><i class="fa-solid fa-eye"></i></button>
-        </div>
-        <div class="checkline"><input type="checkbox" id="profKeep" checked> Lembrar login e senha</div>
-        <div id="profErr" class="err"></div>
-        <button class="btn" style="width:100%" onclick="loginProfessor()">Acessar Sistema</button>
-        <div class="linkrow"><a href="#" onclick="openReset('prof');return false;">Esqueci minha senha</a></div>
-      </div>
-    </div>
-
-    <!-- REDEFINIÇÃO DE SENHA -->
-    <div id="resetArea" class="hidden">
-      <h3 id="resetTitle" style="margin-top:0"></h3>
-      <p class="muted" style="margin-top:-6px">Defina uma nova senha imediatamente — não é necessário informar a senha antiga.</p>
-      <div id="resetNameWrap">
-        <label>Nome completo do professor</label>
-        <input type="text" id="resetProfName" autocomplete="off" placeholder="Digite seu nome completo">
-      </div>
-      <label>Nova senha</label>
-      <div class="pass-wrap">
-        <input type="password" id="resetPass1">
-        <button type="button" class="eye-btn" onclick="togglePass('resetPass1', this)"><i class="fa-solid fa-eye"></i></button>
-      </div>
-      <label>Repita a nova senha</label>
-      <div class="pass-wrap">
-        <input type="password" id="resetPass2">
-        <button type="button" class="eye-btn" onclick="togglePass('resetPass2', this)"><i class="fa-solid fa-eye"></i></button>
-      </div>
-      <div id="resetErr" class="err"></div>
-      <button class="btn" style="width:100%" onclick="doReset()">Redefinir Senha</button>
-      <div class="linkrow"><a href="#" onclick="closeReset();return false;">Voltar ao login</a></div>
-    </div>
-    <div class="footer-note">Monitoramento e Busca Ativa de Alunos Evadidos</div>
-  </div>
-</div>
-</div>
-
-<!-- TELA PRINCIPAL -->
-<div id="appView" class="hidden">
-  <div class="top">
-    <div class="brand">
-      <img id="imgTopLogo" alt="Logo CEJA">
       <div>
-        <div class="gov">Governo do Estado do Ceará <span class="badge-seduc">SEDUC</span></div>
-        <div class="school">CEJA Dr. Gerardo Camelo Madeira - IPU/CE</div>
-        <div class="sub" id="whoami"></div>
+        <div class="brand-title">CEJA Dr. Gerardo Camelo Madeira - IPU/CE</div>
+        <div class="brand-sub">DIRETOR DE COMUNIDADE • AMBIENTE DA SECRETÁRIA</div>
       </div>
     </div>
-    <div class="right">
-      <div class="clock" id="clockBox"></div>
-      <button class="btn orange sm" id="logoutBtn" onclick="doLogout()"><i class="fa-solid fa-power-off"></i> Sair</button>
+    <div class="d-flex align-items-center gap-3">
+      <span class="badge bg-light text-dark"><i class="fa-regular fa-clock me-1"></i> 10:06:50 - 29/09/2026</span>
+      <button class="btn btn-warning btn-sm fw-bold text-white"><i class="fa-solid fa-power-off me-1"></i> Sair</button>
     </div>
   </div>
 
-  <div class="layout">
-    <div class="sidebar" id="sidebarSec">
-      <h4>Módulos do Sistema</h4>
-      <div class="nav-item active" data-mod="alunos" onclick="setModule('alunos')"><i class="fa-solid fa-user-graduate"></i> Estudantes &amp; Matrículas</div>
-      <div class="nav-item" data-mod="profs" onclick="setModule('profs')"><i class="fa-solid fa-chalkboard-user"></i> Ambientes dos Professores</div>
-      <div class="nav-item" data-mod="remat" onclick="setModule('remat')"><i class="fa-solid fa-file-pen"></i> Rematrícula Mensal</div>
-      <div class="nav-item" data-mod="farol" onclick="setModule('farol')"><i class="fa-solid fa-lightbulb"></i> Farol de Rematrícula</div>
-      <div class="nav-item" data-mod="certificacao" onclick="setModule('certificacao')"><i class="fa-solid fa-award"></i> Certificação</div>
-      <div class="nav-item" data-mod="senha" onclick="setModule('senha')"><i class="fa-solid fa-key"></i> Recuperar Senha</div>
-    </div>
-
-    <div class="main">
-      <!-- ESTUDANTES (SECRETARIA) -->
-      <div id="mod-alunos">
-        <h1 class="pg">Gestão de Estudantes</h1>
-        <p class="sub-pg">Acompanhamento e controle de evasão escolar do CEJA Dr. Gerardo Camelo Madeira</p>
-
-        <!-- NAVEGAÇÃO ENTRE MATRÍCULA GERAL E POR PROFESSOR -->
-        <div class="mode-toggle-bar">
-          <button class="mode-btn active" id="btnModeGeral" onclick="setSecViewMode('geral')"><i class="fa-solid fa-list-check"></i> Matrícula Geral</button>
-          <button class="mode-btn" id="btnModePorProf" onclick="setSecViewMode('porProf')"><i class="fa-solid fa-chalkboard-user"></i> Por Professor</button>
-        </div>
-
-        <!-- VISUALIZAÇÃO: MATRÍCULA GERAL -->
-        <div id="secViewGeral">
-          <div class="toolbar">
-            <button class="btn-zerar" onclick="zerarBancoDeDados()">⚠️ Zerar Banco de Dados (Novo Semestre)</button>
-            <button class="btn sm" style="background:var(--navy)" onclick="saveEstudantesModule()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
-            <button class="btn dark sm" onclick="exportCSV()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
-            <button class="btn dark sm" onclick="exportWord('printAlunos', 'Estudantes')"><i class="fa-solid fa-file-word"></i> Exportar Word</button>
-            <button class="btn red sm" onclick="printSection('printAlunos')"><i class="fa-solid fa-file-pdf"></i> Gerar PDF / Imprimir</button>
-          </div>
-          <div class="tabs">
-            <div class="tab active gold" id="tabAtuais" data-subtab="atuais" onclick="setSubTab('atuais')">Matrículas Atuais</div>
-            <div class="tab" id="tabAntigas" data-subtab="antigas" onclick="setSubTab('antigas')">Matrículas Antigas</div>
-          </div>
-          <div class="grid c5" style="margin-bottom:6px;">
-            <div><label>Ano Letivo (digite e clique em Salvar)</label><input type="text" id="anoLetivoInput" maxlength="4" placeholder="Ex: 2027"></div>
-            <div><label>Professor</label><select id="filtroProfessor"></select></div>
-          </div>
-          <div class="tabs" id="anosPills" style="margin-bottom:10px;"></div>
-          <div class="tablewrap" id="printAlunos">
-            <table>
-              <thead class="blue">
-                <tr>
-                  <th>MAT</th>
-                  <th class="col-aluno">ALUNO(A)</th>
-                  <th>NÍVEL</th>
-                  <th>CONTATO</th>
-                  <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
-                  <th>SITUAÇÃO</th>
-                  <th>STATUS</th>
-                  <th style="text-align:center">DIAS AUSENTE</th>
-                  <th>PROFESSOR</th>
-                  <th style="text-align:center">CONCLUDENTE</th>
-                  <th style="text-align:center" class="no-print">AÇÕES</th>
-                </tr>
-              </thead>
-              <tbody id="studentsBody"></tbody>
-            </table>
-            <div class="add-row-bar no-print">
-              <button type="button" class="btn-plus" onclick="addNewStudentRow()" title="Adicionar Novo Estudante">+</button>
-              <span style="font-size:0.85rem;margin-left:8px;font-weight:700;color:var(--green)">Adicionar Novo Estudante</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- VISUALIZAÇÃO: POR PROFESSOR -->
-        <div id="secViewPorProf" class="hidden">
-          <h3 style="margin-bottom:8px;"><i class="fa-solid fa-arrow-down-a-z"></i> Selecione o Professor (Ordem Alfabética):</h3>
-          <div class="tabs" id="secProfsPills" style="margin-bottom:16px;"></div>
-
-          <div id="secProfDetail">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
-              <h3 id="secProfSelectedTitle" style="margin:0; color:var(--green)"></h3>
-              <div class="toolbar" style="margin:0">
-                <button class="btn sm" style="background:var(--navy)" onclick="saveEstudantesModule()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
-                <button class="btn dark sm" onclick="exportCSVPorProf()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
-                <button class="btn red sm" onclick="printSection('printAlunosPorProf')"><i class="fa-solid fa-file-pdf"></i> Gerar PDF / Imprimir</button>
-              </div>
-            </div>
-
-            <div class="tablewrap" id="printAlunosPorProf">
-              <table>
-                <thead class="blue">
-                  <tr>
-                    <th>MAT</th>
-                    <th class="col-aluno">ALUNO(A)</th>
-                    <th>NÍVEL</th>
-                    <th>CONTATO</th>
-                    <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
-                    <th>SITUAÇÃO</th>
-                    <th>STATUS</th>
-                    <th style="text-align:center">DIAS AUSENTE</th>
-                    <th>PROFESSOR</th>
-                    <th style="text-align:center">CONCLUDENTE</th>
-                    <th style="text-align:center" class="no-print">AÇÕES</th>
-                  </tr>
-                </thead>
-                <tbody id="secProfStudentsBody"></tbody>
-              </table>
-              <div class="add-row-bar no-print">
-                <button type="button" class="btn-plus" onclick="addNewStudentRowForProf()" title="Adicionar Estudante para Este Professor">+</button>
-                <span style="font-size:0.85rem;margin-left:8px;font-weight:700;color:var(--green)">Adicionar Estudante para Este Professor</span>
-              </div>
-            </div>
-          </div>
-        </div>
+  <div class="container-fluid">
+    <div class="row">
+      
+      <!-- SIDEBAR -->
+      <div class="col-md-2 sidebar">
+        <div class="menu-title">Módulos do Sistema</div>
+        <nav class="nav flex-column">
+          <a class="nav-link active" href="#"><i class="fa-solid fa-user-graduate"></i> Estudantes & Matrículas</a>
+          <a class="nav-link" href="#"><i class="fa-solid fa-chalkboard-user"></i> Ambientes dos Professores</a>
+          <a class="nav-link" href="#"><i class="fa-solid fa-file-pen"></i> Rematrícula Mensal</a>
+          <a class="nav-link" href="#"><i class="fa-solid fa-lightbulb"></i> Farol de Rematrícula</a>
+          <a class="nav-link" href="#"><i class="fa-solid fa-award"></i> Certificação</a>
+          <a class="nav-link" href="#"><i class="fa-solid fa-key"></i> Recuperar Senha</a>
+        </nav>
       </div>
 
-      <!-- AMBIENTES DOS PROFESSORES -->
-      <div id="mod-profs" class="hidden">
-        <h1 class="pg">Ambientes dos Professores</h1>
-        <p class="sub-pg">Gestão individualizada de professores e links de acesso compartilhados</p>
-        <div class="toolbar">
-          <button class="btn sm" style="background:var(--navy)" onclick="saveProfessors()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
-        </div>
-        <div class="card">
-          <label>Cadastrar Novo Professor (Ordem Alfabética Automática)</label>
-          <div style="display:flex;gap:8px">
-            <input id="newProfName" placeholder="Nome completo do novo professor">
-            <button class="btn sm" onclick="addProfessor()"><i class="fa-solid fa-plus"></i> Cadastrar Professor</button>
-          </div>
-        </div>
-        <h3>Lista de Professores Cadastrados (<span id="profCount">0</span>)</h3>
-        <div class="prof-grid" id="profList"></div>
-      </div>
-
-      <!-- REMATRICULA MENSAL (SECRETARIA) -->
-      <div id="mod-remat" class="hidden">
-        <h1 class="pg">Rematrícula Mensal</h1>
-        <p class="sub-pg">Registro unificado e acompanhamento de retornos de responsabilidade da Secretaria</p>
-        <div class="grid c5" style="margin-bottom:10px">
-          <div><label>Adicionar Próximo Ano</label><input type="text" id="addYearRemat" maxlength="4" placeholder="Ex: 2027"></div>
-          <div style="display:flex;align-items:flex-end"><button class="btn sm" onclick="addNewYearRemat()"><i class="fa-solid fa-plus"></i> Adicionar Ano</button></div>
-        </div>
-        <div class="tabs" id="rematYearsPills"></div>
-        <h3 id="rematYearTitle" style="margin-top:10px">Selecione o Mês:</h3>
-        <div class="months-grid" id="rematMonthsGrid"></div>
+      <!-- CONTEÚDO PRINCIPAL -->
+      <div class="col-md-10 main-content">
         
-        <!-- PROFESSORES CONECTADOS NA REMATRÍCULA -->
-        <div id="rematProfSection" style="margin-top:16px;">
-          <h3 style="margin-bottom:8px;"><i class="fa-solid fa-chalkboard-user"></i> Filtrar por Professor:</h3>
-          <div class="tabs" id="rematProfPills" style="margin-bottom:16px;"></div>
+        <h2 class="page-title">Gestão de Estudantes</h2>
+        <div class="page-subtitle">Acompanhamento e controle de evasão escolar do CEJA Dr. Gerardo Camelo Madeira</div>
+
+        <!-- 1. BOTÕES DAS ABAS PRINCIPAIS -->
+        <div class="d-flex gap-2 mb-3">
+          <button id="btnMatriculaGeral" class="btn btn-tab active" onclick="selecionarAba('matriculaGeral')">
+            <i class="fa-solid fa-users me-1"></i> Matrícula Geral
+          </button>
+          <button id="btnPorProfessor" class="btn btn-tab" onclick="selecionarAba('porProfessor')">
+            <i class="fa-solid fa-user-tie me-1"></i> Por Professor
+          </button>
+          <!-- NOVO BOTÃO ADICIONADO -->
+          <button id="btnGeralPorProfessor" class="btn btn-tab" onclick="selecionarAba('geralPorProfessor')">
+            <i class="fa-solid fa-arrow-down-a-z me-1"></i> Geral por Professor
+          </button>
         </div>
 
-        <div id="rematMonthDetail" class="hidden">
-          <h3 id="rematMonthTitle"></h3>
-          <div class="toolbar">
-            <button class="btn sm" style="background:var(--green)" onclick="addSecRematRow()"><i class="fa-solid fa-plus"></i> acrescentar Estudante</button>
-            <button class="btn sm" style="background:var(--navy)" onclick="saveAllRemat()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
-            <button class="btn dark sm" onclick="exportCSVRemat()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
-            <button class="btn dark sm" onclick="exportWord('printRemat', 'Rematricula_Mensal')"><i class="fa-solid fa-file-word"></i> Exportar Word</button>
-            <button class="btn red sm" onclick="printSection('printRemat')"><i class="fa-solid fa-file-pdf"></i> Exportar PDF / Imprimir</button>
-          </div>
-          <div class="tablewrap" id="printRemat">
-            <table>
-              <thead class="darkgreen">
-                <tr><th>ESTUDANTE</th><th>MATRÍCULA</th><th>ÚLT. FREQ. (DD/MM/AAAA)</th><th>DATA DO RETORNO (DD/MM/AAAA)</th><th>MÊS/ANO</th><th>PROFESSOR</th><th class="no-print">AÇÃO</th></tr>
-              </thead>
-              <tbody id="rematBody"></tbody>
-            </table>
-          </div>
-          <p class="muted hidden" id="rematEmpty">Nenhuma rematrícula efetuada neste mês para o filtro selecionado.</p>
+        <!-- 2. BOTÕES DE AÇÃO SISTÊMICA -->
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <button class="btn btn-action-red btn-sm"><i class="fa-solid fa-triangle-exclamation me-1"></i> Zerar Banco de Dados (Novo Semestre)</button>
+          <button class="btn btn-action-dark btn-sm"><i class="fa-solid fa-floppy-disk me-1"></i> Salvar Alterações</button>
+          <button class="btn btn-action-dark btn-sm"><i class="fa-solid fa-file-excel me-1"></i> Exportar Excel</button>
+          <button class="btn btn-action-dark btn-sm"><i class="fa-solid fa-file-word me-1"></i> Exportar Word</button>
+          <button class="btn btn-action-red btn-sm"><i class="fa-solid fa-file-pdf me-1"></i> Gerar PDF / Imprimir</button>
         </div>
-      </div>
 
-      <!-- FAROL DE REMATRÍCULA (SECRETARIA) -->
-      <div id="mod-farol" class="hidden">
-        <h1 class="pg">Farol de Rematrícula (Ranking em Tempo Real)</h1>
-        <p class="sub-pg">Monitoramento do empenho nas rematrículas ativas por ano e mês</p>
-        <div class="tabs" id="farolYearsPills"></div>
-        <h3 id="farolYearTitle" style="margin-top:10px">Selecione o Mês:</h3>
-        <div class="months-grid" id="farolMonthsGrid"></div>
-
-        <div id="farolMonthDetail" class="hidden">
-          <h3 id="farolMonthTitle"></h3>
-          <div class="legend">
-            <div class="g"><b>4 ou Mais Rematrículas</b><br>Desempenho Excelente (Verde)</div>
-            <div class="y"><b>De 1 a 3 Rematrículas</b><br>Desempenho em Progresso (Amarelo)</div>
-            <div class="r"><b>0 Rematrículas</b><br>Sem Alunos Recuperados (Vermelho)</div>
-          </div>
-          <div class="toolbar">
-            <button class="btn dark sm" onclick="exportWord('printFarol', 'Farol_Rematricula')"><i class="fa-solid fa-file-word"></i> Exportar Word</button>
-            <button class="btn red sm" onclick="printSection('printFarol')"><i class="fa-solid fa-file-pdf"></i> Exportar PDF / Imprimir</button>
-          </div>
-          <div class="tablewrap" id="printFarol">
-            <table>
-              <thead class="navy">
-                <tr>
-                  <th style="text-align:center">NOME DO PROFESSOR</th>
-                  <th style="text-align:center">QTD. REMATRÍCULAS NO MÊS</th>
-                  <th style="text-align:center">STATUS FAROL</th>
-                </tr>
-              </thead>
-              <tbody id="rankBody"></tbody>
-            </table>
-          </div>
+        <!-- 3. FILTROS E SUB-ABAS -->
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <button class="btn btn-subtab active">Matrículas Atuais</button>
+          <button class="btn btn-subtab inactive">Matrículas Antigas</button>
         </div>
-      </div>
 
-      <!-- CERTIFICAÇÃO -->
-      <div id="mod-certificacao" class="hidden">
-        <h1 class="pg">Certificação e Concludentes</h1>
-        <p class="sub-pg">Acompanhamento dos alunos diplomados por ano de conclusão (Ensino Fundamental e Médio)</p>
-
-        <div class="grid c5" style="margin-bottom:10px">
-          <div><label>Adicionar Ano de Certificação</label><input type="text" id="addYearCert" maxlength="4" placeholder="Ex: 2026"></div>
-          <div style="display:flex;align-items:flex-end"><button class="btn sm" onclick="addNewYearCert()"><i class="fa-solid fa-plus"></i> Adicionar Ano</button></div>
-        </div>
-        
-        <div class="tabs" id="certYearsPills" style="margin-bottom:16px;"></div>
-
-        <div class="grid c2" style="margin-bottom:20px">
-          <div class="stat-card">
-            <div class="num" id="countCertEF">0</div>
-            <div class="label">Concludentes do Ensino Fundamental (EF) em <span class="currentYearLabel">2026</span></div>
+        <div class="row g-2 align-items-center mb-3">
+          <div class="col-auto">
+            <label class="form-label mb-0 fw-semibold text-muted" style="font-size: 0.8rem;">Ano Letivo (digite e clique em Salvar)</label>
+            <input type="text" class="form-control form-control-sm" value="Ex: 2027" style="width: 140px;">
           </div>
-          <div class="stat-card">
-            <div class="num" id="countCertEM">0</div>
-            <div class="label">Concludentes do Ensino Médio (EM) em <span class="currentYearLabel">2026</span></div>
+          <div class="col-auto">
+            <label class="form-label mb-0 fw-semibold text-muted" style="font-size: 0.8rem;">Professor</label>
+            <select id="filtroProfessor" class="form-select form-select-sm" onchange="aplicarFiltros()" style="width: 200px;">
+              <option value="TODOS">Todos os Professores</option>
+              <option value="Aldania">Aldania</option>
+              <option value="Aline">Aline</option>
+              <option value="Carliana Lima">Carliana Lima</option>
+              <option value="Samuel Martins">Samuel Martins</option>
+            </select>
+          </div>
+          <div class="col-auto align-self-end">
+            <span class="badge bg-success p-2"><i class="fa-regular fa-calendar me-1"></i> 2026</span>
           </div>
         </div>
 
-        <div class="toolbar">
-          <button class="btn dark sm" onclick="exportWord('printCertificacao', 'Concludentes')"><i class="fa-solid fa-file-word"></i> Exportar Word</button>
-          <button class="btn red sm" onclick="printSection('printCertificacao')"><i class="fa-solid fa-file-pdf"></i> Exportar PDF / Imprimir</button>
-        </div>
-
-        <div class="tablewrap" id="printCertificacao">
-          <table>
-            <thead class="blue">
+        <!-- 4. TABELA DE ALUNOS COM A NOVA COLUNA "TURMA" -->
+        <div class="table-responsive custom-table">
+          <table class="table table-hover table-bordered mb-0 align-middle">
+            <thead>
               <tr>
-                <th>MATRÍCULA</th>
-                <th>NOME DO CONCLUDENTE</th>
-                <th>NÍVEL</th>
-                <th>CONTATO</th>
-                <th>PROFESSOR RESPONSÁVEL</th>
-                <th>ANO DE CONCLUSÃO</th>
+                <th style="width: 60px;">MAT</th>
+                <th>ALUNO(A)</th>
+                <th style="width: 80px;">NÍVEL</th>
+                <th style="width: 100px;">TURMA</th> <!-- NOVA COLUNA -->
+                <th style="width: 130px;">CONTATO</th>
+                <th style="width: 130px;">ÚLT. FREQ.<br><small>(DD/MM/AAAA)</small></th>
+                <th style="width: 100px;">SITUAÇÃO</th>
+                <th style="width: 110px;">STATUS</th>
+                <th style="width: 90px;">DIAS AUSENTE</th>
+                <th style="width: 180px;">PROFESSOR</th>
+                <th style="width: 90px;">CONCLUDENTE</th>
+                <th style="width: 80px;">AÇÕES</th>
               </tr>
             </thead>
-            <tbody id="certificacaoBody"></tbody>
+            <tbody id="tabelaAlunosBody">
+              <!-- Renderizado via JavaScript -->
+            </tbody>
           </table>
         </div>
-      </div>
 
-      <!-- RECUPERAR SENHA (SECRETARIA) -->
-      <div id="mod-senha" class="hidden">
-        <h1 class="pg">Recuperação e Alteração de Senha</h1>
-        <p class="sub-pg">Defina uma nova senha para qualquer usuário de forma imediata, sem precisar da senha antiga.</p>
-        <div class="card" style="max-width:440px">
-          <label>Selecione o Usuário</label>
-          <select id="secSelUser"><option value="">Selecione um perfil...</option><option value="Secretária">Secretária</option></select>
-          <label>Nova Senha</label>
-          <div class="pass-wrap">
-            <input type="password" id="secNewPassAdmin" placeholder="Digite a nova senha">
-            <button type="button" class="eye-btn" onclick="togglePass('secNewPassAdmin', this)"><i class="fa-solid fa-eye"></i></button>
-          </div>
-          <label>Repita a Nova Senha</label>
-          <div class="pass-wrap">
-            <input type="password" id="secNewPassAdmin2" placeholder="Repita a nova senha">
-            <button type="button" class="eye-btn" onclick="togglePass('secNewPassAdmin2', this)"><i class="fa-solid fa-eye"></i></button>
-          </div>
-          <div id="secAdminErr" class="err"></div>
-          <button class="btn" style="width:100%;margin-top:8px" onclick="adminChangePass()"><i class="fa-solid fa-key"></i> Alterar Senha do Usuário</button>
-        </div>
-      </div>
-
-      <!-- VISÃO DO PROFESSOR (SOMENTE MONITORAMENTO DA TURMA) -->
-      <div id="mod-prof-view" class="hidden">
-        <h1 class="pg" id="profWelcome"></h1>
-        <p class="sub-pg">Acompanhe seus alunos evadidos e ativos em tempo real.</p>
-
-        <div id="ptab-turma">
-          <div class="toolbar"><button class="btn sm" style="background:var(--navy)" onclick="saveAllStudents()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button></div>
-          <div class="tabs">
-            <div class="tab gold" id="tabAntigas2" onclick="setSubTab2('antigas')">Matrículas Antigas</div>
-            <div class="tab active" id="tabAtuais2" onclick="setSubTab2('atuais')">Matrículas Atuais</div>
-          </div>
-          <div class="tablewrap">
-            <table>
-              <thead class="blue">
-                <tr>
-                  <th>MAT</th>
-                  <th class="col-aluno">ALUNO(A)</th>
-                  <th>NÍVEL</th>
-                  <th>CONTATO</th>
-                  <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
-                  <th>SITUAÇÃO</th>
-                  <th>STATUS</th>
-                  <th style="text-align:center">DIAS AUSENTE</th>
-                  <th>PROFESSOR</th>
-                  <th style="text-align:center">CONCLUDENTE</th>
-                </tr>
-              </thead>
-              <tbody id="profStudentsBody"></tbody>
-            </table>
-          </div>
-        </div>
       </div>
     </div>
   </div>
-</div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import {
-  getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc, getDocs, writeBatch
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  <!-- JAVASCRIPT DE FUNCIONALIDADE -->
+  <script>
+    // Base de dados dos Alunos
+    const alunos = [
+      { mat: 101, nome: 'MARIA EDUARDA SILVA', nivel: 'EM', turma: 'TURMA A', contato: '8899887766', ultFreq: '28/09/2026', situacao: 'Ativo', status: 'Ativo', dias: 1, professor: 'Aldania', concludente: false },
+      { mat: 102, nome: 'JOÃO PEDRO SANTOS', nivel: 'EF', turma: 'TURMA B', contato: '8899112233', ultFreq: '20/09/2026', situacao: 'Ativo', status: 'Ativo', dias: 9, professor: 'Aldania', concludente: false },
+      { mat: 201, nome: 'ANA CLARA ALVES', nivel: 'EM', turma: 'TURMA C', contato: '8899445566', ultFreq: '15/09/2026', situacao: 'Pré-evadido', status: 'Pré-evadido', dias: 14, professor: 'Aline', concludente: false },
+      { mat: 202, nome: 'BRUNO BEZERRA', nivel: 'EF', turma: 'TURMA A', contato: '8899778899', ultFreq: '10/08/2026', situacao: 'Evadido', status: 'Evadido', dias: 50, professor: 'Aline', concludente: false },
+      { mat: 1321, nome: 'JOÃO DE DEUS', nivel: 'EF', turma: 'TURMA 2', contato: '999999999', ultFreq: '29/09/2026', situacao: 'Ativo', status: 'Ativo', dias: 0, professor: 'Carliana Lima', concludente: false },
+      { mat: 520, nome: 'FRANCISCO DANIEL RIE', nivel: 'EM', turma: 'TURMA 1', contato: '', ultFreq: '27/08/2026', situacao: 'Pré-evadido', status: 'Pré-evadido', dias: 33, professor: 'Samuel Martins', concludente: false },
+      { mat: 740, nome: 'CARLOS ALBERTO INÁC', nivel: 'EF', turma: 'TURMA 2', contato: '', ultFreq: '10/06/2026', situacao: 'Evadido', status: 'Evadido', dias: 111, professor: 'Samuel Martins', concludente: false },
+      { mat: 765, nome: 'ANDREA LOPES ALVES', nivel: 'EM', turma: 'TURMA 1', contato: '', ultFreq: '23/06/2026', situacao: 'Evadido', status: 'Evadido', dias: 98, professor: 'Samuel Martins', concludente: false },
+      { mat: 1234, nome: 'ANTONIO FERNANDES', nivel: 'EM', turma: 'TURMA 3', contato: '999999999', ultFreq: '29/09/2026', situacao: 'Ativo', status: 'Ativo', dias: 0, professor: 'Samuel Martins', concludente: false },
+      { mat: 1590, nome: 'NAZELIA ALVES RODRIC', nivel: 'EF', turma: 'TURMA 1', contato: '8899361021', ultFreq: '21/09/2026', situacao: 'Ativo', status: 'Ativo', dias: 8, professor: 'Samuel Martins', concludente: false },
+      { mat: 1601, nome: 'IURI RIBEIRO MATOS', nivel: 'EM', turma: 'TURMA 3', contato: '8899651476', ultFreq: '16/09/2026', situacao: 'Ativo', status: 'Ativo', dias: 13, professor: 'Samuel Martins', concludente: false },
+      { mat: 1999, nome: 'SAMUEL MARTINS DE S', nivel: 'EM', turma: 'TURMA 2', contato: '', ultFreq: '08/02/2026', situacao: 'Evadido', status: 'Evadido', dias: 233, professor: 'Samuel Martins', concludente: false }
+    ];
 
-const firebaseConfig = {
-  apiKey: "AIzaSyB8Uf77lKEjPHNqiHP7tbJjLg6sgJHz43Y",
-  authDomain: "diretor-de-comunidade.firebaseapp.com",
-  projectId: "diretor-de-comunidade",
-  storageBucket: "diretor-de-comunidade.firebasestorage.app",
-  messagingSenderId: "618211503376",
-  appId: "1:618211503376:web:672da6a25ec0820083c995"
-};
-const firebaseApp = initializeApp(firebaseConfig);
-const db = getFirestore(firebaseApp);
+    let modoAtual = 'matriculaGeral'; // Modos: 'matriculaGeral', 'porProfessor', 'geralPorProfessor'
 
-function setupLogos() {
-  const sources = [
-    './assets/ceja-logo.webp',
-    './logo.png',
-    './brasao.png',
-    './logo.jpg',
-    './brasao.jpg',
-    './logo.jpeg',
-    './logo.webp'
-  ];
+    // Alternar abas
+    function selecionarAba(modo) {
+      modoAtual = modo;
+      
+      // Atualizar estilos dos botões
+      document.getElementById('btnMatriculaGeral').classList.toggle('active', modo === 'matriculaGeral');
+      document.getElementById('btnPorProfessor').classList.toggle('active', modo === 'porProfessor');
+      document.getElementById('btnGeralPorProfessor').classList.toggle('active', modo === 'geralPorProfessor');
 
-  const svgFallback = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='%231E7A34' stroke='%23F2B705' stroke-width='4'/><path d='M50 18 L78 32 L78 62 L50 82 L22 62 L22 32 Z' fill='%23155526' stroke='%23F2B705' stroke-width='2'/><text x='50' y='46' text-anchor='middle' fill='%23ffffff' font-size='14' font-weight='bold' font-family='sans-serif'>CEJA</text><text x='50' y='60' text-anchor='middle' fill='%23F2B705' font-size='9' font-weight='bold' font-family='sans-serif'>IPU/CE</text></svg>";
+      renderizarTabela();
+    }
 
-  function applyToElement(imgEl) {
-    if (!imgEl) return;
-    let idx = 0;
-    function tryLoad() {
-      if (idx < sources.length) {
-        imgEl.src = sources[idx++];
-      } else {
-        imgEl.src = svgFallback;
+    // Filtros e Renderização da Tabela
+    function renderizarTabela() {
+      const tbody = document.getElementById('tabelaAlunosBody');
+      const filtroProf = document.getElementById('filtroProfessor').value;
+
+      // 1. Clonar lista para manipular
+      let dadosProcessados = [...alunos];
+
+      // 2. Filtrar por Professor (se selecionado no dropdown)
+      if (filtroProf !== 'TODOS') {
+        dadosProcessados = dadosProcessados.filter(a => a.professor === filtroProf);
       }
-    }
-    imgEl.onerror = () => tryLoad();
-    tryLoad();
-  }
 
-  applyToElement(document.getElementById('imgLoginLogo'));
-  applyToElement(document.getElementById('imgTopLogo'));
-}
-
-setupLogos();
-
-const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-
-let PROFESSORES = ["Aldânia Maria de Melo Lima Soares","Aline Dantas Moreira","Ana Gardênia Ximenes Dias","Ana Jéssica Martins Matos","Antonia Carla Victor de Paiva","Antonio Helio Pereira de Farias","Carliana Lima Almeida","Carlos Ely Costa Dias","Francisco de Assis Martins Passos","Francisco José Bezerra Felizola","Glaucia Paiva Timbó","Gonçalinha Rodrigues Martins","Itala Futado Dias","José Airton Ferreira de Mesquita","Marcília Felipe da Costa","Maria Siloneida de Farias","Maria Sueli Bernardo de Lima","Maria Suely Rodrigues Araujo","Pedro Furtuna da Silva","Reinaldo Inacio Barbalho","Sabrina Farias Camelo","Samuel Martins de Sousa","Silvia Helena Peres Dias","Tatiana Maria de Aragão Paiva"];
-
-sortProfessors();
-
-const SEC_PASS_KEY_DEFAULT = "Secretaria23231939";
-let session=null, students=[], rematriculas=[], resetTarget='sec';
-let anosCriados=['2026'], currentAno='2026';
-let selectedRematYear='2026', selectedRematMonth='Setembro', selectedRematProf='todos';
-let selectedFarolYear='2026', selectedFarolMonth='Setembro';
-let selectedCertYear='2026';
-
-let currentSecViewMode = 'geral'; // 'geral' ou 'porProf'
-let selectedSecProfName = '';     // Nome do professor ativo na view "Por Professor"
-
-let currentSubTab = 'atuais';
-let currentSubTab2 = 'atuais';
-let authData = { secPass:"Secretaria23231939", profPasswords:{} };
-let lockedProfLink = null;
-
-function sortProfessors(){
-  PROFESSORES.sort((a,b)=>a.localeCompare(b, 'pt-BR', {sensitivity:'base'}));
-}
-
-function normName(n){ return (n||'').trim().toLowerCase(); }
-
-function getProfLink(profName){
-  const baseUrl = window.location.origin + window.location.pathname;
-  return `${baseUrl}?prof=${encodeURIComponent(profName)}`;
-}
-
-async function boot(){
-  onSnapshot(collection(db,'students'), (snap)=>{
-    students = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    seedIfEmpty();
-    renderAll();
-  });
-
-  onSnapshot(doc(db,'meta','professors'), (d)=>{
-    const dt = d.data();
-    if(dt && dt.list && dt.list.length){ PROFESSORES = dt.list; sortProfessors(); }
-    else { seedProfessorsIfEmpty(); }
-    if(!selectedSecProfName && PROFESSORES.length) selectedSecProfName = PROFESSORES[0];
-    buildProfessorFilter();
-    renderAll();
-  });
-
-  onSnapshot(doc(db,'meta','anos'), (d)=>{
-    const dt = d.data();
-    if(dt && dt.list && dt.list.length){ anosCriados = dt.list; sortYears(); if(!anosCriados.includes(currentAno)) currentAno = anosCriados[0]; }
-    renderAll();
-  });
-
-  onSnapshot(doc(db,'meta','rematriculas'), (d)=>{
-    const dt = d.data();
-    rematriculas = (dt && dt.list) ? dt.list : [];
-    renderAll();
-  });
-
-  onSnapshot(doc(db,'meta','auth'), (d)=>{
-    const dt = d.data();
-    if(dt){ authData = dt; }
-    else { setDoc(doc(db,'meta','auth'), authData).catch(()=>{}); }
-  });
-
-  tickClock(); setInterval(tickClock,1000);
-  loadSavedLoginCredentials();
-  prefillFromLink();
-  tryAutoLogin();
-}
-
-let studentsSeeded = false;
-async function seedIfEmpty(){
-  if(studentsSeeded) return; studentsSeeded = true;
-  if(students.length===0){
-    const data = seedData();
-    for(const s of data){ await setDoc(doc(db,'students',s.id), s).catch(()=>{}); }
-  }
-}
-
-let profsSeeded = false;
-async function seedProfessorsIfEmpty(){
-  if(profsSeeded) return; profsSeeded = true;
-  await setDoc(doc(db,'meta','professors'), {list: PROFESSORES}).catch(()=>{});
-}
-
-function sortYears(){
-  anosCriados.sort((a,b)=>parseInt(b)-parseInt(a));
-}
-
-async function persistAnos(){
-  sortYears();
-  await setDoc(doc(db,'meta','anos'), {list: anosCriados}).catch(()=>{});
-}
-
-function prefillFromLink(){
-  const p = new URLSearchParams(location.search).get('prof');
-  if(p){
-    lockedProfLink = p;
-    setLoginTab('prof');
-    const pillSec = document.getElementById('pillSec');
-    if(pillSec) pillSec.classList.add('hidden');
-    const inp = document.getElementById('profNameInput');
-    if(inp){
-      inp.value = p;
-      inp.readOnly = true;
-    }
-  }
-}
-
-function seedData(){
-  const base=[
-    ["520","FRANCISCO DANIEL RIBEIRO DE MORAES","EM","","2026-08-27",28,"Samuel Martins de Sousa", false],
-    ["740","CARLOS ALBERTO INÁCIO DE OLIVEIRA","EF","","2026-06-10",106,"Samuel Martins de Sousa", false],
-    ["765","ANDREA LOPES ALVES DO NASCIMENTO","EM","","2026-06-23",93,"Aline Dantas Moreira", false],
-    ["1590","NAZELIA ALVES RODRIGUES","EF","88993610217","2026-09-21",3,"Carliana Lima Almeida", false],
-    ["1601","IURI RIBEIRO MATOS","EM","88996514766","2026-09-16",8,"Glaucia Paiva Timbó", false]
-  ];
-  return base.map((r,i)=>({id:'s'+Date.now()+i,mat:r[0],aluno:r[1],nivel:r[2],contato:r[3],ultimaFreq:r[4],rematricula:r[5],professor:r[6],concludente:r[7],ano:'2026'}));
-}
-
-function toBR(dateStr){ 
-  if(!dateStr) return ''; 
-  if(dateStr.match(/^\d{4}-\d{2}-\d{2}$/)){
-    const p=dateStr.split('-');
-    return `${p[2]}/${p[1]}/${p[0]}`;
-  }
-  return dateStr;
-}
-
-function toISO(brStr){ 
-  if(!brStr) return ''; 
-  if(brStr.match(/^\d{2}\/\d{2}\/\d{4}$/)){
-    const p=brStr.split('/');
-    return `${p[2]}-${p[1]}-${p[0]}`;
-  }
-  return brStr;
-}
-
-function parseDateForSort(dateStr) {
-  if (!dateStr) return 0;
-  const iso = toISO(dateStr);
-  const d = new Date(iso + 'T00:00:00');
-  return isNaN(d.getTime()) ? 0 : d.getTime();
-}
-
-function diasDesde(dateStr){ 
-  if(!dateStr) return 999; 
-  const iso = toISO(dateStr);
-  const d = new Date(iso + 'T00:00:00');
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  return Math.floor((now - d) / 86400000); 
-}
-
-function situacaoStatus(dateStr){ 
-  const dias=diasDesde(dateStr); 
-  if(dias<=30) return {situacao:'Ativo',cls:'g'}; 
-  if(dias<=59) return {situacao:'Pré-evadido',cls:'y'}; 
-  return {situacao:'Evadido',cls:'r'}; 
-}
-
-function renderAnosPills(){
-  const wrap=document.getElementById('anosPills'); if(!wrap) return; wrap.innerHTML='';
-  sortYears();
-  anosCriados.forEach(a=>{
-    const d=document.createElement('div'); d.className='tab'+(a===currentAno?' active':'');
-    d.textContent='📅 '+a;
-    d.onclick=()=>{ currentAno=a; renderAll(); };
-    wrap.appendChild(d);
-  });
-}
-
-function buildProfessorFilter(){
-  const sel=document.getElementById('filtroProfessor'); if(!sel) return; sel.innerHTML='<option value="">Todos os Professores</option>';
-  const sel2=document.getElementById('secSelUser'); if(sel2) sel2.innerHTML='<option value="">Selecione um perfil...</option><option value="Secretária">Secretária</option>';
-  sortProfessors();
-  PROFESSORES.forEach(p=>{
-    const o=document.createElement('option');o.value=p;o.textContent=p;sel.appendChild(o);
-    if(sel2){ const o2=document.createElement('option');o2.value=p;o2.textContent=p;sel2.appendChild(o2); }
-  });
-  sel.onchange=renderTable;
-}
-
-function tickClock(){
-  const now=new Date();
-  const t=now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  const d=now.toLocaleDateString('pt-BR');
-  const el=document.getElementById('clockBox'); if(el) el.textContent='🕐 '+t+' - '+d;
-}
-
-function togglePass(inputId, btnEl){
-  const inp = document.getElementById(inputId);
-  if(!inp) return;
-  if(inp.type === 'password'){
-    inp.type = 'text';
-    btnEl.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
-  } else {
-    inp.type = 'password';
-    btnEl.innerHTML = '<i class="fa-solid fa-eye"></i>';
-  }
-}
-
-function setLoginTab(t){
-  document.getElementById('pillSec').classList.toggle('active',t==='sec');
-  document.getElementById('pillProf').classList.toggle('active',t==='prof');
-  document.getElementById('secForm').classList.toggle('hidden',t!=='sec');
-  document.getElementById('profForm').classList.toggle('hidden',t!=='prof');
-}
-
-function loadSavedLoginCredentials(){
-  const secPass = authData.secPass || SEC_PASS_KEY_DEFAULT;
-  document.getElementById('secPass').value = localStorage.getItem('dc_saved_sec_pass') || secPass;
-
-  const profName = localStorage.getItem('dc_saved_prof_name') || lockedProfLink || '';
-  const profPass = localStorage.getItem('dc_saved_prof_pass') || '';
-  if(profName) document.getElementById('profNameInput').value = profName;
-  if(profPass) document.getElementById('profPass').value = profPass;
-}
-
-function openReset(which){
-  resetTarget=which;
-  document.getElementById('loginFormArea').classList.add('hidden');
-  document.getElementById('resetArea').classList.remove('hidden');
-  document.getElementById('resetTitle').textContent = which==='sec' ? 'Esqueci minha senha — Secretária' : 'Esqueci minha senha — Professor(a)';
-  document.getElementById('resetNameWrap').classList.toggle('hidden', which==='sec');
-}
-
-function closeReset(){ document.getElementById('loginFormArea').classList.remove('hidden'); document.getElementById('resetArea').classList.add('hidden'); }
-
-async function doReset(){
-  const p1=document.getElementById('resetPass1').value, p2=document.getElementById('resetPass2').value;
-  const err=document.getElementById('resetErr');
-  if(!p1||p1!==p2){ err.textContent='As senhas não coincidem.'; return; }
-  if(resetTarget==='sec'){ 
-    authData.secPass = p1;
-    await setDoc(doc(db,'meta','auth'), authData);
-    localStorage.setItem('dc_saved_sec_pass', p1);
-  } else {
-    const name=document.getElementById('resetProfName').value.trim();
-    const match=PROFESSORES.find(p=>normName(p)===normName(name));
-    if(!match){ err.textContent='Nome de professor não encontrado.'; return; }
-    if(!authData.profPasswords) authData.profPasswords = {};
-    authData.profPasswords[match] = p1;
-    await setDoc(doc(db,'meta','auth'), authData);
-    localStorage.setItem('dc_saved_prof_pass', p1);
-  }
-  closeReset();
-  alert('Senha redefinida com sucesso!');
-}
-
-function loginSecretaria(){
-  const pass=document.getElementById('secPass').value;
-  const currentPass = authData.secPass || SEC_PASS_KEY_DEFAULT;
-  if(pass!==currentPass){ document.getElementById('secErr').textContent='Senha incorreta.'; return; }
-  
-  if(document.getElementById('secKeep').checked){
-    localStorage.setItem('dc_saved_sec_pass', pass);
-  }
-
-  session={role:'secretaria'};
-  localStorage.setItem('dc_session', JSON.stringify(session));
-  enterApp();
-}
-
-function loginProfessor(){
-  const name=document.getElementById('profNameInput').value.trim();
-  const pass=document.getElementById('profPass').value;
-  const err=document.getElementById('profErr');
-  const match=PROFESSORES.find(p=>normName(p)===normName(name));
-  if(!match){ err.textContent='Professor não encontrado. Verifique o nome.'; return; }
-  
-  const storedPass = (authData.profPasswords && authData.profPasswords[match]) || '12345';
-  if(pass!==storedPass){ err.textContent='Senha incorreta.'; return; }
-
-  if(document.getElementById('profKeep').checked){
-    localStorage.setItem('dc_saved_prof_name', match);
-    localStorage.setItem('dc_saved_prof_pass', pass);
-  }
-
-  session={role:'professor',name:match};
-  localStorage.setItem('dc_session', JSON.stringify(session));
-  enterApp();
-}
-
-function tryAutoLogin(){ 
-  const s=localStorage.getItem('dc_session'); 
-  if(s){ session=JSON.parse(s); enterApp(); } 
-}
-
-function doLogout(){ 
-  localStorage.removeItem('dc_session'); 
-  session=null; 
-  location.reload(); 
-}
-
-function enterApp(){
-  document.getElementById('loginView').classList.add('hidden');
-  document.getElementById('appView').classList.remove('hidden');
-  const isSec = session.role==='secretaria';
-  document.getElementById('whoami').textContent = isSec ? 'DIRETOR DE COMUNIDADE • AMBIENTE DA SECRETÁRIA' : 'DIRETOR DE COMUNIDADE • AMBIENTE DO PROFESSOR';
-  document.getElementById('sidebarSec').classList.toggle('hidden',!isSec);
-  ['mod-alunos','mod-profs','mod-remat','mod-farol','mod-certificacao','mod-senha'].forEach(id=>{
-    const el = document.getElementById(id);
-    if(el) el.classList.toggle('hidden',!isSec);
-  });
-  document.getElementById('mod-prof-view').classList.toggle('hidden',isSec);
-  
-  if(isSec){ 
-    setModule('alunos'); 
-  } else { 
-    document.getElementById('profWelcome').textContent = 'Bem-vindo(a), ' + session.name;
-    setSubTab2('atuais');
-  }
-  renderAll();
-}
-
-function setModule(mod){
-  ['alunos','profs','remat','farol','certificacao','senha'].forEach(m=>{
-    const el = document.getElementById('mod-'+m);
-    if(el) el.classList.toggle('hidden', m!==mod);
-  });
-  document.querySelectorAll('.sidebar .nav-item').forEach(item=>{
-    item.classList.toggle('active', item.dataset.mod===mod);
-  });
-  renderAll();
-}
-
-function setSecViewMode(mode){
-  currentSecViewMode = mode;
-  document.getElementById('btnModeGeral').classList.toggle('active', mode==='geral');
-  document.getElementById('btnModePorProf').classList.toggle('active', mode==='porProf');
-  document.getElementById('secViewGeral').classList.toggle('hidden', mode!=='geral');
-  document.getElementById('secViewPorProf').classList.toggle('hidden', mode!=='porProf');
-  if(mode === 'porProf') renderSecPorProfModule();
-  else renderTable();
-}
-
-function setSubTab(tab){
-  currentSubTab = tab;
-  document.getElementById('tabAtuais').classList.toggle('active', tab==='atuais');
-  document.getElementById('tabAntigas').classList.toggle('active', tab==='antigas');
-  renderTable();
-}
-
-function setSubTab2(tab){
-  currentSubTab2 = tab;
-  document.getElementById('tabAtuais2').classList.toggle('active', tab==='atuais');
-  document.getElementById('tabAntigas2').classList.toggle('active', tab==='antigas');
-  renderProfView();
-}
-
-function renderAll(){
-  renderAnosPills();
-  renderTable();
-  renderSecPorProfModule();
-  renderProfs();
-  renderRematModule();
-  renderFarolModule();
-  renderCertificacaoModule();
-  if(session && session.role==='professor') renderProfView();
-}
-
-// FILTRA E ORDENA OS ESTUDANTES DO MENOR NÚMERO DE MATRÍCULA PARA O MAIOR
-function filterStudentsList(list, subtabFilter, yearFilter, profFilter){
-  const filtered = list.filter(s=>{
-    if(profFilter && normName(s.professor) !== normName(profFilter)) return false;
-    if(subtabFilter==='atuais'){
-      return (s.ano === yearFilter) && (!s.concludente);
-    }
-    return (s.concludente) || (s.ano < yearFilter);
-  });
-
-  return filtered.sort((a, b) => {
-    const numA = parseFloat(a.mat) || 0;
-    const numB = parseFloat(b.mat) || 0;
-    if (numA !== numB) return numA - numB;
-    return (a.mat || '').localeCompare(b.mat || '', undefined, {numeric: true});
-  });
-}
-
-function buildStudentRowHTML(s, isSecretaria=true){
-  const st = situacaoStatus(s.ultimaFreq);
-  let optionsProf = PROFESSORES.map(p=>`<option value="${p}" ${normName(s.professor)===normName(p)?'selected':''}>${p}</option>`).join('');
-  const dateFormatted = toBR(s.ultimaFreq);
-  const diasSemFreq = s.ultimaFreq ? `${diasDesde(s.ultimaFreq)} dias` : '---';
-
-  return `<tr data-id="${s.id}">
-    <td><input class="cell" value="${s.mat||''}" data-field="mat" style="width:65px"></td>
-    <td class="col-aluno"><input class="cell" value="${s.aluno||''}" data-field="aluno"></td>
-    <td>
-      <select class="cell" data-field="nivel">
-        <option value="EF" ${s.nivel==='EF'?'selected':''}>EF</option>
-        <option value="EM" ${s.nivel==='EM'?'selected':''}>EM</option>
-      </select>
-    </td>
-    <td><input class="cell" value="${s.contato||''}" data-field="contato"></td>
-    <td><input class="cell" value="${dateFormatted}" data-field="ultimaFreq" placeholder="DD/MM/AAAA" style="width:105px"></td>
-    <td>${st.situacao}</td>
-    <td><span class="badge ${st.cls}">${st.situacao}</span></td>
-    <td style="text-align:center; font-weight:bold; color:var(--muted)">${diasSemFreq}</td>
-    <td><select class="cell" data-field="professor"><option value="">Selecione...</option>${optionsProf}</select></td>
-    <td style="text-align:center">
-      <input type="checkbox" data-field="concludente" ${s.concludente?'checked':''} style="width:18px;height:18px;cursor:pointer">
-    </td>
-    ${isSecretaria ? `<td class="no-print"><button class="btn-excluir" onclick="deletarAluno('${s.id}')">🗑️ Excluir</button></td>` : ''}
-  </tr>`;
-}
-
-function renderTable(){
-  const body = document.getElementById('studentsBody'); if(!body) return;
-  const filterP = document.getElementById('filtroProfessor')?.value || '';
-  const list = filterStudentsList(students, currentSubTab, currentAno, filterP);
-  body.innerHTML = list.map(s => buildStudentRowHTML(s, true)).join('');
-}
-
-function renderSecPorProfModule(){
-  const wrap = document.getElementById('secProfsPills'); if(!wrap) return;
-  wrap.innerHTML = '';
-  sortProfessors();
-  
-  if(!selectedSecProfName && PROFESSORES.length) selectedSecProfName = PROFESSORES[0];
-
-  PROFESSORES.forEach(p=>{
-    const count = students.filter(s => normName(s.professor) === normName(p) && s.ano === currentAno && !s.concludente).length;
-    const d = document.createElement('div');
-    d.className = 'tab' + (normName(p) === normName(selectedSecProfName) ? ' active gold' : '');
-    d.textContent = `👤 ${p} (${count})`;
-    d.onclick = () => { selectedSecProfName = p; renderSecPorProfModule(); };
-    wrap.appendChild(d);
-  });
-
-  const titleEl = document.getElementById('secProfSelectedTitle');
-  if(titleEl) titleEl.textContent = `Planilha de Estudantes do Professor(a): ${selectedSecProfName}`;
-
-  const body = document.getElementById('secProfStudentsBody');
-  if(body){
-    const list = filterStudentsList(students, 'atuais', currentAno, selectedSecProfName);
-    body.innerHTML = list.map(s => buildStudentRowHTML(s, true)).join('');
-  }
-}
-
-async function addNewStudentRow(){
-  let targetAno = currentAno;
-  if(currentSubTab === 'antigas') {
-      targetAno = (parseInt(currentAno) - 1).toString();
-  }
-  const newStudent = {
-    id: 's' + Date.now(),
-    mat: '',
-    aluno: 'NOVO ESTUDANTE',
-    nivel: 'EM',
-    contato: '',
-    ultimaFreq: toISO(new Date().toLocaleDateString('pt-BR')),
-    rematricula: 0,
-    professor: document.getElementById('filtroProfessor')?.value || '',
-    concludente: false,
-    ano: targetAno
-  };
-  await setDoc(doc(db,'students',newStudent.id), newStudent).catch(console.error);
-}
-
-async function addNewStudentRowForProf(){
-  if(!selectedSecProfName) return;
-  const newStudent = {
-    id: 's' + Date.now(),
-    mat: '',
-    aluno: 'NOVO ESTUDANTE',
-    nivel: 'EM',
-    contato: '',
-    ultimaFreq: toISO(new Date().toLocaleDateString('pt-BR')),
-    rematricula: 0,
-    professor: selectedSecProfName,
-    concludente: false,
-    ano: currentAno
-  };
-  await setDoc(doc(db,'students',newStudent.id), newStudent).catch(console.error);
-}
-
-function renderProfs(){
-  const list = document.getElementById('profList'); if(!list) return;
-  sortProfessors();
-  document.getElementById('profCount').textContent = PROFESSORES.length;
-  list.innerHTML = PROFESSORES.map(p => {
-    const link = getProfLink(p);
-    return `<div class="prof-card">
-      <b><i class="fa-solid fa-chalkboard-user"></i> ${p}</b>
-      <div class="muted" style="margin-top:6px;word-break:break-all;font-size:0.75rem;background:var(--bg);padding:6px;border-radius:6px;border:1px solid var(--border);">${link}</div>
-      <div style="margin-top:10px;display:flex;gap:6px">
-        <button class="btn sm" onclick="copyProfLink('${p}')"><i class="fa-solid fa-copy"></i> Copiar Link Atualizado</button>
-        <button class="btn red sm" onclick="deleteProfessor('${p}')"><i class="fa-solid fa-trash"></i> Excluir</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function copyProfLink(p){
-  const link = getProfLink(p);
-  navigator.clipboard.writeText(link).then(()=>alert(`Link do professor(a) ${p} copiado com sucesso!\n\n${link}`));
-}
-
-async function addNewYearRemat(){
-  const inp = document.getElementById('addYearRemat');
-  const val = inp.value.trim();
-  if(val && !anosCriados.includes(val)){
-    anosCriados.push(val);
-    selectedRematYear = val;
-    await persistAnos();
-  }
-  inp.value = '';
-}
-
-function renderRematModule(){
-  const wrapYears = document.getElementById('rematYearsPills'); if(!wrapYears) return;
-  wrapYears.innerHTML = '';
-  sortYears();
-  anosCriados.forEach(y=>{
-    const d = document.createElement('div'); d.className = 'tab' + (y === selectedRematYear ? ' active' : '');
-    d.textContent = '📅 Ano ' + y;
-    d.onclick = () => { selectedRematYear = y; renderRematModule(); };
-    wrapYears.appendChild(d);
-  });
-
-  document.getElementById('rematYearTitle').textContent = `Selecione o Mês (${selectedRematYear}):`;
-  const wrapMonths = document.getElementById('rematMonthsGrid');
-  wrapMonths.innerHTML = MESES.map(m => `<div class="month-card ${m === selectedRematMonth ? 'active' : ''}" onclick="selectRematMonth('${m}')">🗓️ ${m}</div>`).join('');
-
-  renderRematProfPills();
-  renderRematTable();
-}
-
-function renderRematProfPills(){
-  const wrapProfs = document.getElementById('rematProfPills'); if(!wrapProfs) return;
-  wrapProfs.innerHTML = '';
-
-  if(selectedRematProf !== 'todos' && !PROFESSORES.some(p=>normName(p)===normName(selectedRematProf))){
-    selectedRematProf = 'todos';
-  }
-
-  const totalGeral = rematriculas.filter(r => (r.mes === selectedRematMonth) && (r.ano === selectedRematYear || !r.ano)).length;
-
-  const divTodos = document.createElement('div');
-  divTodos.className = 'tab' + (selectedRematProf === 'todos' ? ' active' : '');
-  divTodos.textContent = `👥 Todos os Professores (${totalGeral})`;
-  divTodos.onclick = () => { selectedRematProf = 'todos'; renderRematProfPills(); renderRematTable(); };
-  wrapProfs.appendChild(divTodos);
-
-  sortProfessors();
-  PROFESSORES.forEach(p => {
-    const countProf = rematriculas.filter(r => 
-      (r.mes === selectedRematMonth) && 
-      (r.ano === selectedRematYear || !r.ano) && 
-      (normName(r.prof) === normName(p))
-    ).length;
-
-    const d = document.createElement('div');
-    d.className = 'tab' + (selectedRematProf === p ? ' active' : '');
-    d.textContent = `👤 ${p} (${countProf})`;
-    d.onclick = () => { selectRematProf(p); };
-    wrapProfs.appendChild(d);
-  });
-}
-
-function selectRematProf(profName){
-  selectedRematProf = profName;
-  renderRematProfPills();
-  renderRematTable();
-}
-
-function selectRematMonth(m){
-  selectedRematMonth = m;
-  renderRematModule();
-}
-
-function renderRematTable(){
-  const detail = document.getElementById('rematMonthDetail');
-  detail.classList.remove('hidden');
-
-  const profLabel = selectedRematProf === 'todos' ? 'Todos os Professores' : selectedRematProf;
-  document.getElementById('rematMonthTitle').textContent = `Rematrículas do Mês: ${selectedRematMonth} / ${selectedRematYear} — (${profLabel})`;
-
-  const filtered = rematriculas.filter(r => {
-    const matchMonth = (r.mes === selectedRematMonth);
-    const matchYear = (r.ano === selectedRematYear || !r.ano);
-    const matchProf = (selectedRematProf === 'todos') || (normName(r.prof) === normName(selectedRematProf));
-    return matchMonth && matchYear && matchProf;
-  });
-
-  // Ordenação por Data da Última Frequência (menor data primeiro, maior data em baixo)
-  filtered.sort((a, b) => parseDateForSort(a.ultFreq) - parseDateForSort(b.ultFreq));
-
-  const body = document.getElementById('rematBody');
-  let profOptionsHTML = PROFESSORES.map(p=>`<option value="${p}">${p}</option>`).join('');
-
-  body.innerHTML = filtered.map(r=>{
-    const globalIdx = rematriculas.indexOf(r);
-    let profSelect = `<select class="cell" onchange="updateRematItem(${globalIdx}, 'prof', this.value)"><option value="">Selecione...</option>${PROFESSORES.map(p=>`<option value="${p}" ${normName(r.prof)===normName(p)?'selected':''}>${p}</option>`).join('')}</select>`;
-    
-    return `<tr>
-      <td><input class="cell" value="${r.aluno||''}" onchange="updateRematItem(${globalIdx},'aluno',this.value)"></td>
-      <td><input class="cell" value="${r.mat||''}" onchange="updateRematItem(${globalIdx},'mat',this.value)" style="width:70px"></td>
-      <td><input class="cell" value="${toBR(r.ultFreq)}" onchange="updateRematItem(${globalIdx},'ultFreq',this.value)" placeholder="DD/MM/AAAA" style="width:105px"></td>
-      <td><input class="cell" value="${toBR(r.retorno)}" onchange="updateRematItem(${globalIdx},'retorno',this.value)" placeholder="DD/MM/AAAA" style="width:105px"></td>
-      <td>${r.mes||selectedRematMonth} / ${r.ano||selectedRematYear}</td>
-      <td>${profSelect}</td>
-      <td class="no-print"><button class="btn red sm" onclick="deletarRematricula(${globalIdx})"><i class="fa-solid fa-trash"></i> Excluir</button></td>
-    </tr>`;
-  }).join('');
-  document.getElementById('rematEmpty').classList.toggle('hidden', filtered.length>0);
-}
-
-function updateRematItem(globalIdx, field, val){
-  if(rematriculas[globalIdx]){
-    rematriculas[globalIdx][field] = (field==='ultFreq'||field==='retorno') ? toISO(val) : val;
-  }
-}
-
-async function addSecRematRow(){
-  const defaultProf = selectedRematProf === 'todos' ? (PROFESSORES[0] || '') : selectedRematProf;
-  rematriculas.push({
-    aluno: 'NOVO ESTUDANTE REMATRICULADO',
-    mat: '',
-    ultFreq: toISO(new Date().toLocaleDateString('pt-BR')),
-    retorno: toISO(new Date().toLocaleDateString('pt-BR')),
-    mes: selectedRematMonth,
-    ano: selectedRematYear,
-    prof: defaultProf,
-    status: 'aprovado'
-  });
-  await saveAllRemat();
-  renderRematModule();
-}
-
-async function deletarRematricula(globalIdx){
-  if(confirm("Deseja remover este registro de rematrícula?")){
-    rematriculas.splice(globalIdx, 1);
-    await saveAllRemat();
-    renderRematModule();
-  }
-}
-
-function renderFarolModule(){
-  const wrapYears = document.getElementById('farolYearsPills'); if(!wrapYears) return;
-  wrapYears.innerHTML = '';
-  sortYears();
-  anosCriados.forEach(y=>{
-    const d = document.createElement('div'); d.className = 'tab' + (y === selectedFarolYear ? ' active' : '');
-    d.textContent = '📅 Ano ' + y;
-    d.onclick = () => { selectedFarolYear = y; renderFarolModule(); };
-    wrapYears.appendChild(d);
-  });
-
-  document.getElementById('farolYearTitle').textContent = `Selecione o Mês (${selectedFarolYear}):`;
-  const wrapMonths = document.getElementById('farolMonthsGrid');
-  wrapMonths.innerHTML = MESES.map(m => `<div class="month-card ${m === selectedFarolMonth ? 'active' : ''}" onclick="selectFarolMonth('${m}')">🚨 ${m}</div>`).join('');
-
-  renderFarolTable();
-}
-
-function selectFarolMonth(m){
-  selectedFarolMonth = m;
-  renderFarolModule();
-}
-
-function renderFarolTable(){
-  document.getElementById('farolMonthDetail').classList.remove('hidden');
-  document.getElementById('farolMonthTitle').textContent = `Ranking Farol: ${selectedFarolMonth} / ${selectedFarolYear}`;
-
-  const body = document.getElementById('rankBody'); if(!body) return;
-  const counts = {};
-  sortProfessors();
-  PROFESSORES.forEach(p=>counts[p]=0);
-
-  rematriculas.forEach(r=>{
-    const rMes = r.mes;
-    const rAno = r.ano || selectedFarolYear;
-    if(rMes === selectedFarolMonth && rAno === selectedFarolYear){
-      const foundProf = PROFESSORES.find(p => normName(p) === normName(r.prof));
-      if(foundProf){
-        counts[foundProf]++;
+      // 3. Aplicar Ordenação conforme a Aba selecionada
+      if (modoAtual === 'matriculaGeral') {
+        // Ordena por Número de Matrícula
+        dadosProcessados.sort((a, b) => a.mat - b.mat);
+      } else if (modoAtual === 'geralPorProfessor') {
+        // ORDENAÇÃO SOLICITADA: Por Ordem Alfabética do Professor (Aldania, Aline, Carliana, Samuel...)
+        // Em caso de empate no professor, ordena pelo nome do Aluno
+        dadosProcessados.sort((a, b) => {
+          const compProf = a.professor.localeCompare(b.professor, 'pt-BR', { sensitivity: 'base' });
+          if (compProf !== 0) return compProf;
+          return a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' });
+        });
+      } else if (modoAtual === 'porProfessor') {
+        // Ordenação por Professor e Matrícula
+        dadosProcessados.sort((a, b) => {
+          const compProf = a.professor.localeCompare(b.professor, 'pt-BR');
+          if (compProf !== 0) return compProf;
+          return a.mat - b.mat;
+        });
       }
-    }
-  });
 
-  const sorted = PROFESSORES.map(p=>({name:p, count:counts[p]})).sort((a,b)=>b.count-a.count);
-  
-  body.innerHTML = sorted.map(item=>{
-    let badge = '<span class="badge r">Vermelho</span>';
-    let profColor = '#c62828';
-    
-    if(item.count >= 4) {
-      badge = '<span class="badge g">Verde</span>';
-      profColor = '#1E7A34';
-    } else if(item.count >= 1) {
-      badge = '<span class="badge y">Amarelo</span>';
-      profColor = '#d48800';
-    }
+      // 4. Renderizar na Tabela
+      tbody.innerHTML = '';
+      dadosProcessados.forEach(aluno => {
+        const tr = document.createElement('tr');
 
-    return `<tr>
-      <td style="text-align:center; font-weight:bold; color:${profColor};">${item.name}</td>
-      <td style="text-align:center; font-weight:bold;">${item.count}</td>
-      <td style="text-align:center;">${badge}</td>
-    </tr>`;
-  }).join('');
-}
+        // Definir classe da badge
+        let statusClass = 'badge-ativo';
+        if (aluno.status === 'Evadido') statusClass = 'badge-evadido';
+        if (aluno.status === 'Pré-evadido') statusClass = 'badge-pre-evadido';
 
-async function addNewYearCert(){
-  const inp = document.getElementById('addYearCert');
-  const val = inp.value.trim();
-  if(val && !anosCriados.includes(val)){
-    anosCriados.push(val);
-    selectedCertYear = val;
-    await persistAnos();
-  }
-  inp.value = '';
-}
-
-function renderCertificacaoModule(){
-  const wrapYears = document.getElementById('certYearsPills'); 
-  if(wrapYears){
-    wrapYears.innerHTML = '';
-    sortYears();
-    anosCriados.forEach(y=>{
-      const d = document.createElement('div'); 
-      d.className = 'tab' + (y === selectedCertYear ? ' active' : '');
-      d.textContent = '🎓 Ano ' + y;
-      d.onclick = () => { selectedCertYear = y; renderCertificacaoModule(); };
-      wrapYears.appendChild(d);
-    });
-  }
-
-  const concludentes = students.filter(s => s.concludente && (s.ano === selectedCertYear));
-  
-  concludentes.sort((a, b) => {
-    const numA = parseFloat(a.mat) || 0;
-    const numB = parseFloat(b.mat) || 0;
-    if (numA !== numB) return numA - numB;
-    return (a.mat || '').localeCompare(b.mat || '', undefined, {numeric: true});
-  });
-
-  const efCount = concludentes.filter(s => s.nivel === 'EF').length;
-  const emCount = concludentes.filter(s => s.nivel === 'EM').length;
-
-  document.getElementById('countCertEF').textContent = efCount;
-  document.getElementById('countCertEM').textContent = emCount;
-  document.querySelectorAll('.currentYearLabel').forEach(el=>el.textContent = selectedCertYear);
-
-  const body = document.getElementById('certificacaoBody');
-  if(body){
-    body.innerHTML = concludentes.length > 0 ? concludentes.map(s => `<tr>
-      <td>${s.mat||'--'}</td>
-      <td><b>${s.aluno}</b></td>
-      <td><span class="badge g">${s.nivel||'EM'}</span></td>
-      <td>${s.contato||'--'}</td>
-      <td>${s.professor||'--'}</td>
-      <td>${s.ano}</td>
-    </tr>`).join('') : `<tr><td colspan="6" style="text-align:center;padding:16px;color:var(--muted)">Nenhum concludente registrado no ano de ${selectedCertYear}.</td></tr>`;
-  }
-}
-
-function renderProfView(){
-  if(!session || session.role!=='professor') return;
-  const myName = session.name;
-
-  const bodyTurma = document.getElementById('profStudentsBody');
-  if(bodyTurma){
-    const myStudents = filterStudentsList(students, currentSubTab2, currentAno, myName);
-    bodyTurma.innerHTML = myStudents.map(s=>buildStudentRowHTML(s, false)).join('');
-  }
-}
-
-async function addProfessor(){
-  const inp = document.getElementById('newProfName');
-  const name = inp.value.trim();
-  if(!name) return;
-  if(!PROFESSORES.includes(name)){
-    PROFESSORES.push(name);
-    sortProfessors();
-    await saveProfessors();
-  }
-  inp.value = '';
-}
-
-async function deleteProfessor(name){
-  if(confirm(`Deseja remover o professor "${name}"?`)){
-    PROFESSORES = PROFESSORES.filter(p=>p!==name);
-    sortProfessors();
-    await saveProfessors();
-  }
-}
-
-async function saveProfessors(){
-  sortProfessors();
-  await setDoc(doc(db, 'meta', 'professors'), { list: PROFESSORES }).catch(console.error);
-  alert('Lista de professores atualizada com sucesso no banco de dados!');
-}
-
-async function saveEstudantesModule(){
-  const anoInp = document.getElementById('anoLetivoInput')?.value.trim();
-  if(anoInp && !anosCriados.includes(anoInp)){
-    anosCriados.push(anoInp);
-    currentAno = anoInp;
-    await persistAnos();
-  }
-  await saveAllStudents();
-}
-
-async function saveAllStudents(){
-  const rows = document.querySelectorAll('tr[data-id]');
-  for(let row of rows){
-    const id = row.dataset.id;
-    const st = students.find(s=>s.id===id);
-    if(st){
-      row.querySelectorAll('[data-field]').forEach(input=>{
-        if(input.type === 'checkbox'){
-          st[input.dataset.field] = input.checked;
-        } else if(input.dataset.field === 'ultimaFreq'){
-          st[input.dataset.field] = toISO(input.value);
-        } else {
-          st[input.dataset.field] = input.value;
-        }
+        tr.innerHTML = `
+          <td class="text-center font-monospace">${aluno.mat}</td>
+          <td><input type="text" class="form-control form-control-sm fw-bold text-uppercase" value="${aluno.nome}"></td>
+          <td>
+            <select class="form-select form-select-sm">
+              <option value="EF" ${aluno.nivel === 'EF' ? 'selected' : ''}>EF</option>
+              <option value="EM" ${aluno.nivel === 'EM' ? 'selected' : ''}>EM</option>
+            </select>
+          </td>
+          <!-- CELULA DA NOVA COLUNA TURMA -->
+          <td><input type="text" class="form-control form-control-sm text-uppercase" value="${aluno.turma}"></td>
+          <td><input type="text" class="form-control form-control-sm" value="${aluno.contato}"></td>
+          <td><input type="text" class="form-control form-control-sm text-center" value="${aluno.ultFreq}"></td>
+          <td class="text-center fw-semibold" style="font-size: 0.8rem;">${aluno.situacao}</td>
+          <td class="text-center"><span class="badge-status ${statusClass}">${aluno.status}</span></td>
+          <td class="text-center font-monospace">${aluno.dias} dias</td>
+          <td>
+            <select class="form-select form-select-sm">
+              <option value="Aldania" ${aluno.professor === 'Aldania' ? 'selected' : ''}>Aldania</option>
+              <option value="Aline" ${aluno.professor === 'Aline' ? 'selected' : ''}>Aline</option>
+              <option value="Carliana Lima" ${aluno.professor === 'Carliana Lima' ? 'selected' : ''}>Carliana Lima</option>
+              <option value="Samuel Martins" ${aluno.professor === 'Samuel Martins' ? 'selected' : ''}>Samuel Martins</option>
+            </select>
+          </td>
+          <td class="text-center"><input type="checkbox" class="form-check-input" ${aluno.concludente ? 'checked' : ''}></td>
+          <td class="text-center">
+            <button class="btn btn-danger btn-sm px-2 py-0" title="Excluir"><i class="fa-solid fa-trash-can"></i> Excluir</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
       });
-      await setDoc(doc(db,'students',id), st, {merge:true}).catch(console.error);
     }
-  }
-  alert('Alterações salvas e sincronizadas em tempo real!');
-}
 
-async function saveAllRemat(){
-  await setDoc(doc(db, 'meta', 'rematriculas'), { list: rematriculas }).catch(console.error);
-  alert('Rematrículas salvas e sincronizadas em tempo real!');
-}
-
-async function adminChangePass(){
-  const user = document.getElementById('secSelUser').value;
-  const p1 = document.getElementById('secNewPassAdmin').value;
-  const p2 = document.getElementById('secNewPassAdmin2').value;
-  const err = document.getElementById('secAdminErr');
-  if(!user || !p1 || p1!==p2){ err.textContent='Selecione um usuário e digite senhas coincidentes.'; return; }
-  if(user==='Secretária'){
-    authData.secPass = p1;
-  } else {
-    if(!authData.profPasswords) authData.profPasswords = {};
-    authData.profPasswords[user] = p1;
-  }
-  await setDoc(doc(db,'meta','auth'), authData).catch(console.error);
-  err.textContent = '';
-  alert(`Senha de ${user} alterada com sucesso!`);
-}
-
-function exportCSV(){
-  let csv = "MAT;ALUNO;NIVEL;CONTATO;ULTIMA_FREQ;SITUACAO;REMATRICULAS;PROFESSOR;CONCLUDENTE\n";
-  students.forEach(s=>{
-    const st = situacaoStatus(s.ultimaFreq);
-    csv += `"${s.mat||''}';'${s.aluno||''}';'${s.nivel||'EM'}';'${s.contato||''}';'${toBR(s.ultimaFreq)}';'${st.situacao}';'${s.rematricula||0}';'${s.professor||''}';'${s.concludente?'SIM':'NÃO'}"\n`;
-  });
-  downloadFile(csv, 'estudantes.csv', 'text/csv;charset=utf-8;');
-}
-
-function exportCSVPorProf(){
-  let csv = "MAT;ALUNO;NIVEL;CONTATO;ULTIMA_FREQ;SITUACAO;PROFESSOR;CONCLUDENTE\n";
-  const list = filterStudentsList(students, 'atuais', currentAno, selectedSecProfName);
-  list.forEach(s=>{
-    const st = situacaoStatus(s.ultimaFreq);
-    csv += `"${s.mat||''}';'${s.aluno||''}';'${s.nivel||'EM'}';'${s.contato||''}';'${toBR(s.ultimaFreq)}';'${st.situacao}';'${s.professor||''}';'${s.concludente?'SIM':'NÃO'}"\n`;
-  });
-  downloadFile(csv, `estudantes_${selectedSecProfName}.csv`, 'text/csv;charset=utf-8;');
-}
-
-function exportCSVRemat(){
-  let csv = "ESTUDANTE;MATRICULA;ULT_FREQ;RETORNO;MES_ANO;PROFESSOR\n";
-  const filtered = rematriculas.filter(r => (r.mes === selectedRematMonth) && (r.ano === selectedRematYear || !r.ano));
-  filtered.sort((a, b) => parseDateForSort(a.ultFreq) - parseDateForSort(b.ultFreq));
-  filtered.forEach(r=>{
-    csv += `"${r.aluno||''}';'${r.mat||''}';'${toBR(r.ultFreq)}';'${toBR(r.retorno)}';'${r.mes}/${r.ano}';'${r.prof||''}"\n`;
-  });
-  downloadFile(csv, `rematriculas_${selectedRematMonth}_${selectedRematYear}.csv`, 'text/csv;charset=utf-8;');
-}
-
-function exportWord(id, prefix) {
-  const el = document.getElementById(id);
-  if(!el) return;
-  
-  const clone = el.cloneNode(true);
-  const elementsToRemove = clone.querySelectorAll('.no-print, input[type="button"], button');
-  elementsToRemove.forEach(e => e.parentNode.removeChild(e));
-  
-  const inputs = clone.querySelectorAll('input, select');
-  inputs.forEach(input => {
-    let span = document.createElement('span');
-    span.textContent = input.type === 'checkbox' ? (input.checked ? 'SIM' : 'NÃO') : input.value;
-    input.parentNode.replaceChild(span, input);
-  });
-
-  const html = `<html>
-    <head><meta charset='utf-8'><style>
-      table { width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 12px; }
-      th, td { border: 1px solid #ccc; padding: 8px; }
-      th { background-color: #f4f4f4; text-align: center; }
-      .badge { padding: 4px 10px; border-radius: 12px; font-weight: bold; color: #fff; display: inline-block; }
-      .g { background-color: #1E7A34 !important; color: #ffffff !important; }
-      .y { background-color: #F2B705 !important; color: #5a4200 !important; }
-      .r { background-color: #c62828 !important; color: #ffffff !important; }
-    </style></head>
-    <body>${clone.outerHTML}</body>
-  </html>`;
-  
-  downloadFile(html, `${prefix}_${new Date().getTime()}.doc`, 'application/msword');
-}
-
-function printSection(id){
-  const el = document.getElementById(id);
-  if(!el) return;
-  const clone = el.cloneNode(true);
-  const elementsToRemove = clone.querySelectorAll('.no-print, input[type="button"], button');
-  elementsToRemove.forEach(e => e.parentNode.removeChild(e));
-  
-  const inputs = clone.querySelectorAll('input, select');
-  inputs.forEach(input => {
-    let span = document.createElement('span');
-    span.textContent = input.type === 'checkbox' ? (input.checked ? 'SIM' : 'NÃO') : input.value;
-    input.parentNode.replaceChild(span, input);
-  });
-
-  const win = window.open('','_blank');
-  win.document.write(`<html><head><title>Impressão</title><style>
-    body { font-family: sans-serif; margin: 20px; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 15px; }
-    th, td { border: 1px solid #ccc; padding: 8px; }
-    th { background-color: #f4f4f4; text-align: center; }
-    .badge { padding: 4px 10px; border-radius: 12px; font-weight: bold; color: #fff; display: inline-block; }
-    .g { background: #1E7A34 !important; color: #fff !important; }
-    .y { background: #F2B705 !important; color: #5a4200 !important; }
-    .r { background: #c62828 !important; color: #fff !important; }
-  </style></head><body><h2>Relatório do Sistema</h2>${clone.outerHTML}</body></html>`);
-  win.document.close();
-  win.focus();
-  setTimeout(() => { win.print(); }, 500);
-}
-
-function downloadFile(content, fileName, contentType){
-  const a = document.createElement('a');
-  const blob = new Blob([content], {type: contentType});
-  a.href = URL.createObjectURL(blob);
-  a.download = fileName;
-  a.click();
-}
-
-async function deletarAluno(id) {
-    if(confirm("Tem certeza que deseja excluir este aluno definitivamente?")) {
-        try {
-            await deleteDoc(doc(db, "students", id));
-            alert("Aluno excluído com sucesso!");
-        } catch (error) {
-            console.error("Erro ao deletar aluno:", error);
-            alert("Erro ao excluir o aluno.");
-        }
+    function aplicarFiltros() {
+      renderizarTabela();
     }
-}
 
-async function zerarBancoDeDados() {
-    let confirmacao = prompt("ATENÇÃO! Digite 'CONFIRMAR' (em maiúsculas) para apagar TODOS os alunos do sistema. Essa ação não tem volta.");
-    
-    if(confirmacao === "CONFIRMAR") {
-        try {
-            const snapshot = await getDocs(collection(db, 'students'));
-            const batch = writeBatch(db);
-            snapshot.docs.forEach((d) => {
-                batch.delete(d.ref);
-            });
-            await batch.commit();
-            alert("Banco de dados zerado com sucesso! O sistema está pronto para um novo ciclo.");
-        } catch (error) {
-            console.error("Erro ao zerar o banco de dados:", error);
-            alert("Ocorreu um erro ao tentar limpar os dados. Verifique o console.");
-        }
-    } else {
-        alert("Ação cancelada. Nenhum dado foi apagado.");
-    }
-}
-
-window.togglePass = togglePass;
-window.setLoginTab = setLoginTab;
-window.openReset = openReset;
-window.closeReset = closeReset;
-window.doReset = doReset;
-window.loginSecretaria = loginSecretaria;
-window.loginProfessor = loginProfessor;
-window.doLogout = doLogout;
-window.setModule = setModule;
-window.setSecViewMode = setSecViewMode;
-window.setSubTab = setSubTab;
-window.setSubTab2 = setSubTab2;
-window.addProfessor = addProfessor;
-window.deleteProfessor = deleteProfessor;
-window.copyProfLink = copyProfLink;
-window.saveEstudantesModule = saveEstudantesModule;
-window.saveAllStudents = saveAllStudents;
-window.addNewStudentRow = addNewStudentRow;
-window.addNewStudentRowForProf = addNewStudentRowForProf;
-window.saveProfessors = saveProfessors;
-window.addNewYearRemat = addNewYearRemat;
-window.selectRematMonth = selectRematMonth;
-window.selectRematProf = selectRematProf;
-window.selectFarolMonth = selectFarolMonth;
-window.updateRematItem = updateRematItem;
-window.addSecRematRow = addSecRematRow;
-window.deletarRematricula = deletarRematricula;
-window.saveAllRemat = saveAllRemat;
-window.addNewYearCert = addNewYearCert;
-window.adminChangePass = adminChangePass;
-window.exportCSV = exportCSV;
-window.exportCSVPorProf = exportCSVPorProf;
-window.exportCSVRemat = exportCSVRemat;
-window.exportWord = exportWord;
-window.printSection = printSection;
-window.deletarAluno = deletarAluno;
-window.zerarBancoDeDados = zerarBancoDeDados;
-
-boot();
-</script>
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', () => {
+      renderizarTabela();
+    });
+  </script>
 </body>
 </html>
