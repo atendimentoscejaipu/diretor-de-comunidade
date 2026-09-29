@@ -635,7 +635,9 @@ async function boot(){
     const dt = d.data();
     if(dt && dt.list && dt.list.length){ PROFESSORES = dt.list; sortProfessors(); }
     else { seedProfessorsIfEmpty(); }
-    if(!selectedSecProfName && PROFESSORES.length) selectedSecProfName = PROFESSORES[0];
+    if(!selectedSecProfName || !PROFESSORES.includes(selectedSecProfName)){
+      if(PROFESSORES.length) selectedSecProfName = PROFESSORES[0];
+    }
     buildProfessorFilter();
     renderAll();
   });
@@ -767,13 +769,16 @@ function renderAnosPills(){
 }
 
 function buildProfessorFilter(){
-  const sel=document.getElementById('filtroProfessor'); if(!sel) return; sel.innerHTML='<option value="">Todos os Professores</option>';
+  const sel=document.getElementById('filtroProfessor'); if(!sel) return; 
+  const currentVal = sel.value;
+  sel.innerHTML='<option value="">Todos os Professores</option>';
   const sel2=document.getElementById('secSelUser'); if(sel2) sel2.innerHTML='<option value="">Selecione um perfil...</option><option value="Secretária">Secretária</option>';
   sortProfessors();
   PROFESSORES.forEach(p=>{
     const o=document.createElement('option');o.value=p;o.textContent=p;sel.appendChild(o);
     if(sel2){ const o2=document.createElement('option');o2.value=p;o2.textContent=p;sel2.appendChild(o2); }
   });
+  if(currentVal && PROFESSORES.includes(currentVal)) sel.value = currentVal;
   sel.onchange=renderTable;
 }
 
@@ -1003,6 +1008,19 @@ function filterStudentsListByProf(list, subtabFilter, yearFilter){
   });
 }
 
+async function updateStudentField(id, field, value) {
+  const st = students.find(s => s.id === id);
+  if (!st) return;
+  if (field === 'concludente') {
+    st[field] = !!value;
+  } else if (field === 'ultimaFreq') {
+    st[field] = toISO(value);
+  } else {
+    st[field] = value;
+  }
+  await setDoc(doc(db, 'students', id), st, { merge: true }).catch(console.error);
+}
+
 function buildStudentRowHTML(s, isSecretaria=true){
   const st = situacaoStatus(s.ultimaFreq);
   let optionsProf = PROFESSORES.map(p=>`<option value="${p}" ${normName(s.professor)===normName(p)?'selected':''}>${p}</option>`).join('');
@@ -1010,23 +1028,23 @@ function buildStudentRowHTML(s, isSecretaria=true){
   const diasSemFreq = s.ultimaFreq ? `${diasDesde(s.ultimaFreq)} dias` : '---';
 
   return `<tr data-id="${s.id}">
-    <td><input class="cell" value="${s.mat||''}" data-field="mat" style="width:65px"></td>
-    <td class="col-aluno"><input class="cell" value="${s.aluno||''}" data-field="aluno"></td>
-    <td><input class="cell" value="${s.turma||''}" data-field="turma" style="width:80px" placeholder="Turma"></td>
+    <td><input class="cell" value="${s.mat||''}" data-field="mat" onchange="updateStudentField('${s.id}', 'mat', this.value)" style="width:65px"></td>
+    <td class="col-aluno"><input class="cell" value="${s.aluno||''}" data-field="aluno" onchange="updateStudentField('${s.id}', 'aluno', this.value)"></td>
+    <td><input class="cell" value="${s.turma||''}" data-field="turma" onchange="updateStudentField('${s.id}', 'turma', this.value)" style="width:80px" placeholder="Turma"></td>
     <td>
-      <select class="cell" data-field="nivel">
+      <select class="cell" data-field="nivel" onchange="updateStudentField('${s.id}', 'nivel', this.value)">
         <option value="EF" ${s.nivel==='EF'?'selected':''}>EF</option>
         <option value="EM" ${s.nivel==='EM'?'selected':''}>EM</option>
       </select>
     </td>
-    <td><input class="cell" value="${s.contato||''}" data-field="contato"></td>
-    <td><input class="cell" value="${dateFormatted}" data-field="ultimaFreq" placeholder="DD/MM/AAAA" style="width:105px"></td>
+    <td><input class="cell" value="${s.contato||''}" data-field="contato" onchange="updateStudentField('${s.id}', 'contato', this.value)"></td>
+    <td><input class="cell" value="${dateFormatted}" data-field="ultimaFreq" onchange="updateStudentField('${s.id}', 'ultimaFreq', this.value)" placeholder="DD/MM/AAAA" style="width:105px"></td>
     <td>${st.situacao}</td>
     <td><span class="badge ${st.cls}">${st.situacao}</span></td>
     <td style="text-align:center; font-weight:bold; color:var(--muted)">${diasSemFreq}</td>
-    <td><select class="cell" data-field="professor"><option value="">Selecione...</option>${optionsProf}</select></td>
+    <td><select class="cell" data-field="professor" onchange="updateStudentField('${s.id}', 'professor', this.value)"><option value="">Selecione...</option>${optionsProf}</select></td>
     <td style="text-align:center">
-      <input type="checkbox" data-field="concludente" ${s.concludente?'checked':''} style="width:18px;height:18px;cursor:pointer">
+      <input type="checkbox" data-field="concludente" ${s.concludente?'checked':''} onchange="updateStudentField('${s.id}', 'concludente', this.checked)" style="width:18px;height:18px;cursor:pointer">
     </td>
     ${isSecretaria ? `<td class="no-print"><button class="btn-excluir" onclick="deletarAluno('${s.id}')">🗑️ Excluir</button></td>` : ''}
   </tr>`;
@@ -1044,7 +1062,9 @@ function renderSecPorProfModule(){
   wrap.innerHTML = '';
   sortProfessors();
   
-  if(!selectedSecProfName && PROFESSORES.length) selectedSecProfName = PROFESSORES[0];
+  if(!selectedSecProfName || !PROFESSORES.includes(selectedSecProfName)){
+    if(PROFESSORES.length) selectedSecProfName = PROFESSORES[0];
+  }
 
   PROFESSORES.forEach(p=>{
     const count = students.filter(s => normName(s.professor) === normName(p) && s.ano === currentAno && !s.concludente).length;
@@ -1220,12 +1240,9 @@ function renderRematTable(){
     return matchMonth && matchYear && matchProf;
   });
 
-  // Ordenação por Data da Última Frequência (menor data primeiro, maior data em baixo)
   filtered.sort((a, b) => parseDateForSort(a.ultFreq) - parseDateForSort(b.ultFreq));
 
   const body = document.getElementById('rematBody');
-  let profOptionsHTML = PROFESSORES.map(p=>`<option value="${p}">${p}</option>`).join('');
-
   body.innerHTML = filtered.map(r=>{
     const globalIdx = rematriculas.indexOf(r);
     let profSelect = `<select class="cell" onchange="updateRematItem(${globalIdx}, 'prof', this.value)"><option value="">Selecione...</option>${PROFESSORES.map(p=>`<option value="${p}" ${normName(r.prof)===normName(p)?'selected':''}>${p}</option>`).join('')}</select>`;
@@ -1243,9 +1260,10 @@ function renderRematTable(){
   document.getElementById('rematEmpty').classList.toggle('hidden', filtered.length>0);
 }
 
-function updateRematItem(globalIdx, field, val){
+async function updateRematItem(globalIdx, field, val){
   if(rematriculas[globalIdx]){
     rematriculas[globalIdx][field] = (field==='ultFreq'||field==='retorno') ? toISO(val) : val;
+    await setDoc(doc(db, 'meta', 'rematriculas'), { list: rematriculas }).catch(console.error);
   }
 }
 
@@ -1641,6 +1659,7 @@ window.deleteProfessor = deleteProfessor;
 window.copyProfLink = copyProfLink;
 window.saveEstudantesModule = saveEstudantesModule;
 window.saveAllStudents = saveAllStudents;
+window.updateStudentField = updateStudentField;
 window.addNewStudentRow = addNewStudentRow;
 window.addNewStudentRowForProf = addNewStudentRowForProf;
 window.saveProfessors = saveProfessors;
