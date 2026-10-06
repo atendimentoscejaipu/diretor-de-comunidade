@@ -1,368 +1,976 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Secretaria - Alocação de Alunos e Tutoria</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Diretor de Comunidade - CEJA Dr. Gerardo Camelo Madeira</title>
+<!-- Ativa a instalação do site como App (PWA) -->
+<link rel="manifest" href="manifest.json">
+<!-- Font Awesome para Ícones -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root{
+  --bg:#f4f7f4; --card:#ffffff; --ink:#1f2937; --muted:#6b7280;
+  --green:#1E7A34; --green-d:#155526; --gold:#F2B705; --red:#c62828; --navy:#1c2540;
+  --border:#dfe6df;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); box-sizing:border-box;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#12160f; --card:#1b221a; --ink:#e6e9ef; --muted:#9aa4b2; --border:#2b3327; } }
+:root[data-theme="dark"]{ --bg:#12160f; --card:#1b221a; --ink:#e6e9ef; --muted:#9aa4b2; --border:#2b3327; }
+*{box-sizing:border-box;}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
+a{color:var(--green);text-decoration:none;}
+.top{background:var(--green);color:#fff;padding:10px 16px calc(10px + env(safe-area-inset-top,0px)) 16px;border-bottom:4px solid var(--gold);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+.top .brand{display:flex;align-items:center;gap:10px;}
+.top .brand img{height:48px;width:48px;border-radius:50%;background:#fff;object-fit:cover;flex-shrink:0;border:2px solid var(--gold);}
+.top .gov{font-size:.72rem;font-weight:700;color:var(--gold);letter-spacing:.5px;display:flex;align-items:center;gap:6px;}
+.badge-seduc{background:rgba(255,255,255,.18);border-radius:6px;padding:1px 6px;font-size:.65rem;}
+.top .school{font-weight:700;font-size:.95rem;}
+.top .sub{font-size:.72rem;opacity:.9;}
+.top .right{display:flex;align-items:center;gap:10px;}
+.clock{background:rgba(0,0,0,.15);border-radius:20px;padding:5px 12px;font-size:.78rem;}
+.btn{background:var(--green);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:.9rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
+.btn:hover{background:var(--green-d);}
+.btn.orange{background:#e08a00;} .btn.orange:hover{background:#c67600;}
+.btn.sm{padding:6px 11px;font-size:.78rem;} .btn.red{background:var(--red);} .btn.dark{background:var(--navy);}
+.btn:disabled{background:#a9b3a9;cursor:not-allowed;}
+.layout{display:flex;max-width:1350px;margin:0 auto;min-height:calc(100vh - 62px);}
+.sidebar{width:240px;flex-shrink:0;padding:18px 10px;border-right:1px solid var(--border);}
+.sidebar h4{font-size:.72rem;color:var(--muted);text-transform:uppercase;margin:4px 8px 10px;}
+.nav-item{display:flex;align-items:center;gap:8px;padding:10px 10px;border-radius:8px;cursor:pointer;color:var(--ink);font-size:.87rem;margin-bottom:4px;transition:all .2s;}
+.nav-item:hover{background:rgba(30,122,52,.08);}
+.nav-item.active{background:rgba(30,122,52,.12);color:var(--green);font-weight:700;border:1px solid rgba(30,122,52,.3);}
+.main{flex:1;padding:20px;min-width:0;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px;}
+h1.pg{font-size:1.3rem;margin:0 0 2px;} .sub-pg{color:var(--muted);font-size:.85rem;margin:0 0 16px;}
+label{display:block;font-size:.78rem;color:var(--muted);margin:8px 0 4px;}
+input,select{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--ink);font-size:.87rem;}
+.grid{display:grid;gap:10px;} .grid.c5{grid-template-columns:repeat(5,1fr);} .grid.c2{grid-template-columns:1fr 1fr;} .grid.c4{grid-template-columns:repeat(4,1fr);}
+@media(max-width:900px){.grid.c5,.grid.c4{grid-template-columns:1fr 1fr;} .layout{flex-direction:column;} .sidebar{width:100%;display:flex;flex-wrap:wrap;gap:4px;} .nav-item{flex:1;justify-content:center;}}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
+.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+.tab{padding:9px 16px;border-radius:20px;cursor:pointer;color:var(--muted);background:var(--bg);border:1px solid var(--border);font-size:.85rem;white-space:nowrap;transition:all .2s;}
+.tab.active{background:var(--green);color:#fff;border-color:var(--green);font-weight:600;}
+.tab.gold.active{background:var(--gold);color:#5a4200;border-color:var(--gold);}
+.tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;background:var(--card);}
+table{border-collapse:collapse;width:100%;min-width:880px;font-size:.8rem;}
+th{padding:9px 6px;text-align:left;position:sticky;top:0;font-weight:700;} thead.blue th{background:#3b5fa8;color:#fff;}
+thead.darkgreen th{background:var(--green-d);color:#fff;} thead.navy th{background:var(--navy);color:#fff;}
+td{padding:6px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:nth-child(even) td{background:rgba(30,122,52,.03);}
+input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--border);border-radius:6px;}
+.badge{padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;color:#fff;display:inline-block;}
+.badge.g{background:var(--green);} .badge.y{background:var(--gold);color:#5a4200;} .badge.r{background:var(--red);}
+.muted{color:var(--muted);font-size:.8rem;} .err{color:var(--red);font-size:.82rem;margin-top:6px;}
+.legend{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+@media(max-width:700px){.legend{grid-template-columns:1fr;}}
+.legend div{border-radius:10px;padding:12px;color:#fff;font-size:.8rem;}
+.legend .g{background:var(--green);} .legend .y{background:var(--gold);color:#5a4200;} .legend .r{background:var(--red);}
+.prof-card{border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;background:var(--card);}
+.prof-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(max-width:700px){.prof-grid{grid-template-columns:1fr;}}
+.hidden{display:none!important;}
+.wrap-login{max-width:420px;margin:40px auto;padding:0 16px;}
+.login-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:0 6px 24px rgba(0,0,0,.06);}
+.login-head{text-align:center;margin-bottom:16px;}
+.login-logo{display:block;margin:0 auto 8px;height:84px;width:84px;border-radius:50%;object-fit:cover;border:3px solid var(--green);background:#fff;}
+.login-head .gov{color:var(--green);font-weight:700;font-size:.78rem;text-transform:uppercase;}
+.login-head h2{margin:2px 0 0;color:var(--navy);font-size:1.05rem;}
+.login-head p{color:var(--muted);font-size:.78rem;margin:2px 0 0;}
+.pill-toggle{display:flex;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:16px;}
+.pill-toggle .pill{flex:1;text-align:center;padding:9px;border-radius:8px;cursor:pointer;font-weight:700;font-size:.85rem;color:var(--muted);}
+.pill-toggle .pill.active{background:var(--green);color:#fff;}
+.pass-wrap{position:relative;display:flex;align-items:center;}
+.pass-wrap input{padding-right:36px;}
+.pass-wrap .eye-btn{position:absolute;right:8px;background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;font-size:.9rem;}
+.checkline{display:flex;align-items:center;gap:6px;margin:10px 0;font-size:.82rem;color:var(--muted);}
+.checkline input{width:auto;}
+.linkrow{text-align:center;margin-top:10px;font-size:.82rem;}
+.footer-note{text-align:center;color:var(--muted);font-size:.72rem;margin-top:14px;}
+.months-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+@media(max-width:700px){.months-grid{grid-template-columns:repeat(2,1fr);}}
+.month-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;cursor:pointer;font-weight:700;font-size:.9rem;transition:all .2s;color:var(--ink);}
+.month-card:hover,.month-card.active{background:var(--green);color:#fff;border-color:var(--green);}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;}
+.stat-card .num{font-size:2.2rem;font-weight:800;color:var(--green);}
+.stat-card .label{font-size:.82rem;color:var(--muted);font-weight:600;}
+
+.container, .main-module { width: 100%; max-width: 98%; padding: 5px; margin: 0 auto; }
+th.col-aluno, td.col-aluno { min-width: 180px; }
+td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
+.btn-excluir { background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+.btn-zerar { background-color: #8b0000; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 0px; }
+.mode-toggle-bar { display: flex; gap: 10px; margin-bottom: 16px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
+.mode-btn { background: var(--bg); color: var(--ink); border: 1px solid var(--border); border-radius: 8px; padding: 10px 18px; font-weight: 700; cursor: pointer; font-size: 0.92rem; display: flex; align-items: center; gap: 8px; transition: all .2s; }
+.mode-btn.active { background: var(--green); color: #fff; border-color: var(--green); }
+</style>
 </head>
-<body class="bg-slate-100 font-sans text-slate-800">
+<body>
 
-    <div class="max-w-7xl mx-auto p-6">
-        <!-- Header -->
-        <header class="mb-8 flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <div>
-                <h1 class="text-2xl font-bold text-slate-900"><i class="fa-solid fa-graduation-cap text-indigo-600 mr-2"></i>Sistema Escolar - Secretaria</h1>
-                <p class="text-slate-500 text-sm mt-1">Gestão de matrículas, importação de frequência e distribuição por tutores</p>
-            </div>
-            <button onclick="baixarModeloCSV()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-                <i class="fa-solid fa-download"></i> Baixar Modelo CSV
-            </button>
-        </header>
-
-        <!-- Navegação por Abas Principais -->
-        <div class="flex border-b border-slate-200 mb-6 bg-white rounded-t-xl px-4 pt-2 shadow-sm">
-            <button id="tab-btn-atuais" onclick="mudarAba('atuais')" class="tab-btn active px-6 py-3 font-semibold text-indigo-600 border-b-2 border-indigo-600 flex items-center gap-2">
-                <i class="fa-solid fa-user-check"></i> Matrículas Atuais
-            </button>
-            <button id="tab-btn-antigas" onclick="mudarAba('antigas')" class="tab-btn px-6 py-3 font-semibold text-slate-500 hover:text-indigo-600 flex items-center gap-2">
-                <i class="fa-solid fa-user-clock"></i> Matrículas Antigas
-            </button>
-        </div>
-
-        <!-- Conteúdo das Abas -->
-        <main>
-            <!-- Painel de Importação & Estatísticas -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                <!-- Dropzone de Importação -->
-                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                    <h2 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
-                        <i class="fa-solid fa-file-import text-indigo-600"></i> Importar Arquivo de Alunos
-                    </h2>
-                    <p class="text-xs text-slate-500 mb-4">
-                        Envie um arquivo CSV contendo: <b>Matrícula</b>, <b>Nome do Aluno</b>, <b>Última Frequência</b> e <b>Professor Tutor</b>.
-                    </p>
-                    
-                    <div class="border-2 border-dashed border-indigo-200 rounded-lg p-6 text-center bg-indigo-50/30 hover:bg-indigo-50 transition cursor-pointer" onclick="document.getElementById('csvFileInput').click()">
-                        <i class="fa-solid fa-cloud-arrow-up text-3xl text-indigo-500 mb-2"></i>
-                        <p class="text-sm font-medium text-slate-700">Clique para selecionar ou arraste o arquivo CSV aqui</p>
-                        <p class="text-xs text-slate-400 mt-1">Formatos aceitos: .csv (separado por vírgula ou ponto e vírgula)</p>
-                        <input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="processarArquivo(event)">
-                    </div>
-                </div>
-
-                <!-- Resumo Métrico -->
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
-                    <div>
-                        <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Resumo da Aba Ativa</h3>
-                        <div class="space-y-4">
-                            <div class="flex justify-between items-center pb-2 border-b">
-                                <span class="text-slate-600 text-sm">Total de Alunos:</span>
-                                <span id="stat-total-alunos" class="text-xl font-bold text-slate-900">0</span>
-                            </div>
-                            <div class="flex justify-between items-center pb-2 border-b">
-                                <span class="text-slate-600 text-sm">Tutores Vinculados:</span>
-                                <span id="stat-total-tutores" class="text-xl font-bold text-indigo-600">0</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-slate-600 text-sm">Status do Cadastro:</span>
-                                <span id="stat-aba-nome" class="text-xs px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full font-semibold">Matrículas Atuais</span>
-                            </div>
-                        </div>
-                    </div>
-                    <button onclick="limparDadosAbaAtual()" class="mt-4 text-xs text-red-500 hover:text-red-700 font-medium text-right">
-                        <i class="fa-solid fa-trash mr-1"></i> Limpar dados desta aba
-                    </button>
-                </div>
-            </div>
-
-            <!-- Visualização dos Dados Alocados -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <!-- Barra de Controle do Painel -->
-                <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap gap-4 justify-between items-center">
-                    <div class="flex gap-2">
-                        <button onclick="alternarModoVisao('tabela')" id="btn-visao-tabela" class="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 shadow-sm flex items-center gap-1">
-                            <i class="fa-solid fa-list"></i> Lista Geral
-                        </button>
-                        <button onclick="alternarModoVisao('tutores')" id="btn-visao-tutores" class="px-3 py-1.5 bg-slate-200 rounded-lg text-xs font-semibold text-slate-600 flex items-center gap-1">
-                            <i class="fa-solid fa-user-group"></i> Agrupado por Tutor
-                        </button>
-                    </div>
-                    
-                    <div class="w-full sm:w-64">
-                        <input type="text" id="searchInput" onkeyup="filtrarDados()" placeholder="Buscar por aluno ou tutor..." class="w-full text-xs px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    </div>
-                </div>
-
-                <!-- Visão 1: Tabela Geral de Alunos -->
-                <div id="visao-tabela" class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                        <thead class="bg-slate-100 text-slate-600 text-xs uppercase font-semibold border-b">
-                            <tr>
-                                <th class="p-4">Matrícula</th>
-                                <th class="p-4">Nome do Aluno</th>
-                                <th class="p-4">Última Frequência</th>
-                                <th class="p-4">Professor Tutor Alocado</th>
-                                <th class="p-4 text-center">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabela-corpo" class="divide-y divide-slate-100">
-                            <tr>
-                                <td colspan="5" class="p-8 text-center text-slate-400">
-                                    Nenhum arquivo importado para esta aba até o momento.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Visão 2: Cards Agrupados por Professor Tutor -->
-                <div id="visao-tutores" class="hidden p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div class="col-span-full text-center text-slate-400 py-8">
-                        Nenhum arquivo importado para exibir a distribuição por tutor.
-                    </div>
-                </div>
-            </div>
-        </main>
+<div id="loginView">
+<div class="wrap-login">
+  <div class="login-card">
+    <div class="login-head">
+      <img class="login-logo" id="imgLoginLogo" alt="Logo CEJA">
+      <div class="gov">Governo do Estado do Ceará · SEDUC</div>
+      <h2>CEJA Dr. Gerardo Camelo Madeira</h2>
+      <p>Ipu · CE — Diretor de Comunidade</p>
     </div>
 
-    <script>
-        // Estrutura de dados em memória
-        const bancoDados = {
-            atuais: [],
-            antigas: []
-        };
+    <div id="loginFormArea">
+      <div class="pill-toggle">
+        <div class="pill active" id="pillSec" onclick="setLoginTab('sec')">Secretária</div>
+        <div class="pill" id="pillProf" onclick="setLoginTab('prof')">Professor</div>
+      </div>
 
-        let abaAtiva = 'atuais'; // 'atuais' ou 'antigas'
-        let modoVisao = 'tabela'; // 'tabela' ou 'tutores'
+      <!-- FORMULÁRIO SECRETÁRIA -->
+      <div id="secForm">
+        <label>Usuário</label><input value="Secretária" disabled>
+        <label>Senha</label>
+        <div class="pass-wrap">
+          <input type="password" id="secPass" placeholder="Senha da secretária">
+          <button type="button" class="eye-btn" onclick="togglePass('secPass', this)"><i class="fa-solid fa-eye"></i></button>
+        </div>
+        <div class="checkline"><input type="checkbox" id="secKeep" checked> Lembrar login e senha</div>
+        <div id="secErr" class="err"></div>
+        <button class="btn" style="width:100%" onclick="loginSecretaria()">Acessar Sistema</button>
+        <div class="linkrow"><a href="#" onclick="openReset('sec');return false;">Esqueci minha senha</a></div>
+      </div>
 
-        // Alternância de Abas
-        function mudarAba(aba) {
-            abaAtiva = aba;
+      <!-- FORMULÁRIO PROFESSOR -->
+      <div id="profForm" class="hidden">
+        <label>Nome completo</label>
+        <input type="text" id="profNameInput" autocomplete="off" placeholder="Digite seu nome completo">
+        <label>Senha</label>
+        <div class="pass-wrap">
+          <input type="password" id="profPass" placeholder="Senha (padrão: 12345)">
+          <button type="button" class="eye-btn" onclick="togglePass('profPass', this)"><i class="fa-solid fa-eye"></i></button>
+        </div>
+        <div class="checkline"><input type="checkbox" id="profKeep" checked> Lembrar login e senha</div>
+        <div id="profErr" class="err"></div>
+        <button class="btn" style="width:100%" onclick="loginProfessor()">Acessar Sistema</button>
+        <div class="linkrow"><a href="#" onclick="openReset('prof');return false;">Esqueci minha senha</a></div>
+      </div>
+    </div>
+
+    <!-- REDEFINIÇÃO DE SENHA -->
+    <div id="resetArea" class="hidden">
+      <h3 id="resetTitle" style="margin-top:0"></h3>
+      <p class="muted" style="margin-top:-6px">Defina uma nova senha imediatamente — não é necessário informar a senha antiga.</p>
+      <div id="resetNameWrap">
+        <label>Nome completo do professor</label>
+        <input type="text" id="resetProfName" autocomplete="off" placeholder="Digite seu nome completo">
+      </div>
+      <label>Nova senha</label>
+      <div class="pass-wrap">
+        <input type="password" id="resetPass1">
+        <button type="button" class="eye-btn" onclick="togglePass('resetPass1', this)"><i class="fa-solid fa-eye"></i></button>
+      </div>
+      <label>Repita a nova senha</label>
+      <div class="pass-wrap">
+        <input type="password" id="resetPass2">
+        <button type="button" class="eye-btn" onclick="togglePass('resetPass2', this)"><i class="fa-solid fa-eye"></i></button>
+      </div>
+      <div id="resetErr" class="err"></div>
+      <button class="btn" style="width:100%" onclick="doReset()">Redefinir Senha</button>
+      <div class="linkrow"><a href="#" onclick="closeReset();return false;">Voltar ao login</a></div>
+    </div>
+    <div class="footer-note">Monitoramento e Busca Ativa de Alunos Evadidos</div>
+  </div>
+</div>
+</div>
+
+<!-- TELA PRINCIPAL -->
+<div id="appView" class="hidden">
+  <div class="top">
+    <div class="brand">
+      <img id="imgTopLogo" alt="Logo CEJA">
+      <div>
+        <div class="gov">Governo do Estado do Ceará <span class="badge-seduc">SEDUC</span></div>
+        <div class="school">CEJA Dr. Gerardo Camelo Madeira - IPU/CE</div>
+        <div class="sub" id="whoami"></div>
+      </div>
+    </div>
+    <div class="right">
+      <div class="clock" id="clockBox"></div>
+      <button class="btn orange sm" id="logoutBtn" onclick="doLogout()"><i class="fa-solid fa-power-off"></i> Sair</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar" id="sidebarSec">
+      <h4>Módulos do Sistema</h4>
+      <div class="nav-item active" data-mod="alunos" onclick="setModule('alunos')"><i class="fa-solid fa-user-graduate"></i> Estudantes &amp; Matrículas</div>
+      <div class="nav-item" data-mod="profs" onclick="setModule('profs')"><i class="fa-solid fa-chalkboard-user"></i> Ambientes dos Professores</div>
+      <div class="nav-item" data-mod="remat" onclick="setModule('remat')"><i class="fa-solid fa-file-pen"></i> Rematrícula Mensal</div>
+      <div class="nav-item" data-mod="farol" onclick="setModule('farol')"><i class="fa-solid fa-lightbulb"></i> Farol de Rematrícula</div>
+      <div class="nav-item" data-mod="certificacao" onclick="setModule('certificacao')"><i class="fa-solid fa-award"></i> Certificação</div>
+      <div class="nav-item" data-mod="senha" onclick="setModule('senha')"><i class="fa-solid fa-key"></i> Recuperar Senha</div>
+    </div>
+
+    <div class="main">
+      <!-- ESTUDANTES (SECRETARIA) -->
+      <div id="mod-alunos">
+        <h1 class="pg">Gestão de Estudantes</h1>
+        <p class="sub-pg">Acompanhamento e controle de evasão escolar do CEJA Dr. Gerardo Camelo Madeira</p>
+
+        <!-- NAVEGAÇÃO ENTRE MATRÍCULA GERAL, POR PROFESSOR E GERAL POR PROFESSOR -->
+        <div class="mode-toggle-bar">
+          <button class="mode-btn active" id="btnModeGeral" onclick="setSecViewMode('geral')"><i class="fa-solid fa-list-check"></i> Matrícula Geral</button>
+          <button class="mode-btn" id="btnModePorProf" onclick="setSecViewMode('porProf')"><i class="fa-solid fa-chalkboard-user"></i> Por Professor</button>
+          <button class="mode-btn" id="btnModeGeralPorProf" onclick="setSecViewMode('geralPorProf')"><i class="fa-solid fa-arrow-down-a-z"></i> Geral por Professor</button>
+        </div>
+
+        <!-- VISUALIZAÇÃO: MATRÍCULA GERAL -->
+        <div id="secViewGeral">
+          <div class="toolbar">
+            <button class="btn-zerar" onclick="zerarBancoDeDados()">⚠️ Zerar Banco de Dados (Novo Semestre)</button>
             
-            // Estilizar Botões das Abas
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.classList.remove('text-indigo-600', 'border-b-2', 'border-indigo-600', 'active');
-                btn.classList.add('text-slate-500');
-            });
+            <!-- MENU DE AÇÕES -->
+            <div class="actions-dropdown" style="position:relative; display:inline-block;">
+              <button type="button" class="btn orange sm" onclick="toggleAcoesDropdown(event, this)"><i class="fa-solid fa-gears"></i> Ações <i class="fa-solid fa-caret-down"></i></button>
+              <div class="actions-menu hidden" style="position:absolute; top:100%; left:0; margin-top:4px; background:var(--card); border:1px solid var(--border); box-shadow:0 6px 16px rgba(0,0,0,0.15); border-radius:8px; z-index:1000; min-width:210px; overflow:hidden;">
+                <button type="button" onclick="acaoIncluirAluno()" style="width:100%; text-align:left; padding:10px 14px; background:none; border:none; cursor:pointer; color:var(--ink); font-size:0.85rem; display:flex; align-items:center; gap:8px;">
+                  <i class="fa-solid fa-user-plus" style="color:var(--green)"></i> Incluir Aluno
+                </button>
+                <button type="button" onclick="acaoAlternarRetirarAluno()" style="width:100%; text-align:left; padding:10px 14px; background:none; border:none; border-top:1px solid var(--border); cursor:pointer; color:var(--ink); font-size:0.85rem; display:flex; align-items:center; gap:8px;">
+                  <i class="fa-solid fa-user-minus" style="color:var(--red)"></i> Retirar Aluno
+                </button>
+                <button type="button" onclick="setSubTab('importAtuais')" style="width:100%; text-align:left; padding:10px 14px; background:none; border:none; border-top:1px solid var(--border); cursor:pointer; color:var(--ink); font-size:0.85rem; display:flex; align-items:center; gap:8px;">
+                  <i class="fa-solid fa-file-import" style="color:var(--green)"></i> Importar Arquivo (Atuais)
+                </button>
+                <button type="button" onclick="setSubTab('importAntigas')" style="width:100%; text-align:left; padding:10px 14px; background:none; border:none; border-top:1px solid var(--border); cursor:pointer; color:var(--ink); font-size:0.85rem; display:flex; align-items:center; gap:8px;">
+                  <i class="fa-solid fa-file-import" style="color:var(--navy)"></i> Importar Arquivo (Antigas)
+                </button>
+              </div>
+            </div>
 
-            const btnAtivo = document.getElementById(`tab-btn-${aba}`);
-            btnAtivo.classList.add('text-indigo-600', 'border-b-2', 'border-indigo-600', 'active');
-            btnAtivo.classList.remove('text-slate-500');
+            <button class="btn sm" style="background:var(--navy)" onclick="saveEstudantesModule()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
+            <button class="btn dark sm" onclick="exportCSV()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
+            <button class="btn dark sm" onclick="exportWord('printAlunos', 'Estudantes')"><i class="fa-solid fa-file-word"></i> Exportar Word</button>
+            <button class="btn red sm" onclick="printSection('printAlunos')"><i class="fa-solid fa-file-pdf"></i> Gerar PDF / Imprimir</button>
+          </div>
 
-            // Atualizar Rótulo de Status
-            document.getElementById('stat-aba-nome').textContent = aba === 'atuais' ? 'Matrículas Atuais' : 'Matrículas Antigas';
-            document.getElementById('stat-aba-nome').className = aba === 'atuais' 
-                ? 'text-xs px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full font-semibold' 
-                : 'text-xs px-2 py-1 bg-amber-100 text-amber-800 rounded-full font-semibold';
+          <!-- ABAS PRINCIPAIS E NOVAS ABAS DE IMPORTAÇÃO -->
+          <div class="tabs">
+            <div class="tab active gold" id="tabAtuais" data-subtab="atuais" onclick="setSubTab('atuais')">Matrículas Atuais</div>
+            <div class="tab" id="tabAntigas" data-subtab="antigas" onclick="setSubTab('antigas')">Matrículas Antigas</div>
+            <div class="tab" id="tabDuplicados" data-subtab="duplicados" onclick="setSubTab('duplicados')"><i class="fa-solid fa-users-viewfinder"></i> Alunos Duplicados</div>
+            <div class="tab" id="tabImportAtuais" data-subtab="importAtuais" onclick="setSubTab('importAtuais')"><i class="fa-solid fa-file-import"></i> Importação (Atuais)</div>
+            <div class="tab" id="tabImportAntigas" data-subtab="importAntigas" onclick="setSubTab('importAntigas')"><i class="fa-solid fa-file-import"></i> Importação (Antigas)</div>
+          </div>
 
-            renderizar();
-        }
+          <div class="grid c5" style="margin-bottom:6px;" id="secFilterGrid">
+            <div><label>Ano Letivo (digite e clique em Salvar)</label><input type="text" id="anoLetivoInput" maxlength="4" placeholder="Ex: 2027"></div>
+            <div><label>Professor</label><select id="filtroProfessor"></select></div>
+          </div>
+          <div class="tabs" id="anosPills" style="margin-bottom:10px;"></div>
 
-        // Leitura e Processamento do Arquivo CSV
-        function processarArquivo(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            Papa.parse(file, {
-                header: true,
-                skipEmptyLines: true,
-                dynamicTyping: true,
-                complete: function(results) {
-                    const dadosMapeados = results.data.map(item => {
-                        // Normalização das chaves do arquivo importado
-                        const keys = Object.keys(item);
-                        const getValor = (termos) => {
-                            const keyFound = keys.find(k => termos.some(t => k.toLowerCase().trim().includes(t)));
-                            return keyFound ? item[keyFound] : 'N/I';
-                        };
-
-                        return {
-                            matricula: getValor(['matricula', 'matrícula', 'id', 'codigo']),
-                            nome: getValor(['nome', 'aluno', 'estudante']),
-                            frequencia: getValor(['frequencia', 'frequência', 'ultima_frequencia', 'data']),
-                            tutor: getValor(['tutor', 'professor', 'docente', 'orientador'])
-                        };
-                    });
-
-                    // Aloca os registros na aba ativa
-                    bancoDados[abaAtiva] = dadosMapeados;
-                    alert(`Importação concluída! ${dadosMapeados.length} alunos foram alocados na aba ${abaAtiva === 'atuais' ? 'Matrículas Atuais' : 'Matrículas Antigas'}.`);
-                    
-                    // Limpa o input de arquivo e atualiza a tela
-                    document.getElementById('csvFileInput').value = '';
-                    renderizar();
-                },
-                error: function(err) {
-                    alert('Erro ao processar o arquivo CSV. Verifique a formatação.');
-                    console.error(err);
-                }
-            });
-        }
-
-        // Renderização Geral
-        function renderizar() {
-            const dados = bancoDados[abaAtiva];
-            
-            // Atualizar Estatísticas
-            document.getElementById('stat-total-alunos').textContent = dados.length;
-            const tutoresUnicos = new Set(dados.map(a => a.tutor)).size;
-            document.getElementById('stat-total-tutores').textContent = tutoresUnicos;
-
-            // Renderizar Visão Ativa
-            if (modoVisao === 'tabela') {
-                renderizarTabela(dados);
-            } else {
-                renderizarTutores(dados);
-            }
-        }
-
-        // Exibição em Tabela Lista Geral
-        function renderizarTabela(dados) {
-            const tbody = document.getElementById('tabela-corpo');
-            if (dados.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="5" class="p-8 text-center text-slate-400">
-                            Nenhum registro encontrado para esta aba. Utilize o botão de importação acima.
-                        </td>
-                    </tr>`;
-                return;
-            }
-
-            const tagColor = abaAtiva === 'atuais' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700';
-            const statusTexto = abaAtiva === 'atuais' ? 'Ativo' : 'Histórico/Inativo';
-
-            tbody.innerHTML = dados.map(aluno => `
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="p-4 font-mono text-slate-600 font-semibold">${aluno.matricula}</td>
-                    <td class="p-4 font-medium text-slate-900">${aluno.nome}</td>
-                    <td class="p-4 text-slate-600">
-                        <i class="fa-regular fa-calendar-check text-indigo-500 mr-1"></i> ${aluno.frequencia}
-                    </td>
-                    <td class="p-4 font-medium text-indigo-900">
-                        <i class="fa-solid fa-user-tie text-indigo-500 mr-1"></i> ${aluno.tutor}
-                    </td>
-                    <td class="p-4 text-center">
-                        <span class="text-xs px-2.5 py-1 rounded-full font-medium ${tagColor}">
-                            ${statusTexto}
-                        </span>
-                    </td>
+          <!-- TABELA PADRÃO DE ALUNOS -->
+          <div class="tablewrap" id="printAlunos">
+            <table>
+              <thead class="blue">
+                <tr>
+                  <th>MAT</th>
+                  <th>NÍVEL</th>
+                  <th class="col-aluno">ALUNO(A)</th>
+                  <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
+                  <th>CONTATO</th>
+                  <th>STATUS</th>
+                  <th style="text-align:center">DIAS AUSENTE</th>
+                  <th>PROFESSOR</th>
+                  <th style="text-align:center">CONCLUDENTE</th>
+                  <th style="text-align:center" class="no-print">AÇÕES</th>
                 </tr>
-            `).join('');
-        }
+              </thead>
+              <tbody id="studentsBody"></tbody>
+            </table>
+          </div>
 
-        // Exibição Agrupada por Tutor
-        function renderizarTutores(dados) {
-            const container = document.getElementById('visao-tutores');
-            if (dados.length === 0) {
-                container.innerHTML = `
-                    <div class="col-span-full text-center text-slate-400 py-8">
-                        Nenhum registro disponível para agrupamento de tutoria.
-                    </div>`;
-                return;
-            }
-
-            // Agrupa alunos por tutor
-            const agrupado = dados.reduce((acc, aluno) => {
-                acc[aluno.tutor] = acc[aluno.tutor] || [];
-                acc[aluno.tutor].push(aluno);
-                return acc;
-            }, {});
-
-            container.innerHTML = Object.keys(agrupado).map(tutor => `
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 shadow-sm">
-                    <div class="flex justify-between items-center pb-3 border-b border-slate-200 mb-3">
-                        <h4 class="font-bold text-slate-800 flex items-center gap-2">
-                            <i class="fa-solid fa-chalkboard-user text-indigo-600"></i> ${tutor}
-                        </h4>
-                        <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2 py-1 rounded-full">
-                            ${agrupado[tutor].length} aluno(s)
-                        </span>
-                    </div>
-                    <ul class="space-y-2 max-h-60 overflow-y-auto pr-1">
-                        ${agrupado[tutor].map(aluno => `
-                            <li class="bg-white p-2.5 rounded-lg border border-slate-100 text-xs flex justify-between items-center">
-                                <div>
-                                    <p class="font-semibold text-slate-800">${aluno.nome}</p>
-                                    <p class="text-slate-400 font-mono">Mat: ${aluno.matricula}</p>
-                                </div>
-                                <span class="text-slate-500 text-[10px] bg-slate-100 px-2 py-0.5 rounded">
-                                    ${aluno.frequencia}
-                                </span>
-                            </li>
-                        `).join('')}
-                    </ul>
-                </div>
-            `).join('');
-        }
-
-        // Alternar Visão entre Tabela e Cards de Tutores
-        function alternarModoVisao(modo) {
-            modoVisao = modo;
-            const btnTabela = document.getElementById('btn-visao-tabela');
-            const btnTutores = document.getElementById('btn-visao-tutores');
-            const secTabela = document.getElementById('visao-tabela');
-            const secTutores = document.getElementById('visao-tutores');
-
-            if (modo === 'tabela') {
-                secTabela.classList.remove('hidden');
-                secTutores.classList.add('hidden');
-                btnTabela.className = "px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 shadow-sm flex items-center gap-1";
-                btnTutores.className = "px-3 py-1.5 bg-slate-200 rounded-lg text-xs font-semibold text-slate-600 flex items-center gap-1";
-            } else {
-                secTabela.classList.add('hidden');
-                secTutores.classList.remove('hidden');
-                btnTutores.className = "px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 shadow-sm flex items-center gap-1";
-                btnTabela.className = "px-3 py-1.5 bg-slate-200 rounded-lg text-xs font-semibold text-slate-600 flex items-center gap-1";
-            }
-            renderizar();
-        }
-
-        // Filtro de Busca
-        function filtrarDados() {
-            const termo = document.getElementById('searchInput').value.toLowerCase();
-            const dadosOriginais = bancoDados[abaAtiva];
+          <!-- CONTAINER DE IMPORTAÇÃO DE ARQUIVOS (EXIBIDO NAS ABAS DE IMPORTAÇÃO) -->
+          <div id="importArea" class="card hidden" style="border: 2px dashed var(--green); background: rgba(30,122,52,0.03);">
+            <h3 id="importTitle" style="margin-top:0; color:var(--green);"><i class="fa-solid fa-file-csv"></i> Importação de Arquivo de Alunos</h3>
+            <p class="muted" id="importSubTitle">Selecione um arquivo (.csv ou .txt) contendo a lista de estudantes para importar e alocar automaticamente aos seus respectivos professores tutores.</p>
             
-            const dadosFiltrados = dadosOriginais.filter(item => 
-                String(item.nome).toLowerCase().includes(termo) ||
-                String(item.matricula).toLowerCase().includes(termo) ||
-                String(item.tutor).toLowerCase().includes(termo)
-            );
+            <div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:14px; font-size:0.82rem;">
+              <strong><i class="fa-solid fa-circle-info"></i> Formato Aceito (TXT ou CSV delimitado por ponto e vírgula ';', vírgula ',' ou Tab):</strong>
+              <ul style="margin:6px 0 0 18px; padding:0;">
+                <li><strong>Coluna 1:</strong> Nome do Aluno</li>
+                <li><strong>Coluna 2:</strong> Número de Matrícula</li>
+                <li><strong>Coluna 3:</strong> Última Frequência (Exemplo: 15/09/2026 ou 2026-09-15)</li>
+                <li><strong>Coluna 4:</strong> Professor Tutor (Nome do Professor responsável)</li>
+              </ul>
+              <div style="margin-top:6px; color:var(--muted); font-style:italic;">Exemplo de linha: João da Silva; 102030; 15/09/2026; Samuel Martins de Sousa</div>
+            </div>
 
-            if (modoVisao === 'tabela') {
-                renderizarTabela(dadosFiltrados);
-            } else {
-                renderizarTutores(dadosFiltrados);
-            }
-        }
+            <div class="grid c2" style="margin-bottom:14px;">
+              <div>
+                <label><strong>1. Selecionar Arquivo (.csv ou .txt):</strong></label>
+                <input type="file" id="importFileInput" accept=".csv, .txt, .tsv" onchange="handleImportFileSelect(event)" style="padding:6px; cursor:pointer;">
+              </div>
+              <div>
+                <label><strong>2. Ano Letivo Destino:</strong></label>
+                <input type="text" id="importAnoLetivo" maxlength="4" value="2026">
+              </div>
+            </div>
 
-        // Limpar dados da aba ativa
-        function limparDadosAbaAtual() {
-            if (confirm(`Tem certeza que deseja apagar os dados da aba ${abaAtiva === 'atuais' ? 'Matrículas Atuais' : 'Matrículas Antigas'}?`)) {
-                bancoDados[abaAtiva] = [];
-                renderizar();
-            }
-        }
+            <!-- PRÉ-VISUALIZAÇÃO DA IMPORTAÇÃO -->
+            <div id="importPreviewArea" class="hidden">
+              <hr style="border:0; border-top:1px solid var(--border); margin:16px 0;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+                <h4 style="margin:0; color:var(--navy);"><i class="fa-solid fa-list-check"></i> Pré-visualização dos Alunos e Tutores Alocados</h4>
+                <button class="btn sm" style="background:var(--green);" onclick="confirmarImportacaoAlunos()"><i class="fa-solid fa-cloud-arrow-up"></i> Confirmar e Salvar Alunos no Banco</button>
+              </div>
+              <div id="importStats" style="font-size:0.85rem; font-weight:600; margin-bottom:10px; color:var(--green-d);"></div>
+              <div class="tablewrap" style="max-height:380px; overflow-y:auto;">
+                <table>
+                  <thead class="navy">
+                    <tr>
+                      <th>MATRÍCULA</th>
+                      <th class="col-aluno">ALUNO(A)</th>
+                      <th>ÚLT. FREQ.</th>
+                      <th>TUTOR INFORMADO NO ARQUIVO</th>
+                      <th>TUTOR ALOCADO NO SISTEMA</th>
+                      <th>STATUS ALOCAÇÃO</th>
+                    </tr>
+                  </thead>
+                  <tbody id="importPreviewBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
 
-        // Baixar arquivo modelo CSV
-        function baixarModeloCSV() {
-            const csvContent = "data:text/csv;charset=utf-8," 
-                + "Matricula,Nome_Aluno,Ultima_Frequencia,Professor_Tutor\n"
-                + "2026101,Ana Silva,05/10/2026,Prof. Carlos Andrade\n"
-                + "2026102,Bruno Souza,04/10/2026,Profa. Maria Oliveira\n"
-                + "2026103,Carla Dias,02/10/2026,Prof. Carlos Andrade";
+        <!-- VISUALIZAÇÃO: POR PROFESSOR -->
+        <div id="secViewPorProf" class="hidden">
+          <h3 style="margin-bottom:8px;"><i class="fa-solid fa-arrow-down-a-z"></i> Selecione o Professor (Ordem Alfabética):</h3>
+          <div class="tabs" id="secProfsPills" style="margin-bottom:16px;"></div>
 
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "modelo_importacao_alunos.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-    </script>
+          <div id="secProfDetail">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
+              <h3 id="secProfSelectedTitle" style="margin:0; color:var(--green)"></h3>
+              <div class="toolbar" style="margin:0">
+                <!-- MENU DE AÇÕES -->
+                <div class="actions-dropdown" style="position:relative; display:inline-block;">
+                  <button type="button" class="btn orange sm" onclick="toggleAcoesDropdown(event, this)"><i class="fa-solid fa-gears"></i> Ações <i class="fa-solid fa-caret-down"></i></button>
+                  <div class="actions-menu hidden" style="position:absolute; top:100%; left:0; margin-top:4px; background:var(--card); border:1px solid var(--border); box-shadow:0 6px 16px rgba(0,0,0,0.15); border-radius:8px; z-index:1000; min-width:170px; overflow:hidden;">
+                    <button type="button" onclick="acaoIncluirAluno()" style="width:100%; text-align:left; padding:10px 14px; background:none; border:none; cursor:pointer; color:var(--ink); font-size:0.85rem; display:flex; align-items:center; gap:8px;">
+                      <i class="fa-solid fa-user-plus" style="color:var(--green)"></i> Incluir Aluno
+                    </button>
+                    <button type="button" onclick="acaoAlternarRetirarAluno()" style="width:100%; text-align:left; padding:10px 14px; background:none; border:none; border-top:1px solid var(--border); cursor:pointer; color:var(--ink); font-size:0.85rem; display:flex; align-items:center; gap:8px;">
+                      <i class="fa-solid fa-user-minus" style="color:var(--red)"></i> Retirar Aluno
+                    </button>
+                  </div>
+                </div>
+
+                <button class="btn sm" style="background:var(--navy)" onclick="saveEstudantesModule()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
+                <button class="btn dark sm" onclick="exportCSVPorProf()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
+                <button class="btn red sm" onclick="printSection('printAlunosPorProf')"><i class="fa-solid fa-file-pdf"></i> Gerar PDF / Imprimir</button>
+              </div>
+            </div>
+
+            <div class="tablewrap" id="printAlunosPorProf">
+              <table>
+                <thead class="blue">
+                  <tr>
+                    <th>MAT</th>
+                    <th>NÍVEL</th>
+                    <th class="col-aluno">ALUNO(A)</th>
+                    <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
+                    <th>CONTATO</th>
+                    <th>STATUS</th>
+                    <th style="text-align:center">DIAS AUSENTE</th>
+                    <th>PROFESSOR</th>
+                    <th style="text-align:center">CONCLUDENTE</th>
+                    <th style="text-align:center" class="no-print">AÇÕES</th>
+                  </tr>
+                </thead>
+                <tbody id="secProfStudentsBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- VISUALIZAÇÃO: GERAL POR PROFESSOR -->
+        <div id="secViewGeralPorProf" class="hidden">
+          <div class="toolbar">
+            <!-- MENU DE AÇÕES -->
+            <div class="actions-dropdown" style="position:relative; display:inline-block;">
+              <button type="button" class="btn orange sm" onclick="toggleAcoesDropdown(event, this)"><i class="fa-solid fa-gears"></i> Ações <i class="fa-solid fa-caret-down"></i></button>
+              <div class="actions-menu hidden" style="position:absolute; top:100%; left:0; margin-top:4px; background:var(--card); border:1px solid var(--border); box-shadow:0 6px 16px rgba(0,0,0,0.15); border-radius:8px; z-index:1000; min-width:170px; overflow:hidden;">
+                <button type="button" onclick="acaoIncluirAluno()" style="width:100%; text-align:left; padding:10px 14px; background:none; border:none; cursor:pointer; color:var(--ink); font-size:0.85rem; display:flex; align-items:center; gap:8px;">
+                  <i class="fa-solid fa-user-plus" style="color:var(--green)"></i> Incluir Aluno
+                </button>
+                <button type="button" onclick="acaoAlternarRetirarAluno()" style="width:100%; text-align:left; padding:10px 14px; background:none; border:none; border-top:1px solid var(--border); cursor:pointer; color:var(--ink); font-size:0.85rem; display:flex; align-items:center; gap:8px;">
+                  <i class="fa-solid fa-user-minus" style="color:var(--red)"></i> Retirar Aluno
+                </button>
+              </div>
+            </div>
+
+            <button class="btn sm" style="background:var(--navy)" onclick="saveEstudantesModule()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
+            <button class="btn dark sm" onclick="exportCSVGeralPorProf()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
+            <button class="btn dark sm" onclick="exportWord('printAlunosGeralPorProf', 'Estudantes_Geral_Por_Professor')"><i class="fa-solid fa-file-word"></i> Exportar Word</button>
+            <button class="btn red sm" onclick="printSection('printAlunosGeralPorProf')"><i class="fa-solid fa-file-pdf"></i> Gerar PDF / Imprimir</button>
+          </div>
+          <div class="tablewrap" id="printAlunosGeralPorProf">
+            <table>
+              <thead class="blue">
+                <tr>
+                  <th>MAT</th>
+                  <th>NÍVEL</th>
+                  <th class="col-aluno">ALUNO(A)</th>
+                  <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
+                  <th>CONTATO</th>
+                  <th>STATUS</th>
+                  <th style="text-align:center">DIAS AUSENTE</th>
+                  <th>PROFESSOR</th>
+                  <th style="text-align:center">CONCLUDENTE</th>
+                  <th style="text-align:center" class="no-print">AÇÕES</th>
+                </tr>
+              </thead>
+              <tbody id="secGeralPorProfStudentsBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- AMBIENTES DOS PROFESSORES -->
+      <div id="mod-profs" class="hidden">
+        <h1 class="pg">Ambientes dos Professores</h1>
+        <p class="sub-pg">Gestão individualizada de professores e links de acesso compartilhados</p>
+        <div class="toolbar">
+          <button class="btn sm" style="background:var(--navy)" onclick="saveProfessors()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
+        </div>
+        <div class="card">
+          <label>Cadastrar Novo Professor (Ordem Alfabética Automática)</label>
+          <div style="display:flex;gap:8px">
+            <input id="newProfName" placeholder="Nome completo do novo professor">
+            <button class="btn sm" onclick="addProfessor()"><i class="fa-solid fa-plus"></i> Cadastrar Professor</button>
+          </div>
+        </div>
+        <h3>Lista de Professores Cadastrados (<span id="profCount">0</span>)</h3>
+        <div class="prof-grid" id="profList"></div>
+      </div>
+
+      <!-- REMATRICULA MENSAL (SECRETARIA) -->
+      <div id="mod-remat" class="hidden">
+        <h1 class="pg">Rematrícula Mensal</h1>
+        <p class="sub-pg">Registro unificado e acompanhamento de retornos de responsabilidade da Secretaria</p>
+        <div class="grid c5" style="margin-bottom:10px">
+          <div><label>Adicionar Próximo Ano</label><input type="text" id="addYearRemat" maxlength="4" placeholder="Ex: 2027"></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn sm" onclick="addNewYearRemat()"><i class="fa-solid fa-plus"></i> Adicionar Ano</button></div>
+        </div>
+        <div class="tabs" id="rematYearsPills"></div>
+        <h3 id="rematYearTitle" style="margin-top:10px">Selecione o Mês:</h3>
+        <div class="months-grid" id="rematMonthsGrid"></div>
+        
+        <!-- PROFESSORES CONECTADOS NA REMATRÍCULA -->
+        <div id="rematProfSection" style="margin-top:16px;">
+          <h3 style="margin-bottom:8px;"><i class="fa-solid fa-chalkboard-user"></i> Filtrar por Professor:</h3>
+          <div class="tabs" id="rematProfPills" style="margin-bottom:16px;"></div>
+        </div>
+
+        <div id="rematMonthDetail" class="hidden">
+          <h3 id="rematMonthTitle"></h3>
+          <div class="toolbar">
+            <button class="btn sm" style="background:var(--green)" onclick="addSecRematRow()"><i class="fa-solid fa-plus"></i> acrescentar Estudante</button>
+            <button class="btn sm" style="background:var(--navy)" onclick="saveAllRemat()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
+            <button class="btn dark sm" onclick="exportCSVRemat()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
+            <button class="btn dark sm" onclick="exportWord('printRemat', 'Rematricula_Mensal')"><i class="fa-solid fa-file-word"></i> Exportar Word</button>
+            <button class="btn red sm" onclick="printSection('printRemat')"><i class="fa-solid fa-file-pdf"></i> Exportar PDF / Imprimir</button>
+          </div>
+          <div class="tablewrap" id="printRemat">
+            <table>
+              <thead class="darkgreen">
+                <tr><th>ESTUDANTE</th><th>MATRÍCULA</th><th>ÚLT. FREQ. (DD/MM/AAAA)</th><th>DATA DO RETORNO (DD/MM/AAAA)</th><th>MÊS/ANO</th><th>PROFESSOR</th><th class="no-print">AÇÃO</th></tr>
+              </thead>
+              <tbody id="rematBody"></tbody>
+            </table>
+          </div>
+          <p class="muted hidden" id="rematEmpty">Nenhuma rematrícula efetuada neste mês para o filtro selecionado.</p>
+        </div>
+      </div>
+
+      <!-- FAROL DE REMATRÍCULA (SECRETARIA) -->
+      <div id="mod-farol" class="hidden">
+        <h1 class="pg">Farol de Rematrícula (Ranking em Tempo Real)</h1>
+        <p class="sub-pg">Monitoramento do empenho nas rematrículas ativas por ano e mês</p>
+        <div class="tabs" id="farolYearsPills"></div>
+        <h3 id="farolYearTitle" style="margin-top:10px">Selecione o Mês:</h3>
+        <div class="months-grid" id="farolMonthsGrid"></div>
+
+        <div id="farolMonthDetail" class="hidden">
+          <h3 id="farolMonthTitle"></h3>
+          <div class="legend">
+            <div class="g"><b>4 ou Mais Rematrículas</b><br>Desempenho Excelente (Verde)</div>
+            <div class="y"><b>De 1 a 3 Rematrículas</b><br>Desempenho em Progresso (Amarelo)</div>
+            <div class="r"><b>0 Rematrículas</b><br>Sem Alunos Recuperados (Vermelho)</div>
+          </div>
+          <div class="toolbar">
+            <button class="btn dark sm" onclick="exportWord('printFarol', 'Farol_Rematricula')"><i class="fa-solid fa-file-word"></i> Exportar Word</button>
+            <button class="btn red sm" onclick="printSection('printFarol')"><i class="fa-solid fa-file-pdf"></i> Exportar PDF / Imprimir</button>
+          </div>
+          <div class="tablewrap" id="printFarol">
+            <table>
+              <thead class="navy">
+                <tr>
+                  <th style="text-align:center">NOME DO PROFESSOR</th>
+                  <th style="text-align:center">QTD. REMATRÍCULAS NO MÊS</th>
+                  <th style="text-align:center">STATUS FAROL</th>
+                </tr>
+              </thead>
+              <tbody id="rankBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- CERTIFICAÇÃO -->
+      <div id="mod-certificacao" class="hidden">
+        <h1 class="pg">Certificação e Concludentes</h1>
+        <p class="sub-pg">Acompanhamento dos alunos diplomados por ano de conclusão (Ensino Fundamental e Médio)</p>
+
+        <div class="grid c5" style="margin-bottom:10px">
+          <div><label>Adicionar Ano de Certificação</label><input type="text" id="addYearCert" maxlength="4" placeholder="Ex: 2026"></div>
+          <div style="display:flex;align-items:flex-end"><button class="btn sm" onclick="addNewYearCert()"><i class="fa-solid fa-plus"></i> Adicionar Ano</button></div>
+        </div>
+        
+        <div class="tabs" id="certYearsPills" style="margin-bottom:16px;"></div>
+
+        <div class="grid c2" style="margin-bottom:20px">
+          <div class="stat-card">
+            <div class="num" id="countCertEF">0</div>
+            <div class="label">Concludentes do Ensino Fundamental (EF) em <span class="currentYearLabel">2026</span></div>
+          </div>
+          <div class="stat-card">
+            <div class="num" id="countCertEM">0</div>
+            <div class="label">Concludentes do Ensino Médio (EM) em <span class="currentYearLabel">2026</span></div>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <button class="btn dark sm" onclick="exportWord('printCertificacao', 'Concludentes')"><i class="fa-solid fa-file-word"></i> Exportar Word</button>
+          <button class="btn red sm" onclick="printSection('printCertificacao')"><i class="fa-solid fa-file-pdf"></i> Exportar PDF / Imprimir</button>
+        </div>
+
+        <div class="tablewrap" id="printCertificacao">
+          <table>
+            <thead class="blue">
+              <tr>
+                <th>MATRÍCULA</th>
+                <th>NOME DO CONCLUDENTE</th>
+                <th>NÍVEL</th>
+                <th>CONTATO</th>
+                <th>PROFESSOR RESPONSÁVEL</th>
+                <th>ANO DE CONCLUSÃO</th>
+              </tr>
+            </thead>
+            <tbody id="certificacaoBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RECUPERAR SENHA (SECRETARIA) -->
+      <div id="mod-senha" class="hidden">
+        <h1 class="pg">Recuperação e Alteração de Senha</h1>
+        <p class="sub-pg">Defina uma nova senha para qualquer usuário de forma imediata, sem precisar da senha antiga.</p>
+        <div class="card" style="max-width:440px">
+          <label>Selecione o Usuário</label>
+          <select id="secSelUser"><option value="">Selecione um perfil...</option><option value="Secretária">Secretária</option></select>
+          <label>Nova Senha</label>
+          <div class="pass-wrap">
+            <input type="password" id="secNewPassAdmin" placeholder="Digite a nova senha">
+            <button type="button" class="eye-btn" onclick="togglePass('secNewPassAdmin', this)"><i class="fa-solid fa-eye"></i></button>
+          </div>
+          <label>Repita a Nova Senha</label>
+          <div class="pass-wrap">
+            <input type="password" id="secNewPassAdmin2" placeholder="Repita a nova senha">
+            <button type="button" class="eye-btn" onclick="togglePass('secNewPassAdmin2', this)"><i class="fa-solid fa-eye"></i></button>
+          </div>
+          <div id="secAdminErr" class="err"></div>
+          <button class="btn" style="width:100%;margin-top:8px" onclick="adminChangePass()"><i class="fa-solid fa-key"></i> Alterar Senha do Usuário</button>
+        </div>
+      </div>
+
+      <!-- VISÃO DO PROFESSOR (SOMENTE MONITORAMENTO DA TURMA) -->
+      <div id="mod-prof-view" class="hidden">
+        <h1 class="pg" id="profWelcome"></h1>
+        <p class="sub-pg">Acompanhe seus alunos evadidos e ativos em tempo real.</p>
+
+        <div id="ptab-turma">
+          <div class="toolbar"><button class="btn sm" style="background:var(--navy)" onclick="saveAllStudents()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button></div>
+          <div class="tabs">
+            <div class="tab gold" id="tabAntigas2" onclick="setSubTab2('antigas')">Matrículas Antigas</div>
+            <div class="tab active" id="tabAtuais2" onclick="setSubTab2('atuais')">Matrículas Atuais</div>
+          </div>
+          <div class="tablewrap">
+            <table>
+              <thead class="blue">
+                <tr>
+                  <th>MAT</th>
+                  <th>NÍVEL</th>
+                  <th class="col-aluno">ALUNO(A)</th>
+                  <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
+                  <th>CONTATO</th>
+                  <th>STATUS</th>
+                  <th style="text-align:center">DIAS AUSENTE</th>
+                  <th>PROFESSOR</th>
+                  <th style="text-align:center">CONCLUDENTE</th>
+                </tr>
+              </thead>
+              <tbody id="profStudentsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc, getDocs, writeBatch
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB8Uf77lKEjPHNqiHP7tbJjLg6sgJHz43Y",
+  authDomain: "diretor-de-comunidade.firebaseapp.com",
+  projectId: "diretor-de-comunidade",
+  storageBucket: "diretor-de-comunidade.firebasestorage.app",
+  messagingSenderId: "618211503376",
+  appId: "1:618211503376:web:672da6a25ec0820083c995"
+};
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp);
+
+// VARIÁVEIS GLOBAIS DE ESTADO
+let PROFESSORES = [];
+let students = [];
+let unsavedNewStudents = [];
+let currentAno = "2026";
+let currentSubTab = "atuais";
+let currentSecViewMode = "geral";
+let pendingImportStudents = [];
+
+// HELPER DE NORMALIZAÇÃO DE NOMES DE PROFESSOR PARA ALOCAÇÃO INTELIGENTE DE TUTORES
+function normalizeProfName(str) {
+  if (!str) return '';
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+}
+
+function findBestProfMatch(tutorInput) {
+  if (!tutorInput) return '';
+  const normInput = normalizeProfName(tutorInput);
+  if (!normInput) return '';
+
+  // 1. Busca exata com nome normalizado
+  for (const p of PROFESSORES) {
+    if (normalizeProfName(p) === normInput) return p;
+  }
+
+  // 2. Busca parcial (contém o nome)
+  for (const p of PROFESSORES) {
+    const normP = normalizeProfName(p);
+    if (normP.includes(normInput) || normInput.includes(normP)) return p;
+  }
+
+  // 3. Busca por partes do nome
+  const inputParts = normInput.split(/\s+/).filter(part => part.length > 2);
+  let bestProf = '';
+  let maxMatches = 0;
+
+  for (const p of PROFESSORES) {
+    const normP = normalizeProfName(p);
+    let count = 0;
+    inputParts.forEach(part => {
+      if (normP.includes(part)) count++;
+    });
+    if (count > maxMatches) {
+      maxMatches = count;
+      bestProf = p;
+    }
+  }
+
+  if (maxMatches > 0) return bestProf;
+
+  // Caso não encontre match, retorna a string original do arquivo
+  return tutorInput.trim();
+}
+
+// FUNÇÃO DE LEITURA E PROCESSAMENTO DO ARQUIVO IMPORTADO
+window.handleImportFileSelect = function(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    parseAndPreviewImportFile(e.target.result);
+  };
+  reader.readAsText(file, 'UTF-8');
+};
+
+function parseAndPreviewImportFile(textContent) {
+  const lines = textContent.split(/\r?\n/);
+  pendingImportStudents = [];
+
+  let targetAno = document.getElementById('importAnoLetivo').value || currentAno;
+  if (currentSubTab === 'importAntigas') {
+    targetAno = (parseInt(targetAno) - 1).toString();
+  }
+
+  lines.forEach((lineRaw, idx) => {
+    const line = lineRaw.trim();
+    if (!line) return;
+
+    // Identificação automática de delimitador (ponto e vírgula, vírgula ou tab)
+    let delimiter = ';';
+    if (line.includes(';')) delimiter = ';';
+    else if (line.includes('\t')) delimiter = '\t';
+    else if (line.includes(',')) delimiter = ',';
+
+    const parts = line.split(delimiter).map(p => p.trim().replace(/^["']|["']$/g, ''));
+
+    // Pular linha de cabeçalho se houver
+    if (idx === 0) {
+      const lineLower = line.toLowerCase();
+      if (lineLower.includes('aluno') || lineLower.includes('nome') || lineLower.includes('matricula') || lineLower.includes('tutor') || lineLower.includes('professor')) {
+        return;
+      }
+    }
+
+    if (parts.length < 2) return;
+
+    let aluno = '', mat = '', ultimaFreq = '', tutorInput = '';
+
+    if (parts.length >= 4) {
+      aluno = parts[0];
+      mat = parts[1];
+      ultimaFreq = parts[2];
+      tutorInput = parts[3];
+    } else if (parts.length === 3) {
+      aluno = parts[0];
+      mat = parts[1];
+      tutorInput = parts[2];
+    } else if (parts.length === 2) {
+      aluno = parts[0];
+      mat = parts[1];
+    }
+
+    // Normalização da data de frequência
+    let isoFreq = '';
+    if (ultimaFreq.match(/^\d{1,2}[\/\.-]\d{1,2}[\/\.-]\d{2,4}$/)) {
+      const dParts = ultimaFreq.split(/[\/\.-]/);
+      if (dParts[0].length <= 2 && dParts[1].length <= 2) {
+        let yr = dParts[2];
+        if (yr.length === 2) yr = '20' + yr;
+        const day = dParts[0].padStart(2, '0');
+        const month = dParts[1].padStart(2, '0');
+        isoFreq = `${yr}-${month}-${day}`;
+      }
+    }
+    if (!isoFreq) {
+      const today = new Date();
+      isoFreq = today.toISOString().split('T')[0];
+    }
+
+    const allocatedProf = findBestProfMatch(tutorInput);
+    const isNewProf = allocatedProf && !PROFESSORES.some(p => normalizeProfName(p) === normalizeProfName(allocatedProf));
+
+    pendingImportStudents.push({
+      mat: mat,
+      aluno: aluno,
+      nivel: 'EM',
+      contato: '',
+      ultimaFreq: isoFreq,
+      rematricula: 0,
+      professor: allocatedProf,
+      tutorOriginal: tutorInput,
+      isNewProf: isNewProf,
+      concludente: currentSubTab === 'importAntigas',
+      ano: targetAno
+    });
+  });
+
+  renderImportPreview();
+}
+
+function renderImportPreview() {
+  const previewArea = document.getElementById('importPreviewArea');
+  const previewBody = document.getElementById('importPreviewBody');
+  const statsEl = document.getElementById('importStats');
+
+  if (!pendingImportStudents.length) {
+    alert("Nenhum registro válido de aluno foi encontrado no arquivo.");
+    previewArea.classList.add('hidden');
+    return;
+  }
+
+  previewArea.classList.remove('hidden');
+
+  let countAllocated = pendingImportStudents.filter(s => s.professor).length;
+  statsEl.innerHTML = `✅ Total de alunos lidos: <strong>${pendingImportStudents.length}</strong> | Alocados ao Tutor: <strong>${countAllocated}</strong>`;
+
+  previewBody.innerHTML = pendingImportStudents.map((s, i) => {
+    let statusBadge = '<span class="badge g">Tutor Alocado</span>';
+    if (!s.professor) {
+      statusBadge = '<span class="badge r">Sem Tutor</span>';
+    } else if (s.isNewProf) {
+      statusBadge = '<span class="badge y">Novo Tutor (Será Cadastrado)</span>';
+    }
+
+    return `<tr>
+      <td><strong>${s.mat || '---'}</strong></td>
+      <td class="col-aluno"><strong>${s.aluno || '---'}</strong></td>
+      <td>${s.ultimaFreq ? s.ultimaFreq.split('-').reverse().join('/') : '---'}</td>
+      <td>${s.tutorOriginal || '<em>Não informado</em>'}</td>
+      <td>
+        <select class="cell" onchange="pendingImportStudents[${i}].professor = this.value">
+          <option value="">Selecione o Tutor...</option>
+          ${PROFESSORES.map(p => `<option value="${p}" ${normalizeProfName(s.professor) === normalizeProfName(p) ? 'selected' : ''}>${p}</option>`).join('')}
+        </select>
+      </td>
+      <td>${statusBadge}</td>
+    </tr>`;
+  }).join('');
+}
+
+// SALVA OS ALUNOS IMPORTADOS NO BANCO DE DADOS
+window.confirmarImportacaoAlunos = async function() {
+  if (!pendingImportStudents.length) return;
+
+  const confirmMsg = `Deseja confirmar a importação de ${pendingImportStudents.length} aluno(s) e alocá-los aos seus respectivos professores tutores?`;
+  if (!confirm(confirmMsg)) return;
+
+  // Cadastra novos tutores caso existam no arquivo e não estejam no cadastro de professores
+  let newProfsToAdd = [];
+  pendingImportStudents.forEach(s => {
+    if (s.professor && !PROFESSORES.some(p => normalizeProfName(p) === normalizeProfName(s.professor))) {
+      if (!newProfsToAdd.includes(s.professor)) newProfsToAdd.push(s.professor);
+    }
+  });
+
+  if (newProfsToAdd.length > 0) {
+    PROFESSORES.push(...newProfsToAdd);
+    PROFESSORES.sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    await setDoc(doc(db, 'meta', 'professors'), { list: PROFESSORES }).catch(console.error);
+  }
+
+  // Escrita em Lote no Firebase
+  const batch = writeBatch(db);
+  pendingImportStudents.forEach(s => {
+    const docRef = doc(collection(db, 'students'));
+    const studentData = {
+      mat: s.mat || '',
+      aluno: s.aluno || '',
+      nivel: s.nivel || 'EM',
+      contato: s.contato || '',
+      ultimaFreq: s.ultimaFreq || '',
+      rematricula: 0,
+      professor: s.professor || '',
+      concludente: s.concludente || false,
+      ano: s.ano || currentAno
+    };
+    batch.set(docRef, studentData);
+  });
+
+  try {
+    await batch.commit();
+    alert(`Sucesso! ${pendingImportStudents.length} aluno(s) foram importados e alocados aos seus tutores!`);
+    pendingImportStudents = [];
+    document.getElementById('importFileInput').value = '';
+    document.getElementById('importPreviewArea').classList.add('hidden');
+
+    // Retorna para a aba correspondente
+    if (currentSubTab === 'importAntigas') window.setSubTab('antigas');
+    else window.setSubTab('atuais');
+  } catch(err) {
+    alert("Erro ao salvar no banco de dados: " + err.message);
+  }
+};
+
+// NAVEGAÇÃO ENTRE SUB-ABAS (INCLUINDO IMPORTAÇÃO)
+window.setSubTab = function(tab){
+  currentSubTab = tab;
+  document.getElementById('tabAtuais').classList.toggle('active', tab==='atuais');
+  document.getElementById('tabAntigas').classList.toggle('active', tab==='antigas');
+  
+  const tabDup = document.getElementById('tabDuplicados');
+  if(tabDup) tabDup.classList.toggle('active', tab==='duplicados');
+
+  const tabImpAtuais = document.getElementById('tabImportAtuais');
+  if(tabImpAtuais) tabImpAtuais.classList.toggle('active', tab==='importAtuais');
+
+  const tabImpAntigas = document.getElementById('tabImportAntigas');
+  if(tabImpAntigas) tabImpAntigas.classList.toggle('active', tab==='importAntigas');
+
+  const isImport = (tab === 'importAtuais' || tab === 'importAntigas');
+  const importArea = document.getElementById('importArea');
+  const printAlunos = document.getElementById('printAlunos');
+  const secFilterGrid = document.getElementById('secFilterGrid');
+
+  if(importArea && printAlunos) {
+    if(isImport) {
+      importArea.classList.remove('hidden');
+      printAlunos.classList.add('hidden');
+      if(secFilterGrid) secFilterGrid.classList.add('hidden');
+
+      const importTitle = document.getElementById('importTitle');
+      const importSubTitle = document.getElementById('importSubTitle');
+      const importAnoInput = document.getElementById('importAnoLetivo');
+
+      if(tab === 'importAtuais') {
+        if(importTitle) importTitle.innerHTML = '<i class="fa-solid fa-file-csv"></i> Importação de Arquivo de Alunos — Matrículas Atuais';
+        if(importSubTitle) importSubTitle.textContent = 'Importe uma lista de alunos para alocação automática aos tutores nas Matrículas Atuais do ano letivo vigente.';
+        if(importAnoInput) importAnoInput.value = currentAno;
+      } else {
+        if(importTitle) importTitle.innerHTML = '<i class="fa-solid fa-file-csv"></i> Importação de Arquivo de Alunos — Matrículas Antigas';
+        if(importSubTitle) importSubTitle.textContent = 'Importe uma lista de alunos para alocação automática aos tutores nas Matrículas Antigas (Históricas).';
+        if(importAnoInput) importAnoInput.value = (parseInt(currentAno) - 1).toString();
+      }
+    } else {
+      importArea.classList.add('hidden');
+      printAlunos.classList.remove('hidden');
+      if(secFilterGrid) secFilterGrid.classList.remove('hidden');
+    }
+  }
+
+  if(!isImport) {
+    if(currentSecViewMode === 'geralPorProf'){
+      renderSecGeralPorProfModule();
+    } else {
+      renderTable();
+    }
+  }
+};
+
+window.toggleAcoesDropdown = function(event, btn) {
+  event.stopPropagation();
+  const menu = btn.nextElementSibling;
+  document.querySelectorAll('.actions-menu').forEach(m => {
+    if(m !== menu) m.classList.add('hidden');
+  });
+  if(menu) menu.classList.toggle('hidden');
+};
+
+document.addEventListener('click', () => {
+  document.querySelectorAll('.actions-menu').forEach(m => m.classList.add('hidden'));
+});
+
+// ESCUTA ATUALIZAÇÕES DO FIREBASE E INICIALIZA
+onSnapshot(doc(db, 'meta', 'professors'), (snap) => {
+  if (snap.exists() && snap.data().list) {
+    PROFESSORES = snap.data().list;
+  }
+});
+
+onSnapshot(collection(db, 'students'), (snap) => {
+  students = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  if (typeof renderTable === 'function') renderTable();
+});
+
+</script>
 </body>
 </html>
