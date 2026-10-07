@@ -98,7 +98,8 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
 
 .container, .main-module { width: 100%; max-width: 98%; padding: 5px; margin: 0 auto; }
 th.col-aluno, td.col-aluno { min-width: 180px; }
-td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
+th.col-nivel, td.col-nivel { min-width: 85px; text-align: center; }
+td.col-nivel select { min-width: 70px; width: 100%; text-align: center; text-align-last: center; padding: 5px 4px; font-weight: 600; }
 .btn-excluir { background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
 .btn-zerar { background-color: #8b0000; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 0px; }
 .mode-toggle-bar { display: flex; gap: 10px; margin-bottom: 16px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
@@ -260,7 +261,7 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
                 <tr>
                   <th style="width:40px; text-align:center;">Nº</th>
                   <th>MAT</th>
-                  <th>NÍVEL</th>
+                  <th class="col-nivel" style="text-align:center;">NÍVEL</th>
                   <th class="col-aluno">ALUNO(A)</th>
                   <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
                   <th>CONTATO</th>
@@ -308,7 +309,7 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
                   <tr>
                     <th style="width:40px; text-align:center;">Nº</th>
                     <th>MAT</th>
-                    <th>NÍVEL</th>
+                    <th class="col-nivel" style="text-align:center;">NÍVEL</th>
                     <th class="col-aluno">ALUNO(A)</th>
                     <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
                     <th>CONTATO</th>
@@ -356,7 +357,7 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
                 <tr>
                   <th style="width:40px; text-align:center;">Nº</th>
                   <th>MAT</th>
-                  <th>NÍVEL</th>
+                  <th class="col-nivel" style="text-align:center;">NÍVEL</th>
                   <th class="col-aluno">ALUNO(A)</th>
                   <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
                   <th>CONTATO</th>
@@ -498,7 +499,7 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
               <tr>
                 <th>MATRÍCULA</th>
                 <th>NOME DO CONCLUDENTE</th>
-                <th>NÍVEL</th>
+                <th class="col-nivel" style="text-align:center;">NÍVEL</th>
                 <th>CONTATO</th>
                 <th>PROFESSOR RESPONSÁVEL</th>
                 <th>ANO DE CONCLUSÃO</th>
@@ -548,7 +549,7 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
                 <tr>
                   <th style="width:40px; text-align:center;">Nº</th>
                   <th>MAT</th>
-                  <th>NÍVEL</th>
+                  <th class="col-nivel" style="text-align:center;">NÍVEL</th>
                   <th class="col-aluno">ALUNO(A)</th>
                   <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
                   <th>CONTATO</th>
@@ -1124,7 +1125,7 @@ function buildStudentRowHTML(s, isSecretaria=true, seq=''){
       <tr data-id="${s.id}">
         <td style="text-align:center; font-weight:700; color:var(--muted);">${seq}</td>
         <td><input class="cell" data-field="mat" value="${s.mat||''}" disabled style="background:rgba(0,0,0,0.04);"></td>
-        <td>
+        <td class="col-nivel">
           <select class="cell" disabled style="background:rgba(0,0,0,0.04); color:var(--ink);">
             <option value="F" ${(s.nivel==='F'||s.nivel==='EF')?'selected':''}>F</option>
             <option value="M" ${(s.nivel==='M'||s.nivel==='EM')?'selected':''}>M</option>
@@ -1150,7 +1151,7 @@ function buildStudentRowHTML(s, isSecretaria=true, seq=''){
         ${checkboxRetirar}
         <input class="cell" data-field="mat" value="${s.mat||''}" onchange="updateStudentField('${s.id}', 'mat', this.value)">
       </td>
-      <td>
+      <td class="col-nivel">
         <select class="cell" data-field="nivel" onchange="updateStudentField('${s.id}', 'nivel', this.value)">
           <option value="F" ${(s.nivel==='F'||s.nivel==='EF')?'selected':''}>F</option>
           <option value="M" ${(s.nivel==='M'||s.nivel==='EM')?'selected':''}>M</option>
@@ -1451,465 +1452,3 @@ async function addProfessor(){
     sortProfessors();
     await setDoc(doc(db,'meta','professors'), {list: PROFESSORES});
     inp.value = '';
-    buildProfessorFilter();
-    renderAll();
-  }
-}
-
-async function removeProfessor(p){
-  if(!confirm(`Remover o professor ${p}?`)) return;
-  PROFESSORES = PROFESSORES.filter(x => x !== p);
-  sortProfessors();
-  await setDoc(doc(db,'meta','professors'), {list: PROFESSORES});
-  buildProfessorFilter();
-  renderAll();
-}
-
-async function saveProfessors(){
-  sortProfessors();
-  await setDoc(doc(db,'meta','professors'), {list: PROFESSORES});
-  alert('Lista de professores salva com sucesso!');
-}
-
-function renderRematModule(){
-  const yearsWrap = document.getElementById('rematYearsPills'); if(!yearsWrap) return;
-  yearsWrap.innerHTML = '';
-  sortYears();
-  anosCriados.forEach(y => {
-    const d = document.createElement('div');
-    d.className = 'tab' + (y === selectedRematYear ? ' active gold' : '');
-    d.textContent = '📅 ' + y;
-    d.onclick = () => { selectedRematYear = y; renderRematModule(); };
-    yearsWrap.appendChild(d);
-  });
-
-  const mGrid = document.getElementById('rematMonthsGrid');
-  if(mGrid){
-    mGrid.innerHTML = MESES.map(m => `
-      <div class="month-card ${m === selectedRematMonth ? 'active' : ''}" onclick="selectRematMonth('${m}')">
-        ${m}
-      </div>
-    `).join('');
-  }
-
-  const pWrap = document.getElementById('rematProfPills');
-  if(pWrap){
-    pWrap.innerHTML = '';
-    sortProfessors();
-
-    const dTodos = document.createElement('div');
-    dTodos.className = 'tab' + (selectedRematProf === 'todos' ? ' active gold' : '');
-    dTodos.textContent = 'Todos os Professores';
-    dTodos.onclick = () => { selectedRematProf = 'todos'; renderRematModule(); };
-    pWrap.appendChild(dTodos);
-
-    PROFESSORES.forEach(p => {
-      const d = document.createElement('div');
-      d.className = 'tab' + (p === selectedRematProf ? ' active gold' : '');
-      d.textContent = p;
-      d.onclick = () => { selectedRematProf = p; renderRematModule(); };
-      pWrap.appendChild(d);
-    });
-  }
-
-  const detail = document.getElementById('rematMonthDetail');
-  if(!detail) return;
-  
-  if(selectedRematMonth){
-    detail.classList.remove('hidden');
-    let profLabel = selectedRematProf === 'todos' ? 'Todos os Professores' : selectedRematProf;
-    document.getElementById('rematMonthTitle').textContent = `Registros de Retorno — ${selectedRematMonth} / ${selectedRematYear} (${profLabel})`;
-    renderRematTable();
-  } else {
-    detail.classList.add('hidden');
-  }
-}
-
-function selectRematMonth(m){
-  selectedRematMonth = m;
-  renderRematModule();
-}
-
-async function addNewYearRemat(){
-  const inp = document.getElementById('addYearRemat');
-  const val = inp.value.trim();
-  if(val && val.length===4 && !isNaN(val)){
-    if(!anosCriados.includes(val)){
-      anosCriados.push(val);
-      await persistAnos();
-      selectedRematYear = val;
-      inp.value = '';
-      renderAll();
-    }
-  }
-}
-
-function renderRematTable(){
-  const body = document.getElementById('rematBody'); if(!body) return;
-  const empty = document.getElementById('rematEmpty');
-  
-  let list = rematriculas.filter(r => r.ano === selectedRematYear && r.mes === selectedRematMonth);
-  
-  if(selectedRematProf !== 'todos'){
-    list = list.filter(r => r.professor === selectedRematProf);
-  }
-
-  list.sort((a,b) => parseDateForSort(b.retorno) - parseDateForSort(a.retorno));
-
-  if(list.length === 0){
-    body.innerHTML = '';
-    empty.classList.remove('hidden');
-    return;
-  }
-  empty.classList.add('hidden');
-
-  let profOptionsHtml = '<option value="">Sem Professor</option>';
-  sortProfessors();
-  PROFESSORES.forEach(p => {
-    profOptionsHtml += `<option value="${p}">${p}</option>`;
-  });
-
-  body.innerHTML = list.map(r => `
-    <tr data-remat-id="${r.id}">
-      <td><input class="cell" data-rfield="aluno" value="${r.aluno||''}"></td>
-      <td><input class="cell" data-rfield="mat" value="${r.mat||''}"></td>
-      <td><input class="cell" data-rfield="ultimaFreq" value="${toBR(r.ultimaFreq)}" placeholder="DD/MM/AAAA"></td>
-      <td><input class="cell" data-rfield="retorno" value="${toBR(r.retorno)}" placeholder="DD/MM/AAAA"></td>
-      <td><b>${r.mes}/${r.ano}</b></td>
-      <td>
-        <select class="cell" data-rfield="professor">
-          ${PROFESSORES.map(p=>`<option value="${p}" ${r.professor===p?'selected':''}>${p}</option>`).join('')}
-        </select>
-      </td>
-      <td class="no-print" style="text-align:center"><button class="btn red sm" onclick="removeRematRow('${r.id}')"><i class="fa-solid fa-trash"></i> Excluir</button></td>
-    </tr>
-  `).join('');
-}
-
-function addSecRematRow(){
-  const newObj = {
-    id: 'r_' + Date.now() + '_' + Math.random().toString(36).substring(2,6),
-    aluno: '',
-    mat: '',
-    ultimaFreq: toISO(new Date().toLocaleDateString('pt-BR')),
-    retorno: toISO(new Date().toLocaleDateString('pt-BR')),
-    mes: selectedRematMonth,
-    ano: selectedRematYear,
-    professor: selectedRematProf !== 'todos' ? selectedRematProf : (PROFESSORES[0]||'')
-  };
-  rematriculas.push(newObj);
-  renderRematTable();
-}
-
-async function removeRematRow(id){
-  if(!confirm('Excluir esta rematrícula?')) return;
-  rematriculas = rematriculas.filter(r => r.id !== id);
-  await setDoc(doc(db,'meta','rematriculas'), {list: rematriculas});
-  renderRematTable();
-}
-
-async function saveAllRemat(){
-  const body = document.getElementById('rematBody'); if(!body) return;
-  const rows = body.querySelectorAll('tr[data-remat-id]');
-  
-  rows.forEach(row => {
-    const id = row.dataset.rematId;
-    const r = rematriculas.find(x => x.id === id);
-    if(r){
-      r.aluno = row.querySelector('[data-rfield="aluno"]')?.value || '';
-      r.mat = row.querySelector('[data-rfield="mat"]')?.value || '';
-      r.ultimaFreq = toISO(row.querySelector('[data-rfield="ultimaFreq"]')?.value || '');
-      r.retorno = toISO(row.querySelector('[data-rfield="retorno"]')?.value || '');
-      r.professor = row.querySelector('[data-rfield="professor"]')?.value || '';
-    }
-  });
-
-  await setDoc(doc(db,'meta','rematriculas'), {list: rematriculas});
-  alert('Rematrículas salvas com sucesso!');
-  renderAll();
-}
-
-function renderFarolModule(){
-  const yearsWrap = document.getElementById('farolYearsPills'); if(!yearsWrap) return;
-  yearsWrap.innerHTML = '';
-  sortYears();
-  anosCriados.forEach(y => {
-    const d = document.createElement('div');
-    d.className = 'tab' + (y === selectedFarolYear ? ' active gold' : '');
-    d.textContent = '📅 ' + y;
-    d.onclick = () => { selectedFarolYear = y; renderFarolModule(); };
-    yearsWrap.appendChild(d);
-  });
-
-  const mGrid = document.getElementById('farolMonthsGrid');
-  if(mGrid){
-    mGrid.innerHTML = MESES.map(m => `
-      <div class="month-card ${m === selectedFarolMonth ? 'active' : ''}" onclick="selectFarolMonth('${m}')">
-        ${m}
-      </div>
-    `).join('');
-  }
-
-  const detail = document.getElementById('farolMonthDetail'); if(!detail) return;
-  if(selectedFarolMonth){
-    detail.classList.remove('hidden');
-    document.getElementById('farolMonthTitle').textContent = `Farol de Desempenho — ${selectedFarolMonth} / ${selectedFarolYear}`;
-    renderFarolRanking();
-  } else {
-    detail.classList.add('hidden');
-  }
-}
-
-function selectFarolMonth(m){
-  selectedFarolMonth = m;
-  renderFarolModule();
-}
-
-function renderFarolRanking(){
-  const body = document.getElementById('rankBody'); if(!body) return;
-  
-  const counts = {};
-  sortProfessors();
-  PROFESSORES.forEach(p => counts[p] = 0);
-
-  rematriculas.forEach(r => {
-    if(r.ano === selectedFarolYear && r.mes === selectedFarolMonth && counts[r.professor] !== undefined){
-      counts[r.professor]++;
-    }
-  });
-
-  const ranked = PROFESSORES.map(p => ({ prof: p, count: counts[p] }))
-    .sort((a,b) => b.count - a.count || a.prof.localeCompare(b.prof, 'pt-BR'));
-
-  body.innerHTML = ranked.map(item => {
-    let badgeCls = 'r', label = 'Sem Rematrícula (0)';
-    if(item.count >= 4){ badgeCls = 'g'; label = 'Excelente (4+)'; }
-    else if(item.count >= 1){ badgeCls = 'y'; label = 'Em Progresso (1-3)'; }
-
-    return `
-      <tr>
-        <td style="text-align:center"><b>${item.prof}</b></td>
-        <td style="text-align:center; font-size:1.1rem; font-weight:800;">${item.count}</td>
-        <td style="text-align:center"><span class="badge ${badgeCls}">${label}</span></td>
-      </tr>
-    `;
-  }).join('');
-}
-
-function renderCertificacaoModule(){
-  const yearsWrap = document.getElementById('certYearsPills'); if(!yearsWrap) return;
-  yearsWrap.innerHTML = '';
-  sortYears();
-  
-  if(!anosCriados.includes(selectedCertYear)){
-    selectedCertYear = anosCriados[0] || '2026';
-  }
-
-  anosCriados.forEach(y => {
-    const d = document.createElement('div');
-    d.className = 'tab' + (y === selectedCertYear ? ' active gold' : '');
-    d.textContent = '🎓 ' + y;
-    d.onclick = () => { selectedCertYear = y; renderCertificacaoModule(); };
-    yearsWrap.appendChild(d);
-  });
-
-  document.querySelectorAll('.currentYearLabel').forEach(el => el.textContent = selectedCertYear);
-
-  const concludentes = students.filter(s => s.concludente && (s.ano === selectedCertYear || !s.ano));
-
-  const efCount = concludentes.filter(s => s.nivel === 'F' || s.nivel === 'EF').length;
-  const emCount = concludentes.filter(s => s.nivel === 'M' || s.nivel === 'EM').length;
-
-  document.getElementById('countCertEF').textContent = efCount;
-  document.getElementById('countCertEM').textContent = emCount;
-
-  const body = document.getElementById('certificacaoBody'); if(!body) return;
-  
-  const sorted = sortStudentsByName(concludentes);
-
-  body.innerHTML = sorted.map(s => `
-    <tr>
-      <td>${s.mat||'-'}</td>
-      <td><b>${s.aluno||'-'}</b></td>
-      <td><span class="badge g">${(s.nivel==='F'||s.nivel==='EF')?'F':'M'}</span></td>
-      <td>${s.contato||'-'}</td>
-      <td>${s.professor||'-'}</td>
-      <td>${selectedCertYear}</td>
-    </tr>
-  `).join('');
-}
-
-async function addNewYearCert(){
-  const inp = document.getElementById('addYearCert');
-  const val = inp.value.trim();
-  if(val && val.length===4 && !isNaN(val)){
-    if(!anosCriados.includes(val)){
-      anosCriados.push(val);
-      await persistAnos();
-      selectedCertYear = val;
-      inp.value = '';
-      renderAll();
-    }
-  }
-}
-
-async function adminChangePass(){
-  const user = document.getElementById('secSelUser').value;
-  const p1 = document.getElementById('secNewPassAdmin').value;
-  const p2 = document.getElementById('secNewPassAdmin2').value;
-  const err = document.getElementById('secAdminErr');
-  
-  if(!user){ err.textContent = 'Selecione um usuário.'; return; }
-  if(!p1 || p1 !== p2){ err.textContent = 'As senhas não coincidem ou estão em branco.'; return; }
-
-  if(user === 'Secretária'){
-    authData.secPass = p1;
-  } else {
-    if(!authData.profPasswords) authData.profPasswords = {};
-    authData.profPasswords[user] = p1;
-  }
-
-  await setDoc(doc(db,'meta','auth'), authData).catch(console.error);
-  err.textContent = '';
-  alert(`Senha de ${user} alterada com sucesso!`);
-}
-
-function exportCSV(){
-  let csv = "MAT;NIVEL;ALUNO;ULTIMA_FREQ;CONTATO;REMATRICULAS;PROFESSOR;CONCLUDENTE\n";
-  students.forEach(s=>{
-    csv += `"${s.mat||''}';'${(s.nivel==='F'||s.nivel==='EF')?'F':'M'}';'${s.aluno||''}';'${toBR(s.ultimaFreq)}';'${s.contato||''}';'${s.rematricula||0}';'${s.professor||''}';'${s.concludente?'SIM':'NÃO'}"\n`;
-  });
-  downloadFile(csv, 'estudantes.csv', 'text/csv;charset=utf-8;');
-}
-
-function exportCSVPorProf(){
-  let csv = "MAT;NIVEL;ALUNO;ULTIMA_FREQ;CONTATO;PROFESSOR;CONCLUDENTE\n";
-  const list = filterStudentsList(students, 'atuais', currentAno, selectedSecProfName);
-  list.forEach(s=>{
-    csv += `"${s.mat||''}';'${(s.nivel==='F'||s.nivel==='EF')?'F':'M'}';'${s.aluno||''}';'${toBR(s.ultimaFreq)}';'${s.contato||''}';'${s.professor||''}';'${s.concludente?'SIM':'NÃO'}"\n`;
-  });
-  downloadFile(csv, `estudantes_${selectedSecProfName}.csv`, 'text/csv;charset=utf-8;');
-}
-
-function exportCSVNiveis(){
-  let csv = "MAT;NIVEL;ALUNO;ULTIMA_FREQ;CONTATO;PROFESSOR;CONCLUDENTE\n";
-  const matchNivelCsv = (sNivel) => currentNivelTab === 'EF' ? (sNivel === 'F' || sNivel === 'EF') : (sNivel === 'M' || sNivel === 'EM');
-  const list = students.filter(s => matchNivelCsv(s.nivel));
-  list.forEach(s=>{
-    csv += `"${s.mat||''}';'${(s.nivel==='F'||s.nivel==='EF')?'F':'M'}';'${s.aluno||''}';'${toBR(s.ultimaFreq)}';'${s.contato||''}';'${s.professor||''}';'${s.concludente?'SIM':'NÃO'}"\n`;
-  });
-  downloadFile(csv, `estudantes_nivel_${currentNivelTab}.csv`, 'text/csv;charset=utf-8;');
-}
-
-function exportCSVRemat(){
-  let csv = "ESTUDANTE;MATRICULA;ULT_FREQ;RETORNO;MES_ANO;PROFESSOR\n";
-  const list = rematriculas.filter(r => r.ano === selectedRematYear && r.mes === selectedRematMonth);
-  list.forEach(r=>{
-    csv += `"${r.aluno||''}';'${r.mat||''}';'${toBR(r.ultimaFreq)}';'${toBR(r.retorno)}';'${r.mes}/${r.ano}';'${r.professor||''}"\n`;
-  });
-  downloadFile(csv, `rematriculas_${selectedRematMonth}_${selectedRematYear}.csv`, 'text/csv;charset=utf-8;');
-}
-
-function downloadFile(content, fileName, mimeType) {
-  const a = document.createElement('a');
-  mimeType = mimeType || 'application/octet-stream';
-  if (navigator.msSaveBlob) {
-    navigator.msSaveBlob(new Blob([content], { type: mimeType }), fileName);
-  } else if (URL && 'download' in a) {
-    a.href = URL.createObjectURL(new Blob([content], { type: mimeType }));
-    a.setAttribute('download', fileName);
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  } else {
-    location.href = 'data:' + mimeType + ',' + encodeURIComponent(content);
-  }
-}
-
-function exportWord(containerId, filename) {
-  const el = document.getElementById(containerId);
-  if(!el) return;
-  const html = `
-    <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-    <head><title>Export</title><style>table{border-collapse:collapse;width:100%;}th,td{border:1px solid #000;padding:5px;font-family:Arial;font-size:10pt;}</style></head>
-    <body>${el.innerHTML}</body>
-    </html>
-  `;
-  downloadFile(html, filename + '.doc', 'application/msword');
-}
-
-function printSection(containerId) {
-  const el = document.getElementById(containerId);
-  if(!el) return;
-  const win = window.open('', '', 'height=700,width=900');
-  win.document.write('<html><head><title>Impressão - CEJA</title>');
-  win.document.write('<style>body{font-family:sans-serif;padding:20px;} table{width:100%;border-collapse:collapse;} th,td{border:1px solid #ccc;padding:8px;text-align:left;font-size:12px;} th{background:#f2f2f2;} .no-print{display:none!important;}</style>');
-  win.document.write('</head><body>');
-  win.document.write(el.innerHTML);
-  win.document.write('</body></html>');
-  win.document.close();
-  win.focus();
-  setTimeout(() => win.print(), 500);
-}
-
-function renderAll(){
-  renderAnosPills();
-  buildProfessorFilter();
-
-  if(session && session.role === 'secretaria'){
-    if(currentSecViewMode === 'porProf') renderSecPorProfModule();
-    else if(currentSecViewMode === 'niveis') renderSecNiveisModule();
-    else renderTable();
-
-    renderProfessorsModule();
-    renderRematModule();
-    renderFarolModule();
-    renderCertificacaoModule();
-  } else if(session && session.role === 'professor'){
-    renderProfView();
-  }
-}
-
-window.setLoginTab = setLoginTab;
-window.togglePass = togglePass;
-window.openReset = openReset;
-window.closeReset = closeReset;
-window.doReset = doReset;
-window.loginSecretaria = loginSecretaria;
-window.loginProfessor = loginProfessor;
-window.doLogout = doLogout;
-window.setModule = setModule;
-window.setSubTab = setSubTab;
-window.setSubTab2 = setSubTab2;
-window.updateStudentField = updateStudentField;
-window.deleteStudentRow = deleteStudentRow;
-window.saveEstudantesModule = saveEstudantesModule;
-window.zerarBancoDeDados = zerarBancoDeDados;
-window.addProfessor = addProfessor;
-window.removeProfessor = removeProfessor;
-window.saveProfessors = saveProfessors;
-window.addNewYearRemat = addNewYearRemat;
-window.selectRematMonth = selectRematMonth;
-window.addSecRematRow = addSecRematRow;
-window.removeRematRow = removeRematRow;
-window.saveAllRemat = saveAllRemat;
-window.selectFarolMonth = selectFarolMonth;
-window.addNewYearCert = addNewYearCert;
-window.adminChangePass = adminChangePass;
-window.exportCSV = exportCSV;
-window.exportCSVPorProf = exportCSVPorProf;
-window.exportCSVNiveis = exportCSVNiveis;
-window.exportCSVRemat = exportCSVRemat;
-window.exportWord = exportWord;
-window.printSection = printSection;
-window.toggleAcoesDropdown = toggleAcoesDropdown;
-window.acaoIncluirAluno = acaoIncluirAluno;
-window.acaoAlternarRetirarAluno = acaoAlternarRetirarAluno;
-window.confirmarRetirarAluno = confirmarRetirarAluno;
-window.setSecViewMode = setSecViewMode;
-window.setNivelTab = setNivelTab;
-
-boot();
-</script>
-</body>
-</html>
