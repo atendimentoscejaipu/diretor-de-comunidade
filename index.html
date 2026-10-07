@@ -8,6 +8,16 @@
 <link rel="manifest" href="manifest.json">
 <!-- Font Awesome para Ícones -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- Leitura de PDF, DOCX e Excel diretamente no navegador -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://unpkg.com/mammoth@1.8.0/mammoth.browser.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script>
+  if(window.pdfjsLib){
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+</script>
 <style>
 :root{
   --bg:#f4f7f4; --card:#ffffff; --ink:#1f2937; --muted:#6b7280;
@@ -99,252 +109,92 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
 .container, .main-module { width: 100%; max-width: 98%; padding: 5px; margin: 0 auto; }
 th.col-aluno, td.col-aluno { min-width: 180px; }
 td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
-th.col-nivel, td.col-nivel { min-width: 80px; text-align: center; }
-td.col-nivel select.cell { min-width: 65px; width: 100%; font-size: 14px; text-align: center; font-weight: bold; }
 .btn-excluir { background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
 .btn-zerar { background-color: #8b0000; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 0px; }
 .mode-toggle-bar { display: flex; gap: 10px; margin-bottom: 16px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
 .mode-btn { background: var(--bg); color: var(--ink); border: 1px solid var(--border); border-radius: 8px; padding: 10px 18px; font-weight: 700; cursor: pointer; font-size: 0.92rem; display: flex; align-items: center; gap: 8px; transition: all .2s; }
 .mode-btn.active { background: var(--green); color: #fff; border-color: var(--green); }
-</style>
-</head>
-<body>
 
-<div id="loginView">
-<div class="wrap-login">
-  <div class="login-card">
-    <div class="login-head">
-      <img class="login-logo" id="imgLoginLogo" alt="Logo CEJA">
-      <div class="gov">Governo do Estado do Ceará · SEDUC</div>
-      <h2>CEJA Dr. Gerardo Camelo Madeira</h2>
-      <p>Ipu · CE — Diretor de Comunidade</p>
-    </div>
-
-    <div id="loginFormArea">
-      <div class="pill-toggle">
-        <div class="pill active" id="pillSec" onclick="setLoginTab('sec')">Secretária</div>
-        <div class="pill" id="pillProf" onclick="setLoginTab('prof')">Professor</div>
-      </div>
-
-      <!-- FORMULÁRIO SECRETÁRIA -->
-      <div id="secForm">
-        <label>Usuário</label><input value="Secretária" disabled>
-        <label>Senha</label>
-        <div class="pass-wrap">
-          <input type="password" id="secPass" placeholder="Senha da secretária">
-          <button type="button" class="eye-btn" onclick="togglePass('secPass', this)"><i class="fa-solid fa-eye"></i></button>
-        </div>
-        <div class="checkline"><input type="checkbox" id="secKeep" checked> Lembrar login e senha</div>
-        <div id="secErr" class="err"></div>
-        <button class="btn" style="width:100%" onclick="loginSecretaria()">Acessar Sistema</button>
-        <div class="linkrow"><a href="#" onclick="openReset('sec');return false;">Esqueci minha senha</a></div>
-      </div>
-
-      <!-- FORMULÁRIO PROFESSOR -->
-      <div id="profForm" class="hidden">
-        <label>Nome completo</label>
-        <input type="text" id="profNameInput" autocomplete="off" placeholder="Digite seu nome completo">
-        <label>Senha</label>
-        <div class="pass-wrap">
-          <input type="password" id="profPass" placeholder="Senha (padrão: 12345)">
-          <button type="button" class="eye-btn" onclick="togglePass('profPass', this)"><i class="fa-solid fa-eye"></i></button>
-        </div>
-        <div class="checkline"><input type="checkbox" id="profKeep" checked> Lembrar login e senha</div>
-        <div id="profErr" class="err"></div>
-        <button class="btn" style="width:100%" onclick="loginProfessor()">Acessar Sistema</button>
-        <div class="linkrow"><a href="#" onclick="openReset('prof');return false;">Esqueci minha senha</a></div>
-      </div>
-    </div>
-
-    <!-- REDEFINIÇÃO DE SENHA -->
-    <div id="resetArea" class="hidden">
-      <h3 id="resetTitle" style="margin-top:0"></h3>
-      <p class="muted" style="margin-top:-6px">Defina uma nova senha imediatamente — não é necessário informar a senha antiga.</p>
-      <div id="resetNameWrap">
-        <label>Nome completo do professor</label>
-        <input type="text" id="resetProfName" autocomplete="off" placeholder="Digite seu nome completo">
-      </div>
-      <label>Nova senha</label>
-      <div class="pass-wrap">
-        <input type="password" id="resetPass1">
-        <button type="button" class="eye-btn" onclick="togglePass('resetPass1', this)"><i class="fa-solid fa-eye"></i></button>
-      </div>
-      <label>Repita a nova senha</label>
-      <div class="pass-wrap">
-        <input type="password" id="resetPass2">
-        <button type="button" class="eye-btn" onclick="togglePass('resetPass2', this)"><i class="fa-solid fa-eye"></i></button>
-      </div>
-      <div id="resetErr" class="err"></div>
-      <button class="btn" style="width:100%" onclick="doReset()">Redefinir Senha</button>
-      <div class="linkrow"><a href="#" onclick="closeReset();return false;">Voltar ao login</a></div>
-    </div>
-    <div class="footer-note">Monitoramento e Busca Ativa de Alunos Evadidos</div>
-  </div>
-</div>
-</div>
-
-<!-- TELA PRINCIPAL -->
-<div id="appView" class="hidden">
-  <div class="top">
-    <div class="brand">
-      <img id="imgTopLogo" alt="Logo CEJA">
-      <div>
-        <div class="gov">Governo do Estado do Ceará <span class="badge-seduc">SEDUC</span></div>
-        <div class="school">CEJA Dr. Gerardo Camelo Madeira - IPU/CE</div>
-        <div class="sub" id="whoami"></div>
-      </div>
-    </div>
-    <div class="right">
-      <div class="clock" id="clockBox"></div>
-      <button class="btn orange sm" id="logoutBtn" onclick="doLogout()"><i class="fa-solid fa-power-off"></i> Sair</button>
-    </div>
-  </div>
-
-  <div class="layout">
-    <div class="sidebar" id="sidebarSec">
-      <h4>Módulos do Sistema</h4>
-      <div class="nav-item active" data-mod="alunos" onclick="setModule('alunos')"><i class="fa-solid fa-user-graduate"></i> Estudantes &amp; Matrículas</div>
-      <div class="nav-item" data-mod="profs" onclick="setModule('profs')"><i class="fa-solid fa-chalkboard-user"></i> Ambientes dos Professores</div>
-      <div class="nav-item" data-mod="remat" onclick="setModule('remat')"><i class="fa-solid fa-file-pen"></i> Rematrícula Mensal</div>
-      <div class="nav-item" data-mod="farol" onclick="setModule('farol')"><i class="fa-solid fa-lightbulb"></i> Farol de Rematrícula</div>
-      <div class="nav-item" data-mod="certificacao" onclick="setModule('certificacao')"><i class="fa-solid fa-award"></i> Certificação</div>
-      <div class="nav-item" data-mod="senha" onclick="setModule('senha')"><i class="fa-solid fa-key"></i> Recuperar Senha</div>
-    </div>
-
-    <div class="main">
-      <!-- ESTUDANTES (SECRETARIA) -->
-      <div id="mod-alunos">
-        <h1 class="pg">Gestão de Estudantes</h1>
-        <p class="sub-pg">Acompanhamento e controle de evasão escolar do CEJA Dr. Gerardo Camelo Madeira</p>
-
-        <!-- NAVEGAÇÃO ENTRE VISÕES -->
-        <div class="mode-toggle-bar">
-          <button class="mode-btn active" id="btnModeGeral" onclick="setSecViewMode('geral')"><i class="fa-solid fa-list-check"></i> Matrícula Geral</button>
-          <button class="mode-btn" id="btnModePorProf" onclick="setSecViewMode('porProf')"><i class="fa-solid fa-chalkboard-user"></i> Por Professor</button>
-          <button class="mode-btn" id="btnModeNiveis" onclick="setSecViewMode('niveis')"><i class="fa-solid fa-layer-group"></i> Níveis de Ensino</button>
-        </div>
-
-        <!-- VISUALIZAÇÃO: MATRÍCULA GERAL -->
-        <div id="secViewGeral">
-          <div class="toolbar">
-            <button class="btn-zerar" onclick="zerarBancoDeDados()">⚠️ Zerar Banco de Dados (Novo Semestre)</button>
-            
-            <div class="actions-dropdown" style="position:relative; display:inline-block;">
-              <button type="button" class="btn orange sm" onclick="toggleAcoesDropdown(event, this)"><i class="fa-solid fa-gears"></i> Ações <i class="fa-solid fa-caret-down"></i></button>
-              <div class="actions-menu hidden" style="position:absolute; top:100%; left:0; margin-top:4px; background:var(--card); border:1px solid var(--border); box-shadow:0 6px 16px rgba(0,0,0,0.15); border-radius:8px; z-index:1000; min-width:170px; overflow:hidden;">
-                <button type="button" onclick="acaoIncluirAluno()" style="width:100%; text-align:left; padding:10px 14px; background:none; border:none; cursor:pointer; color:var(--ink); font-size:0.85rem; display:flex; align-items:center; gap:8pxAqui está o código atualizado. Para resolver o problema, adicionei a classe `.col-nivel` ao CSS e apliquei essa classe nas colunas de "NÍVEL" (tanto no cabeçalho `<th>` quanto nas células `<td>` das tabelas da secretária e do professor) com uma largura mínima configurada para que as letras "F" e "M" apareçam perfeitamente[cite: 1]. Todas as demais configurações foram mantidas, incluindo a referência à imagem `ceja-logo.webp`[cite: 1].
-
-Abaixo está o código completo para você copiar e colar:
-
-```html
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Diretor de Comunidade - CEJA Dr. Gerardo Camelo Madeira</title>
-<!-- Ativa a instalação do site como App (PWA) -->
-<link rel="manifest" href="manifest.json">
-<!-- Font Awesome para Ícones -->
-<link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css)">
-<style>
-:root{
-  --bg:#f4f7f4; --card:#ffffff; --ink:#1f2937; --muted:#6b7280;
-  --green:#1E7A34; --green-d:#155526; --gold:#F2B705; --red:#c62828; --navy:#1c2540;
-  --border:#dfe6df;
-  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); box-sizing:border-box;
+/* NÍVEL: largura fixa para F/M em Windows, Android e Linux */
+th.nivel-col, td.nivel-col{
+  width:78px !important;
+  min-width:78px !important;
+  max-width:86px !important;
+  text-align:center !important;
+  white-space:nowrap !important;
 }
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#12160f; --card:#1b221a; --ink:#e6e9ef; --muted:#9aa4b2; --border:#2b3327; } }
-:root[data-theme="dark"]{ --bg:#12160f; --card:#1b221a; --ink:#e6e9ef; --muted:#9aa4b2; --border:#2b3327; }
-*{box-sizing:border-box;}
-html{scroll-padding-top:env(safe-area-inset-top,0px);}
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
-a{color:var(--green);text-decoration:none;}
-.top{background:var(--green);color:#fff;padding:10px 16px calc(10px + env(safe-area-inset-top,0px)) 16px;border-bottom:4px solid var(--gold);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
-.top .brand{display:flex;align-items:center;gap:10px;}
-.top .brand img{height:48px;width:48px;border-radius:50%;background:#fff;object-fit:cover;flex-shrink:0;border:2px solid var(--gold);}
-.top .gov{font-size:.72rem;font-weight:700;color:var(--gold);letter-spacing:.5px;display:flex;align-items:center;gap:6px;}
-.badge-seduc{background:rgba(255,255,255,.18);border-radius:6px;padding:1px 6px;font-size:.65rem;}
-.top .school{font-weight:700;font-size:.95rem;}
-.top .sub{font-size:.72rem;opacity:.9;}
-.top .right{display:flex;align-items:center;gap:10px;}
-.clock{background:rgba(0,0,0,.15);border-radius:20px;padding:5px 12px;font-size:.78rem;}
-.btn{background:var(--green);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:.9rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
-.btn:hover{background:var(--green-d);}
-.btn.orange{background:#e08a00;} .btn.orange:hover{background:#c67600;}
-.btn.sm{padding:6px 11px;font-size:.78rem;} .btn.red{background:var(--red);} .btn.dark{background:var(--navy);}
-.btn:disabled{background:#a9b3a9;cursor:not-allowed;}
-.layout{display:flex;max-width:1350px;margin:0 auto;min-height:calc(100vh - 62px);}
-.sidebar{width:240px;flex-shrink:0;padding:18px 10px;border-right:1px solid var(--border);}
-.sidebar h4{font-size:.72rem;color:var(--muted);text-transform:uppercase;margin:4px 8px 10px;}
-.nav-item{display:flex;align-items:center;gap:8px;padding:10px 10px;border-radius:8px;cursor:pointer;color:var(--ink);font-size:.87rem;margin-bottom:4px;transition:all .2s;}
-.nav-item:hover{background:rgba(30,122,52,.08);}
-.nav-item.active{background:rgba(30,122,52,.12);color:var(--green);font-weight:700;border:1px solid rgba(30,122,52,.3);}
-.main{flex:1;padding:20px;min-width:0;}
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px;}
-h1.pg{font-size:1.3rem;margin:0 0 2px;} .sub-pg{color:var(--muted);font-size:.85rem;margin:0 0 16px;}
-label{display:block;font-size:.78rem;color:var(--muted);margin:8px 0 4px;}
-input,select{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--ink);font-size:.87rem;}
-.grid{display:grid;gap:10px;} .grid.c5{grid-template-columns:repeat(5,1fr);} .grid.c2{grid-template-columns:1fr 1fr;} .grid.c4{grid-template-columns:repeat(4,1fr);}
-@media(max-width:900px){.grid.c5,.grid.c4{grid-template-columns:1fr 1fr;} .layout{flex-direction:column;} .sidebar{width:100%;display:flex;flex-wrap:wrap;gap:4px;} .nav-item{flex:1;justify-content:center;}}
-.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
-.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
-.tab{padding:9px 16px;border-radius:20px;cursor:pointer;color:var(--muted);background:var(--bg);border:1px solid var(--border);font-size:.85rem;white-space:nowrap;transition:all .2s;}
-.tab.active{background:var(--green);color:#fff;border-color:var(--green);font-weight:600;}
-.tab.gold.active{background:var(--gold);color:#5a4200;border-color:var(--gold);}
-.tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;background:var(--card);}
-table{border-collapse:collapse;width:100%;min-width:880px;font-size:.8rem;}
-th{padding:9px 6px;text-align:left;position:sticky;top:0;font-weight:700;} thead.blue th{background:#3b5fa8;color:#fff;}
-thead.darkgreen th{background:var(--green-d);color:#fff;} thead.navy th{background:var(--navy);color:#fff;}
-td{padding:6px;border-bottom:1px solid var(--border);vertical-align:middle;}
-tr:nth-child(even) td{background:rgba(30,122,52,.03);}
-input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--border);border-radius:6px;}
-.badge{padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;color:#fff;display:inline-block;}
-.badge.g{background:var(--green);} .badge.y{background:var(--gold);color:#5a4200;} .badge.r{background:var(--red);}
-.muted{color:var(--muted);font-size:.8rem;} .err{color:var(--red);font-size:.82rem;margin-top:6px;}
-.legend{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
-@media(max-width:700px){.legend{grid-template-columns:1fr;}}
-.legend div{border-radius:10px;padding:12px;color:#fff;font-size:.8rem;}
-.legend .g{background:var(--green);} .legend .y{background:var(--gold);color:#5a4200;} .legend .r{background:var(--red);}
-.prof-card{border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;background:var(--card);}
-.prof-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-@media(max-width:700px){.prof-grid{grid-template-columns:1fr;}}
-.hidden{display:none!important;}
-.wrap-login{max-width:420px;margin:40px auto;padding:0 16px;}
-.login-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:0 6px 24px rgba(0,0,0,.06);}
-.login-head{text-align:center;margin-bottom:16px;}
-.login-logo{display:block;margin:0 auto 8px;height:84px;width:84px;border-radius:50%;object-fit:cover;border:3px solid var(--green);background:#fff;}
-.login-head .gov{color:var(--green);font-weight:700;font-size:.78rem;text-transform:uppercase;}
-.login-head h2{margin:2px 0 0;color:var(--navy);font-size:1.05rem;}
-.login-head p{color:var(--muted);font-size:.78rem;margin:2px 0 0;}
-.pill-toggle{display:flex;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:16px;}
-.pill-toggle .pill{flex:1;text-align:center;padding:9px;border-radius:8px;cursor:pointer;font-weight:700;font-size:.85rem;color:var(--muted);}
-.pill-toggle .pill.active{background:var(--green);color:#fff;}
-.pass-wrap{position:relative;display:flex;align-items:center;}
-.pass-wrap input{padding-right:36px;}
-.pass-wrap .eye-btn{position:absolute;right:8px;background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;font-size:.9rem;}
-.checkline{display:flex;align-items:center;gap:6px;margin:10px 0;font-size:.82rem;color:var(--muted);}
-.checkline input{width:auto;}
-.linkrow{text-align:center;margin-top:10px;font-size:.82rem;}
-.footer-note{text-align:center;color:var(--muted);font-size:.72rem;margin-top:14px;}
-.months-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
-@media(max-width:700px){.months-grid{grid-template-columns:repeat(2,1fr);}}
-.month-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;cursor:pointer;font-weight:700;font-size:.9rem;transition:all .2s;color:var(--ink);}
-.month-card:hover,.month-card.active{background:var(--green);color:#fff;border-color:var(--green);}
-.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;}
-.stat-card .num{font-size:2.2rem;font-weight:800;color:var(--green);}
-.stat-card .label{font-size:.82rem;color:var(--muted);font-weight:600;}
+select.nivel-cell{
+  width:62px !important;
+  min-width:62px !important;
+  max-width:68px !important;
+  min-height:34px !important;
+  padding:7px 5px !important;
+  text-align:center !important;
+  text-align-last:center !important;
+  font-size:1rem !important;
+  font-weight:800 !important;
+  line-height:1.2 !important;
+  display:block !important;
+  margin:0 auto !important;
+}
+@media(max-width:700px){
+  th.nivel-col, td.nivel-col{
+    width:76px !important;
+    min-width:76px !important;
+    max-width:82px !important;
+  }
+  select.nivel-cell{
+    width:60px !important;
+    min-width:60px !important;
+    font-size:1rem !important;
+    min-height:36px !important;
+  }
+}
 
-.container, .main-module { width: 100%; max-width: 98%; padding: 5px; margin: 0 auto; }
-th.col-aluno, td.col-aluno { min-width: 180px; }
-td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
-th.col-nivel, td.col-nivel { min-width: 80px; text-align: center; }
-td.col-nivel select { width: 100%; min-width: 70px; font-size: 14px; text-align: center; }
-.btn-excluir { background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
-.btn-zerar { background-color: #8b0000; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 0px; }
-.mode-toggle-bar { display: flex; gap: 10px; margin-bottom: 16px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
-.mode-btn { background: var(--bg); color: var(--ink); border: 1px solid var(--border); border-radius: 8px; padding: 10px 18px; font-weight: 700; cursor: pointer; font-size: 0.92rem; display: flex; align-items: center; gap: 8px; transition: all .2s; }
-.mode-btn.active { background: var(--green); color: #fff; border-color: var(--green); }
+/* Página de importação de alunos */
+.import-hero{
+  background:linear-gradient(135deg,rgba(30,122,52,.10),rgba(242,183,5,.14));
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:18px;
+  margin-bottom:16px;
+}
+.import-buttons{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;}
+.import-level-btn{
+  min-height:86px;
+  border:2px solid var(--green);
+  background:var(--card);
+  color:var(--ink);
+  border-radius:12px;
+  cursor:pointer;
+  font-weight:800;
+  font-size:1rem;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+}
+.import-level-btn:hover{background:rgba(30,122,52,.08);}
+.import-level-btn.em{border-color:var(--navy);}
+.import-level-btn i{font-size:1.6rem;color:var(--green);}
+.import-level-btn.em i{color:var(--navy);}
+.import-table select{min-width:190px;}
+.import-source{font-size:.75rem;color:var(--muted);}
+.import-status-pending{background:var(--gold);color:#5a4200;}
+.import-status-current{background:var(--green);color:#fff;}
+.import-status-old{background:var(--navy);color:#fff;}
+.import-empty{
+  padding:28px 12px;
+  text-align:center;
+  color:var(--muted);
+  border:1px dashed var(--border);
+  border-radius:10px;
+}
+@media(max-width:700px){
+  .import-buttons{grid-template-columns:1fr;}
+  .import-table table{min-width:760px;}
+}
 </style>
 </head>
 <body>
@@ -489,6 +339,7 @@ td.col-nivel select { width: 100%; min-width: 70px; font-size: 14px; text-align:
             <div class="tab active gold" id="tabAtuais" data-subtab="atuais" onclick="setSubTab('atuais')">Matrículas Atuais</div>
             <div class="tab" id="tabAntigas" data-subtab="antigas" onclick="setSubTab('antigas')">Matrículas Antigas</div>
             <div class="tab" id="tabDuplicados" data-subtab="duplicados" onclick="setSubTab('duplicados')"><i class="fa-solid fa-users-viewfinder"></i> Alunos Duplicados</div>
+            <div class="tab" id="tabImportar" onclick="openImportPage()"><i class="fa-solid fa-file-import"></i> Importar Alunos</div>
           </div>
           <div class="grid c5" style="margin-bottom:6px;">
             <div><label>Ano Letivo (digite e clique em Salvar)</label><input type="text" id="anoLetivoInput" maxlength="4" placeholder="Ex: 2027"></div>
@@ -501,7 +352,7 @@ td.col-nivel select { width: 100%; min-width: 70px; font-size: 14px; text-align:
                 <tr>
                   <th style="width:40px; text-align:center;">Nº</th>
                   <th>MAT</th>
-                  <th class="col-nivel">NÍVEL</th>
+                  <th class="nivel-col">NÍVEL</th>
                   <th class="col-aluno">ALUNO(A)</th>
                   <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
                   <th>CONTATO</th>
@@ -514,6 +365,70 @@ td.col-nivel select { width: 100%; min-width: 70px; font-size: 14px; text-align:
               </thead>
               <tbody id="studentsBody"></tbody>
             </table>
+          </div>
+        </div>
+
+        <!-- PÁGINA: IMPORTAR ALUNOS -->
+        <div id="secViewImportar" class="hidden">
+          <div class="toolbar" style="justify-content:space-between;">
+            <button class="btn sm" onclick="closeImportPage()"><i class="fa-solid fa-arrow-left"></i> Voltar para Matrículas</button>
+            <div class="muted"><span id="importCount">0</span> aluno(s) na área de importação</div>
+          </div>
+
+          <div class="import-hero">
+            <h2 style="margin:0 0 6px;">Importar Alunos</h2>
+            <p class="sub-pg" style="margin-bottom:0;">
+              Selecione os arquivos do computador. O sistema lê listas em PDF, DOCX e Excel,
+              transforma os dados em estudantes e mantém os registros nesta área até que o administrador escolha onde alocá-los.
+            </p>
+
+            <div class="import-buttons">
+              <button class="import-level-btn" onclick="startStudentImport('F')">
+                <i class="fa-solid fa-school"></i>
+                Ensino Fundamental
+                <span class="muted">Importar alunos do EF</span>
+              </button>
+              <button class="import-level-btn em" onclick="startStudentImport('M')">
+                <i class="fa-solid fa-building-columns"></i>
+                Ensino Médio
+                <span class="muted">Importar alunos do EM</span>
+              </button>
+            </div>
+
+            <input id="studentImportFileInput" type="file" hidden multiple
+              accept=".pdf,.docx,.xlsx,.xls,.csv,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv,text/plain"
+              onchange="handleStudentImportFiles(this.files)">
+            <div id="importProgress" class="muted" style="margin-top:12px;"></div>
+          </div>
+
+          <div class="card">
+            <div class="toolbar" style="justify-content:space-between;">
+              <div>
+                <h3 style="margin:0 0 4px;">Alunos importados</h3>
+                <div class="muted">A caixa de diálogo à direita permite escolher <b>Matrículas Atuais</b> ou <b>Matrículas Antigas</b>.</div>
+              </div>
+              <button class="btn dark sm" onclick="alocarImportadosSelecionados()"><i class="fa-solid fa-right-left"></i> Alocar selecionados</button>
+            </div>
+
+            <div class="tablewrap import-table">
+              <table>
+                <thead class="blue">
+                  <tr>
+                    <th style="width:42px;text-align:center;">Nº</th>
+                    <th>MATRÍCULA</th>
+                    <th class="col-aluno">ALUNO(A)</th>
+                    <th class="nivel-col">NÍVEL</th>
+                    <th>CONTATO</th>
+                    <th>ARQUIVO DE ORIGEM</th>
+                    <th>ALOCAÇÃO</th>
+                    <th>STATUS</th>
+                    <th style="text-align:center;">AÇÃO</th>
+                  </tr>
+                </thead>
+                <tbody id="importStudentsBody"></tbody>
+              </table>
+            </div>
+            <div id="importEmpty" class="import-empty hidden">Nenhum aluno importado ainda. Use um dos dois botões acima para selecionar arquivos.</div>
           </div>
         </div>
 
@@ -549,7 +464,7 @@ td.col-nivel select { width: 100%; min-width: 70px; font-size: 14px; text-align:
                   <tr>
                     <th style="width:40px; text-align:center;">Nº</th>
                     <th>MAT</th>
-                    <th class="col-nivel">NÍVEL</th>
+                    <th class="nivel-col">NÍVEL</th>
                     <th class="col-aluno">ALUNO(A)</th>
                     <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
                     <th>CONTATO</th>
@@ -597,7 +512,7 @@ td.col-nivel select { width: 100%; min-width: 70px; font-size: 14px; text-align:
                 <tr>
                   <th style="width:40px; text-align:center;">Nº</th>
                   <th>MAT</th>
-                  <th class="col-nivel">NÍVEL</th>
+                  <th class="nivel-col">NÍVEL</th>
                   <th class="col-aluno">ALUNO(A)</th>
                   <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
                   <th>CONTATO</th>
@@ -739,7 +654,7 @@ td.col-nivel select { width: 100%; min-width: 70px; font-size: 14px; text-align:
               <tr>
                 <th>MATRÍCULA</th>
                 <th>NOME DO CONCLUDENTE</th>
-                <th class="col-nivel">NÍVEL</th>
+                <th class="nivel-col">NÍVEL</th>
                 <th>CONTATO</th>
                 <th>PROFESSOR RESPONSÁVEL</th>
                 <th>ANO DE CONCLUSÃO</th>
@@ -789,7 +704,7 @@ td.col-nivel select { width: 100%; min-width: 70px; font-size: 14px; text-align:
                 <tr>
                   <th style="width:40px; text-align:center;">Nº</th>
                   <th>MAT</th>
-                  <th class="col-nivel">NÍVEL</th>
+                  <th class="nivel-col">NÍVEL</th>
                   <th class="col-aluno">ALUNO(A)</th>
                   <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
                   <th>CONTATO</th>
@@ -809,10 +724,10 @@ td.col-nivel select { width: 100%; min-width: 70px; font-size: 14px; text-align:
 </div>
 
 <script type="module">
-import { initializeApp } from "[https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js](https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js)";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc, getDocs, writeBatch
-} from "[https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js](https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js)";
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyB8Uf77lKEjPHNqiHP7tbJjLg6sgJHz43Y",
@@ -836,7 +751,7 @@ function setupLogos() {
     './logo.webp'
   ];
 
-  const svgFallback = "data:image/svg+xml;utf8,<svg xmlns='[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='%231E7A34' stroke='%23F2B705' stroke-width='4'/><path d='M50 18 L78 32 L78 62 L50 82 L22 62 L22 32 Z' fill='%23155526' stroke='%23F2B705' stroke-width='2'/><text x='50' y='46' text-anchor='middle' fill='%23ffffff' font-size='14' font-weight='bold' font-family='sans-serif'>CEJA</text><text x='50' y='60' text-anchor='middle' fill='%23F2B705' font-size='9' font-weight='bold' font-family='sans-serif'>IPU/CE</text></svg>";
+  const svgFallback = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='%231E7A34' stroke='%23F2B705' stroke-width='4'/><path d='M50 18 L78 32 L78 62 L50 82 L22 62 L22 32 Z' fill='%23155526' stroke='%23F2B705' stroke-width='2'/><text x='50' y='46' text-anchor='middle' fill='%23ffffff' font-size='14' font-weight='bold' font-family='sans-serif'>CEJA</text><text x='50' y='60' text-anchor='middle' fill='%23F2B705' font-size='9' font-weight='bold' font-family='sans-serif'>IPU/CE</text></svg>";
 
   function applyToElement(imgEl) {
     if (!imgEl) return;
@@ -874,11 +789,14 @@ let selectedRematYear='2026', selectedRematMonth='Setembro', selectedRematProf='
 let selectedFarolYear='2026', selectedFarolMonth='Setembro';
 let selectedCertYear='2026';
 
-let currentSecViewMode = 'geral'; // 'geral', 'porProf' ou 'niveis'
+let currentSecViewMode = 'geral'; // 'geral', 'porProf', 'niveis' ou 'importar'
 let selectedSecProfName = '';
 let currentNivelTab = 'EF';
 
 let currentSubTab = 'atuais';
+let importedStudents = [];
+let importUnsubscribe = null;
+let currentImportLevel = 'F';
 let currentSubTab2 = 'atuais';
 let authData = { secPass:"Secretaria23231939", profPasswords:{} };
 let lockedProfLink = null;
@@ -1013,6 +931,16 @@ async function boot(){
     else { setDoc(doc(db,'meta','auth'), authData).catch(()=>{}); }
   });
 
+  if(!importUnsubscribe){
+    importUnsubscribe = onSnapshot(collection(db,'importedStudents'), (snap)=>{
+      importedStudents = snap.docs.map(d=>({id:d.id, ...d.data()}));
+      importedStudents.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+      renderImportPage();
+    }, (err)=>{
+      console.error('Erro ao acompanhar alunos importados:', err);
+    });
+  }
+
   tickClock(); setInterval(tickClock,1000);
   loadSavedLoginCredentials();
   prefillFromLink();
@@ -1108,6 +1036,392 @@ function situacaoStatus(dateStr){
   if(dias<=30) return {situacao:'Ativo',cls:'g'}; 
   if(dias<=59) return {situacao:'Pré-evadido',cls:'y'}; 
   return {situacao:'Evadido',cls:'r'}; 
+}
+
+function escapeHtml(value){
+  return String(value ?? '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
+}
+
+function normalizeImportedText(value){
+  return String(value ?? '')
+    .replace(/\u00A0/g,' ')
+    .replace(/\r/g,'')
+    .replace(/[ \t]+/g,' ')
+    .trim();
+}
+
+function normalizeNameKey(name){
+  return normalizeImportedText(name)
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase();
+}
+
+function likelyName(value){
+  const s = normalizeImportedText(value);
+  if(!s || s.length < 5) return false;
+  if(/^(nome|aluno|aluna|estudante|matricula|matr[ií]cula|telefone|contato|nivel|n[ií]vel|professor|turma|data|ano|ensino|fundamental|medio|m[eé]dio)$/i.test(s.replace(/[:_-]/g,' ').trim())) return false;
+  const letters=(s.match(/[A-Za-zÀ-ÿ]/g)||[]).length;
+  const words=s.split(/\s+/).filter(Boolean);
+  return letters >= 4 && words.length >= 2;
+}
+
+function normalizeMat(value){
+  const s=normalizeImportedText(value);
+  if(/^\d{1,12}$/.test(s)) return s;
+  const m=s.match(/\b\d{1,10}\b/);
+  return m ? m[0] : '';
+}
+
+function normalizeContact(value){
+  const s=normalizeImportedText(value);
+  const digits=s.replace(/\D/g,'');
+  return digits.length >= 8 ? digits : '';
+}
+
+function normalizeImportedDate(value){
+  const s=normalizeImportedText(value);
+  let m=s.match(/\b(\d{2})[\/.-](\d{2})[\/.-](\d{4})\b/);
+  if(m) return `${m[3]}-${m[2]}-${m[1]}`;
+  m=s.match(/\b(\d{4})[\/.-](\d{2})[\/.-](\d{2})\b/);
+  if(m) return `${m[1]}-${m[2]}-${m[3]}`;
+  return '';
+}
+
+function rowCellsToImportedStudent(cells, level, sourceFile, rowIndex){
+  const cleaned=(cells||[]).map(normalizeImportedText).filter(Boolean);
+  if(!cleaned.length) return null;
+
+  const allHeader=cleaned.every(c=>/^(nome|aluno|aluna|estudante|matricula|matr[ií]cula|telefone|contato|n[ií]vel|nivel|turma|professor|data|ano)$/i.test(c.replace(/[:_-]/g,' ').trim()));
+  if(allHeader) return null;
+
+  let mat='';
+  for(const c of cleaned){
+    const candidate=normalizeMat(c);
+    if(candidate){
+      const pure=c.replace(/\D/g,'');
+      if(pure.length===candidate.length && pure.length<=10){
+        mat=candidate;
+        break;
+      }
+    }
+  }
+
+  let contato='';
+  for(const c of cleaned){
+    const x=normalizeContact(c);
+    if(x){ contato=x; break; }
+  }
+
+  let ultimaFreq='';
+  for(const c of cleaned){
+    const d=normalizeImportedDate(c);
+    if(d){ ultimaFreq=d; break; }
+  }
+
+  const candidates=cleaned.filter(likelyName);
+  if(!candidates.length) return null;
+
+  candidates.sort((a,b)=>{
+    const aw=a.split(/\s+/).length, bw=b.split(/\s+/).length;
+    return bw-aw;
+  });
+  let aluno=candidates[0]
+    .replace(/^\d{1,12}\s*[-.:\-]?\s*/, '')
+    .replace(/^[-–—:;]+\s*/, '')
+    .trim();
+
+  aluno=aluno.replace(/\s+(?:\+?55\s*)?\(?\d{2}\)?[\s.-]*\d{4,5}[\s.-]*\d{4}\s*$/,'').trim();
+
+  const lower=aluno.toLowerCase();
+  if(lower.includes('governo do estado') || lower.includes('secretaria') || lower.includes('seduc')) return null;
+
+  return {
+    mat,
+    aluno,
+    nivel: level === 'M' ? 'M' : 'F',
+    contato,
+    ultimaFreq,
+    rematricula: ultimaFreq ? diasDesde(ultimaFreq) : 0,
+    professor:'',
+    concludente:false,
+    ano: currentAno,
+    sourceFile: sourceFile || `Arquivo ${rowIndex}`,
+    importedLevel: level === 'M' ? 'Ensino Médio' : 'Ensino Fundamental',
+    allocationTarget:'pendente',
+    allocationStatus:'pendente',
+    allocatedStudentId:'',
+    createdAt: Date.now() + rowIndex
+  };
+}
+
+function rowsFromText(textContent){
+  const lines=String(textContent||'').split('\n').map(normalizeImportedText).filter(Boolean);
+  return lines.map(line=>{
+    if(line.includes('\t')) return line.split('\t');
+    if(/\s{2,}/.test(line)) return line.split(/\s{2,}/);
+    return [line];
+  });
+}
+
+function parseRowsToImported(rows, level, sourceFile){
+  const result=[];
+  const seen=new Set();
+  (rows||[]).forEach((row,idx)=>{
+    const st=rowCellsToImportedStudent(row,level,sourceFile,idx+1);
+    if(!st) return;
+    const key=normalizeNameKey(st.aluno)+'|'+(st.mat||'');
+    if(seen.has(key)) return;
+    seen.add(key);
+    result.push(st);
+  });
+  return result;
+}
+
+async function extractPdfRows(file){
+  if(!window.pdfjsLib) throw new Error('Leitor PDF não carregado.');
+  const buffer=await file.arrayBuffer();
+  const pdf=await window.pdfjsLib.getDocument({data:buffer}).promise;
+  const out=[];
+  for(let pageNo=1; pageNo<=pdf.numPages; pageNo++){
+    const page=await pdf.getPage(pageNo);
+    const content=await page.getTextContent();
+    out.push(...rowsFromText(content.items.map(item=>item.str).join('\n')));
+  }
+  return out;
+}
+
+async function extractDocxRows(file){
+  if(!window.mammoth) throw new Error('Leitor DOCX não carregado.');
+  const arrayBuffer=await file.arrayBuffer();
+  const htmlResult=await window.mammoth.convertToHtml({arrayBuffer});
+  const parser=new DOMParser();
+  const docHtml=parser.parseFromString(htmlResult.value,'text/html');
+  const rows=[];
+  docHtml.querySelectorAll('tr').forEach(tr=>{
+    rows.push([...tr.querySelectorAll('th,td')].map(td=>td.textContent||''));
+  });
+  if(rows.length) return rows;
+  const textResult=await window.mammoth.extractRawText({arrayBuffer});
+  return rowsFromText(textResult.value);
+}
+
+async function extractWorkbookRows(file){
+  if(!window.XLSX) throw new Error('Leitor Excel não carregado.');
+  const buffer=await file.arrayBuffer();
+  const wb=window.XLSX.read(buffer,{type:'array',cellDates:true});
+  const rows=[];
+  wb.SheetNames.forEach(sheetName=>{
+    const ws=wb.Sheets[sheetName];
+    const data=window.XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:false});
+    data.forEach(row=>rows.push(row));
+  });
+  return rows;
+}
+
+async function extractImportRows(file){
+  const name=file.name.toLowerCase();
+  if(name.endsWith('.pdf')) return extractPdfRows(file);
+  if(name.endsWith('.docx')) return extractDocxRows(file);
+  if(name.endsWith('.xlsx') || name.endsWith('.xls') || name.endsWith('.csv')) return extractWorkbookRows(file);
+  if(name.endsWith('.txt')) return rowsFromText(await file.text());
+  throw new Error(`Formato não suportado: ${file.name}`);
+}
+
+function startStudentImport(level){
+  currentImportLevel=level === 'M' ? 'M' : 'F';
+  const input=document.getElementById('studentImportFileInput');
+  if(input) input.click();
+}
+
+async function handleStudentImportFiles(fileList){
+  const files=Array.from(fileList||[]);
+  const input=document.getElementById('studentImportFileInput');
+  if(input) input.value='';
+  if(!files.length) return;
+
+  const progress=document.getElementById('importProgress');
+  const allStudents=[];
+  let processed=0;
+
+  for(const file of files){
+    try{
+      if(progress) progress.textContent=`Lendo ${file.name}...`;
+      const rows=await extractImportRows(file);
+      allStudents.push(...parseRowsToImported(rows,currentImportLevel,file.name));
+      processed++;
+    }catch(error){
+      console.error(error);
+      alert(`Não foi possível ler o arquivo "${file.name}".\n\n${error.message||error}`);
+    }
+  }
+
+  const existingKeys=new Set(importedStudents.map(s=>normalizeNameKey(s.aluno)+'|'+(s.mat||'')));
+  const uniqueNew=allStudents.filter(s=>{
+    const key=normalizeNameKey(s.aluno)+'|'+(s.mat||'');
+    if(existingKeys.has(key)) return false;
+    existingKeys.add(key);
+    return true;
+  });
+
+  try{
+    for(const st of uniqueNew){
+      const newRef=doc(collection(db,'importedStudents'));
+      await setDoc(newRef,st);
+    }
+    if(progress) progress.textContent=`Importação concluída: ${uniqueNew.length} aluno(s) novo(s) em ${processed} arquivo(s).`;
+    if(!uniqueNew.length) alert('Nenhum aluno novo foi acrescentado. Os registros já importados foram preservados.');
+  }catch(error){
+    console.error(error);
+    alert('Erro ao gravar os alunos importados no Firebase: '+(error.message||error));
+  }
+  renderImportPage();
+}
+
+function importStatusInfo(s){
+  const target=s.allocationTarget||'pendente';
+  const status=s.allocationStatus||'pendente';
+  if(target==='atuais' || status==='alocado-atual') return {text:'Matrículas Atuais', cls:'import-status-current'};
+  if(target==='antigas' || status==='alocado-antiga') return {text:'Matrículas Antigas', cls:'import-status-old'};
+  return {text:'Pendente', cls:'import-status-pending'};
+}
+
+function renderImportPage(){
+  const body=document.getElementById('importStudentsBody');
+  if(!body) return;
+  const count=document.getElementById('importCount');
+  if(count) count.textContent=importedStudents.length;
+  const empty=document.getElementById('importEmpty');
+  if(empty) empty.classList.toggle('hidden',importedStudents.length>0);
+
+  body.innerHTML=importedStudents.map((s,idx)=>{
+    const st=importStatusInfo(s);
+    const target=s.allocationTarget||'pendente';
+    return `
+      <tr data-import-id="${escapeHtml(s.id)}">
+        <td style="text-align:center;font-weight:700;">${idx+1}</td>
+        <td>${escapeHtml(s.mat||'')}</td>
+        <td class="col-aluno"><b>${escapeHtml(s.aluno||'')}</b></td>
+        <td class="nivel-col"><span class="badge ${s.nivel==='M'?'y':'g'}" style="min-width:30px;text-align:center;font-size:.9rem;font-weight:900;">${escapeHtml(s.nivel==='M'?'M':'F')}</span></td>
+        <td>${escapeHtml(s.contato||'')}</td>
+        <td class="import-source">${escapeHtml(s.sourceFile||'')}</td>
+        <td>
+          <select class="cell" data-import-target="${escapeHtml(s.id)}" onchange="setImportedAllocation('${escapeHtml(s.id)}',this.value)">
+            <option value="pendente" ${target==='pendente'?'selected':''}>Escolha...</option>
+            <option value="atuais" ${target==='atuais'?'selected':''}>Matrículas Atuais</option>
+            <option value="antigas" ${target==='antigas'?'selected':''}>Matrículas Antigas</option>
+          </select>
+        </td>
+        <td><span class="badge ${st.cls}">${st.text}</span></td>
+        <td style="text-align:center;">
+          <button class="btn sm" onclick="allocateImportedStudent('${escapeHtml(s.id)}')"><i class="fa-solid fa-check"></i> Aplicar</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+async function setImportedAllocation(id,target){
+  const valid=['pendente','atuais','antigas'];
+  if(!valid.includes(target)) target='pendente';
+  const item=importedStudents.find(s=>s.id===id);
+  if(!item) return;
+  item.allocationTarget=target;
+  item.allocationStatus=target==='pendente'?'pendente':'selecionado';
+  await setDoc(doc(db,'importedStudents',id),item).catch(console.error);
+  renderImportPage();
+}
+
+async function allocateImportedStudent(id, silent=false){
+  const item=importedStudents.find(s=>s.id===id);
+  if(!item) return;
+
+  const target=item.allocationTarget||'pendente';
+  if(target==='pendente'){
+    alert('Escolha primeiro "Matrículas Atuais" ou "Matrículas Antigas" na caixa de diálogo.');
+    return;
+  }
+
+  const studentPayload={
+    mat:item.mat||'',
+    aluno:item.aluno||'',
+    nivel:item.nivel==='M'?'M':'F',
+    contato:item.contato||'',
+    ultimaFreq:item.ultimaFreq||'',
+    rematricula:item.ultimaFreq?diasDesde(item.ultimaFreq):0,
+    professor:item.professor||'',
+    concludente:false,
+    ano:target==='atuais'?currentAno:(parseInt(currentAno)-1).toString(),
+    importedFrom:item.sourceFile||'',
+    importedRecordId:id
+  };
+
+  try{
+    let studentId=item.allocatedStudentId||'';
+    if(studentId){
+      await setDoc(doc(db,'students',studentId),studentPayload,{merge:true});
+    }else{
+      const newStudentRef=doc(collection(db,'students'));
+      studentId=newStudentRef.id;
+      await setDoc(newStudentRef,studentPayload);
+    }
+
+    item.allocatedStudentId=studentId;
+    item.allocationStatus=target==='atuais'?'alocado-atual':'alocado-antiga';
+    item.allocationTarget=target;
+    item.allocatedAt=Date.now();
+    item.allocatedYear=studentPayload.ano;
+    await setDoc(doc(db,'importedStudents',id),item);
+
+    if(!silent) alert(`Aluno "${item.aluno}" alocado com sucesso em ${target==='atuais'?'Matrículas Atuais':'Matrículas Antigas'}.`);
+  }catch(error){
+    console.error(error);
+    alert('Erro ao alocar o aluno: '+(error.message||error));
+  }
+}
+
+async function alocarImportadosSelecionados(){
+  const pending=importedStudents.filter(s=>s.allocationTarget==='atuais'||s.allocationTarget==='antigas');
+  if(!pending.length){
+    alert('Escolha o destino na caixa de diálogo de pelo menos um aluno.');
+    return;
+  }
+  const ok=confirm(`Serão alocados ${pending.length} aluno(s) conforme a escolha feita na caixa de diálogo. Continuar?`);
+  if(!ok) return;
+  for(const item of pending) await allocateImportedStudent(item.id, true);
+  alert(`${pending.length} aluno(s) alocado(s) com sucesso conforme as escolhas da caixa de diálogo.`);
+}
+
+function openImportPage(){
+  currentSecViewMode='importar';
+  document.getElementById('btnModeGeral')?.classList.remove('active');
+  document.getElementById('btnModePorProf')?.classList.remove('active');
+  document.getElementById('btnModeNiveis')?.classList.remove('active');
+  document.getElementById('secViewGeral')?.classList.add('hidden');
+  document.getElementById('secViewPorProf')?.classList.add('hidden');
+  document.getElementById('secViewNiveis')?.classList.add('hidden');
+  document.getElementById('secViewImportar')?.classList.remove('hidden');
+  document.getElementById('tabAtuais')?.classList.remove('active');
+  document.getElementById('tabAntigas')?.classList.remove('active');
+  document.getElementById('tabDuplicados')?.classList.remove('active');
+  document.getElementById('tabImportar')?.classList.add('active');
+  renderImportPage();
+}
+
+function closeImportPage(){
+  currentSecViewMode='geral';
+  document.getElementById('secViewImportar')?.classList.add('hidden');
+  document.getElementById('tabImportar')?.classList.remove('active');
+  document.getElementById('secViewGeral')?.classList.remove('hidden');
+  document.getElementById('tabAtuais')?.classList.add('active');
+  document.getElementById('tabAntigas')?.classList.remove('active');
+  document.getElementById('tabDuplicados')?.classList.remove('active');
+  currentSubTab='atuais';
+  renderAll();
 }
 
 function renderAnosPills(){
@@ -1288,9 +1602,12 @@ function setSecViewMode(mode){
   document.getElementById('secViewGeral').classList.toggle('hidden', mode!=='geral');
   document.getElementById('secViewPorProf').classList.toggle('hidden', mode!=='porProf');
   document.getElementById('secViewNiveis').classList.toggle('hidden', mode!=='niveis');
+  document.getElementById('secViewImportar').classList.toggle('hidden', mode!=='importar');
+  document.getElementById('tabImportar')?.classList.toggle('active', mode==='importar');
 
   if(mode === 'porProf') renderSecPorProfModule();
   else if(mode === 'niveis') renderSecNiveisModule();
+  else if(mode === 'importar') renderImportPage();
   else renderTable();
 }
 
@@ -1307,9 +1624,16 @@ function setSubTab(tab){
   currentSubTab = tab;
   document.getElementById('tabAtuais').classList.toggle('active', tab==='atuais');
   document.getElementById('tabAntigas').classList.toggle('active', tab==='antigas');
-  
+
   const tabDup = document.getElementById('tabDuplicados');
   if(tabDup) tabDup.classList.toggle('active', tab==='duplicados');
+  document.getElementById('tabImportar')?.classList.remove('active');
+
+  if(currentSecViewMode==='importar'){
+    currentSecViewMode='geral';
+    document.getElementById('secViewImportar')?.classList.add('hidden');
+    document.getElementById('secViewGeral')?.classList.remove('hidden');
+  }
 
   if(currentSecViewMode === 'niveis'){
     renderSecNiveisModule();
@@ -1365,8 +1689,8 @@ function buildStudentRowHTML(s, isSecretaria=true, seq=''){
       <tr data-id="${s.id}">
         <td style="text-align:center; font-weight:700; color:var(--muted);">${seq}</td>
         <td><input class="cell" data-field="mat" value="${s.mat||''}" disabled style="background:rgba(0,0,0,0.04);"></td>
-        <td class="col-nivel">
-          <select class="cell" disabled style="background:rgba(0,0,0,0.04); color:var(--ink);">
+        <td class="nivel-col">
+          <select class="cell nivel-cell" disabled style="background:rgba(0,0,0,0.04); color:var(--ink);">
             <option value="F" ${(s.nivel==='F'||s.nivel==='EF')?'selected':''}>F</option>
             <option value="M" ${(s.nivel==='M'||s.nivel==='EM')?'selected':''}>M</option>
           </select>
@@ -1391,8 +1715,8 @@ function buildStudentRowHTML(s, isSecretaria=true, seq=''){
         ${checkboxRetirar}
         <input class="cell" data-field="mat" value="${s.mat||''}" onchange="updateStudentField('${s.id}', 'mat', this.value)">
       </td>
-      <td class="col-nivel">
-        <select class="cell" data-field="nivel" onchange="updateStudentField('${s.id}', 'nivel', this.value)">
+      <td class="nivel-col">
+        <select class="cell nivel-cell" data-field="nivel" onchange="updateStudentField('${s.id}', 'nivel', this.value)">
           <option value="F" ${(s.nivel==='F'||s.nivel==='EF')?'selected':''}>F</option>
           <option value="M" ${(s.nivel==='M'||s.nivel==='EM')?'selected':''}>M</option>
         </select>
@@ -1972,7 +2296,7 @@ function renderCertificacaoModule(){
     <tr>
       <td>${s.mat||'-'}</td>
       <td><b>${s.aluno||'-'}</b></td>
-      <td class="col-nivel"><span class="badge g">${(s.nivel==='F'||s.nivel==='EF')?'F':'M'}</span></td>
+      <td><span class="badge g">${(s.nivel==='F'||s.nivel==='EF')?'F':'M'}</span></td>
       <td>${s.contato||'-'}</td>
       <td>${s.professor||'-'}</td>
       <td>${selectedCertYear}</td>
@@ -2071,7 +2395,7 @@ function exportWord(containerId, filename) {
   const el = document.getElementById(containerId);
   if(!el) return;
   const html = `
-    <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='[http://www.w3.org/TR/REC-html40](http://www.w3.org/TR/REC-html40)'>
+    <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
     <head><title>Export</title><style>table{border-collapse:collapse;width:100%;}th,td{border:1px solid #000;padding:5px;font-family:Arial;font-size:10pt;}</style></head>
     <body>${el.innerHTML}</body>
     </html>
@@ -2100,6 +2424,7 @@ function renderAll(){
   if(session && session.role === 'secretaria'){
     if(currentSecViewMode === 'porProf') renderSecPorProfModule();
     else if(currentSecViewMode === 'niveis') renderSecNiveisModule();
+    else if(currentSecViewMode === 'importar') renderImportPage();
     else renderTable();
 
     renderProfessorsModule();
@@ -2149,6 +2474,13 @@ window.acaoAlternarRetirarAluno = acaoAlternarRetirarAluno;
 window.confirmarRetirarAluno = confirmarRetirarAluno;
 window.setSecViewMode = setSecViewMode;
 window.setNivelTab = setNivelTab;
+window.startStudentImport = startStudentImport;
+window.handleStudentImportFiles = handleStudentImportFiles;
+window.openImportPage = openImportPage;
+window.closeImportPage = closeImportPage;
+window.setImportedAllocation = setImportedAllocation;
+window.allocateImportedStudent = allocateImportedStudent;
+window.alocarImportadosSelecionados = alocarImportadosSelecionados;
 
 boot();
 </script>
