@@ -215,11 +215,11 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
         <h1 class="pg">Gestão de Estudantes</h1>
         <p class="sub-pg">Acompanhamento e controle de evasão escolar do CEJA Dr. Gerardo Camelo Madeira</p>
 
-        <!-- NAVEGAÇÃO ENTRE MATRÍCULA GERAL, POR PROFESSOR E GERAL POR PROFESSOR -->
+        <!-- NAVEGAÇÃO ENTRE VISÕES -->
         <div class="mode-toggle-bar">
           <button class="mode-btn active" id="btnModeGeral" onclick="setSecViewMode('geral')"><i class="fa-solid fa-list-check"></i> Matrícula Geral</button>
           <button class="mode-btn" id="btnModePorProf" onclick="setSecViewMode('porProf')"><i class="fa-solid fa-chalkboard-user"></i> Por Professor</button>
-          <button class="mode-btn" id="btnModeGeralPorProf" onclick="setSecViewMode('geralPorProf')"><i class="fa-solid fa-arrow-down-a-z"></i> Geral por Professor</button>
+          <button class="mode-btn" id="btnModeNiveis" onclick="setSecViewMode('niveis')"><i class="fa-solid fa-layer-group"></i> Níveis de Ensino</button>
         </div>
 
         <!-- VISUALIZAÇÃO: MATRÍCULA GERAL -->
@@ -227,7 +227,6 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
           <div class="toolbar">
             <button class="btn-zerar" onclick="zerarBancoDeDados()">⚠️ Zerar Banco de Dados (Novo Semestre)</button>
             
-            <!-- MENU DE AÇÕES -->
             <div class="actions-dropdown" style="position:relative; display:inline-block;">
               <button type="button" class="btn orange sm" onclick="toggleAcoesDropdown(event, this)"><i class="fa-solid fa-gears"></i> Ações <i class="fa-solid fa-caret-down"></i></button>
               <div class="actions-menu hidden" style="position:absolute; top:100%; left:0; margin-top:4px; background:var(--card); border:1px solid var(--border); box-shadow:0 6px 16px rgba(0,0,0,0.15); border-radius:8px; z-index:1000; min-width:170px; overflow:hidden;">
@@ -259,6 +258,7 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
             <table>
               <thead class="blue">
                 <tr>
+                  <th style="width:40px; text-align:center;">Nº</th>
                   <th>MAT</th>
                   <th>NÍVEL</th>
                   <th class="col-aluno">ALUNO(A)</th>
@@ -285,7 +285,6 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
               <h3 id="secProfSelectedTitle" style="margin:0; color:var(--green)"></h3>
               <div class="toolbar" style="margin:0">
-                <!-- MENU DE AÇÕES -->
                 <div class="actions-dropdown" style="position:relative; display:inline-block;">
                   <button type="button" class="btn orange sm" onclick="toggleAcoesDropdown(event, this)"><i class="fa-solid fa-gears"></i> Ações <i class="fa-solid fa-caret-down"></i></button>
                   <div class="actions-menu hidden" style="position:absolute; top:100%; left:0; margin-top:4px; background:var(--card); border:1px solid var(--border); box-shadow:0 6px 16px rgba(0,0,0,0.15); border-radius:8px; z-index:1000; min-width:170px; overflow:hidden;">
@@ -297,7 +296,6 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
                     </button>
                   </div>
                 </div>
-
                 <button class="btn sm" style="background:var(--navy)" onclick="saveEstudantesModule()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
                 <button class="btn dark sm" onclick="exportCSVPorProf()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
                 <button class="btn red sm" onclick="printSection('printAlunosPorProf')"><i class="fa-solid fa-file-pdf"></i> Gerar PDF / Imprimir</button>
@@ -308,6 +306,7 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
               <table>
                 <thead class="blue">
                   <tr>
+                    <th style="width:40px; text-align:center;">Nº</th>
                     <th>MAT</th>
                     <th>NÍVEL</th>
                     <th class="col-aluno">ALUNO(A)</th>
@@ -326,10 +325,14 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
           </div>
         </div>
 
-        <!-- VISUALIZAÇÃO: GERAL POR PROFESSOR -->
-        <div id="secViewGeralPorProf" class="hidden">
+        <!-- VISUALIZAÇÃO: NÍVEIS DE ENSINO -->
+        <div id="secViewNiveis" class="hidden">
+          <div class="tabs" style="margin-bottom:16px;">
+            <div class="tab active gold" id="tabNivelEF" onclick="setNivelTab('EF')">Ensino Fundamental (EF)</div>
+            <div class="tab" id="tabNivelEM" onclick="setNivelTab('EM')">Ensino Médio (EM)</div>
+          </div>
+          
           <div class="toolbar">
-            <!-- MENU DE AÇÕES -->
             <div class="actions-dropdown" style="position:relative; display:inline-block;">
               <button type="button" class="btn orange sm" onclick="toggleAcoesDropdown(event, this)"><i class="fa-solid fa-gears"></i> Ações <i class="fa-solid fa-caret-down"></i></button>
               <div class="actions-menu hidden" style="position:absolute; top:100%; left:0; margin-top:4px; background:var(--card); border:1px solid var(--border); box-shadow:0 6px 16px rgba(0,0,0,0.15); border-radius:8px; z-index:1000; min-width:170px; overflow:hidden;">
@@ -343,14 +346,15 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
             </div>
 
             <button class="btn sm" style="background:var(--navy)" onclick="saveEstudantesModule()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
-            <button class="btn dark sm" onclick="exportCSVGeralPorProf()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
-            <button class="btn dark sm" onclick="exportWord('printAlunosGeralPorProf', 'Estudantes_Geral_Por_Professor')"><i class="fa-solid fa-file-word"></i> Exportar Word</button>
-            <button class="btn red sm" onclick="printSection('printAlunosGeralPorProf')"><i class="fa-solid fa-file-pdf"></i> Gerar PDF / Imprimir</button>
+            <button class="btn dark sm" onclick="exportCSVNiveis()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
+            <button class="btn dark sm" onclick="exportWord('printAlunosNiveis', 'Estudantes_Niveis')"><i class="fa-solid fa-file-word"></i> Exportar Word</button>
+            <button class="btn red sm" onclick="printSection('printAlunosNiveis')"><i class="fa-solid fa-file-pdf"></i> Gerar PDF / Imprimir</button>
           </div>
-          <div class="tablewrap" id="printAlunosGeralPorProf">
+          <div class="tablewrap" id="printAlunosNiveis">
             <table>
               <thead class="blue">
                 <tr>
+                  <th style="width:40px; text-align:center;">Nº</th>
                   <th>MAT</th>
                   <th>NÍVEL</th>
                   <th class="col-aluno">ALUNO(A)</th>
@@ -363,7 +367,7 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
                   <th style="text-align:center" class="no-print">AÇÕES</th>
                 </tr>
               </thead>
-              <tbody id="secGeralPorProfStudentsBody"></tbody>
+              <tbody id="secNiveisStudentsBody"></tbody>
             </table>
           </div>
         </div>
@@ -400,7 +404,6 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
         <h3 id="rematYearTitle" style="margin-top:10px">Selecione o Mês:</h3>
         <div class="months-grid" id="rematMonthsGrid"></div>
         
-        <!-- PROFESSORES CONECTADOS NA REMATRÍCULA -->
         <div id="rematProfSection" style="margin-top:16px;">
           <h3 style="margin-bottom:8px;"><i class="fa-solid fa-chalkboard-user"></i> Filtrar por Professor:</h3>
           <div class="tabs" id="rematProfPills" style="margin-bottom:16px;"></div>
@@ -543,6 +546,7 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
             <table>
               <thead class="blue">
                 <tr>
+                  <th style="width:40px; text-align:center;">Nº</th>
                   <th>MAT</th>
                   <th>NÍVEL</th>
                   <th class="col-aluno">ALUNO(A)</th>
@@ -621,23 +625,23 @@ sortProfessors();
 
 const SEC_PASS_KEY_DEFAULT = "Secretaria23231939";
 let session=null, students=[], rematriculas=[], resetTarget='sec';
-let unsavedNewStudents = []; // Armazena novos alunos temporários até clicar em Salvar
-let isRetirarMode = false; // Flag para o modo 'Retirar Aluno'
+let unsavedNewStudents = [];
+let isRetirarMode = false;
 
 let anosCriados=['2026'], currentAno='2026';
 let selectedRematYear='2026', selectedRematMonth='Setembro', selectedRematProf='todos';
 let selectedFarolYear='2026', selectedFarolMonth='Setembro';
 let selectedCertYear='2026';
 
-let currentSecViewMode = 'geral'; // 'geral', 'porProf' ou 'geralPorProf'
-let selectedSecProfName = '';     // Nome do professor ativo na view "Por Professor"
+let currentSecViewMode = 'geral'; // 'geral', 'porProf' ou 'niveis'
+let selectedSecProfName = '';
+let currentNivelTab = 'EF';
 
 let currentSubTab = 'atuais';
 let currentSubTab2 = 'atuais';
 let authData = { secPass:"Secretaria23231939", profPasswords:{} };
 let lockedProfLink = null;
 
-// Fecha os menus de ações ao clicar fora
 document.addEventListener('click', (e) => {
   if (!e.target.closest('.actions-dropdown')) {
     document.querySelectorAll('.actions-menu').forEach(m => m.classList.add('hidden'));
@@ -674,8 +678,8 @@ function acaoIncluirAluno(){
   const newStudent = {
     id: tempId,
     mat: '',
-    aluno: '', // Celula do nome em branco conforme solicitado
-    nivel: 'EM',
+    aluno: '',
+    nivel: currentSecViewMode === 'niveis' ? currentNivelTab : 'EM',
     contato: '',
     ultimaFreq: toISO(new Date().toLocaleDateString('pt-BR')),
     rematricula: 0,
@@ -685,7 +689,6 @@ function acaoIncluirAluno(){
     isNew: true
   };
 
-  // Adiciona SEMPRE no topo (primeira linha)
   unsavedNewStudents.unshift(newStudent);
   renderAll();
 }
@@ -703,9 +706,8 @@ function acaoAlternarRetirarAluno(){
 
 async function confirmarRetirarAluno(id, chk) {
   if (!chk.checked) return;
-  
   const resposta = confirm("Você realmente deseja retirar esse aluno do sistema?");
-  if (resposta) { // SIM
+  if (resposta) {
     if (id.startsWith('temp_')) {
       unsavedNewStudents = unsavedNewStudents.filter(s => s.id !== id);
       renderAll();
@@ -718,7 +720,7 @@ async function confirmarRetirarAluno(id, chk) {
         alert("Erro ao retirar o aluno do sistema.");
       }
     }
-  } else { // NÃO
+  } else {
     chk.checked = false;
   }
 }
@@ -1040,15 +1042,24 @@ function setSecViewMode(mode){
   currentSecViewMode = mode;
   document.getElementById('btnModeGeral').classList.toggle('active', mode==='geral');
   document.getElementById('btnModePorProf').classList.toggle('active', mode==='porProf');
-  document.getElementById('btnModeGeralPorProf').classList.toggle('active', mode==='geralPorProf');
+  document.getElementById('btnModeNiveis').classList.toggle('active', mode==='niveis');
 
   document.getElementById('secViewGeral').classList.toggle('hidden', mode!=='geral');
   document.getElementById('secViewPorProf').classList.toggle('hidden', mode!=='porProf');
-  document.getElementById('secViewGeralPorProf').classList.toggle('hidden', mode!=='geralPorProf');
+  document.getElementById('secViewNiveis').classList.toggle('hidden', mode!=='niveis');
 
   if(mode === 'porProf') renderSecPorProfModule();
-  else if(mode === 'geralPorProf') renderSecGeralPorProfModule();
+  else if(mode === 'niveis') renderSecNiveisModule();
   else renderTable();
+}
+
+function setNivelTab(nivel) {
+  currentNivelTab = nivel;
+  document.getElementById('tabNivelEF').classList.toggle('active', nivel === 'EF');
+  document.getElementById('tabNivelEF').classList.toggle('gold', nivel === 'EF');
+  document.getElementById('tabNivelEM').classList.toggle('active', nivel === 'EM');
+  document.getElementById('tabNivelEM').classList.toggle('gold', nivel === 'EM');
+  renderSecNiveisModule();
 }
 
 function setSubTab(tab){
@@ -1059,8 +1070,8 @@ function setSubTab(tab){
   const tabDup = document.getElementById('tabDuplicados');
   if(tabDup) tabDup.classList.toggle('active', tab==='duplicados');
 
-  if(currentSecViewMode === 'geralPorProf'){
-    renderSecGeralPorProfModule();
+  if(currentSecViewMode === 'niveis'){
+    renderSecNiveisModule();
   } else {
     renderTable();
   }
@@ -1077,7 +1088,7 @@ function renderAll(){
   renderAnosPills();
   renderTable();
   renderSecPorProfModule();
-  renderSecGeralPorProfModule();
+  renderSecNiveisModule();
   renderProfs();
   renderRematModule();
   renderFarolModule();
@@ -1085,7 +1096,6 @@ function renderAll(){
   if(session && session.role==='professor') renderProfView();
 }
 
-// FILTRA E ORDENA OS ESTUDANTES DO MENOR NÚMERO DE MATRÍCULA PARA O MAIOR
 function filterStudentsList(list, subtabFilter, yearFilter, profFilter){
   if (subtabFilter === 'duplicados') {
     const counts = {};
@@ -1117,44 +1127,6 @@ function filterStudentsList(list, subtabFilter, yearFilter, profFilter){
   });
 }
 
-// FILTRA E ORDENA OS ESTUDANTES POR ORDEM ALFABÉTICA DOS PROFESSORES
-function filterStudentsListByProf(list, subtabFilter, yearFilter){
-  if (subtabFilter === 'duplicados') {
-    const counts = {};
-    list.forEach(s => {
-      const key = `${(s.mat||'').trim().toLowerCase()}|${(s.aluno||'').trim().toLowerCase()}|${(s.nivel||'').trim().toLowerCase()}`;
-      counts[key] = (counts[key] || 0) + 1;
-    });
-    const dupList = list.filter(s => {
-      const key = `${(s.mat||'').trim().toLowerCase()}|${(s.aluno||'').trim().toLowerCase()}|${(s.nivel||'').trim().toLowerCase()}`;
-      return counts[key] > 1;
-    });
-    return dupList.sort((a, b) => {
-      const profA = (a.professor || 'ZZZ').trim();
-      const profB = (b.professor || 'ZZZ').trim();
-      const compProf = profA.localeCompare(profB, 'pt-BR', {sensitivity: 'base'});
-      if(compProf !== 0) return compProf;
-      return (a.aluno || '').localeCompare(b.aluno || '', 'pt-BR', {sensitivity: 'base'});
-    });
-  }
-
-  const filtered = list.filter(s=>{
-    if(subtabFilter==='atuais'){
-      return (s.ano === yearFilter) && (!s.concludente);
-    }
-    return (s.concludente) || (s.ano < yearFilter);
-  });
-
-  return filtered.sort((a, b) => {
-    const profA = (a.professor || 'ZZZ').trim();
-    const profB = (b.professor || 'ZZZ').trim();
-    const compProf = profA.localeCompare(profB, 'pt-BR', {sensitivity: 'base'});
-    if(compProf !== 0) return compProf;
-
-    return (a.aluno || '').localeCompare(b.aluno || '', 'pt-BR', {sensitivity: 'base'});
-  });
-}
-
 async function updateStudentField(id, field, value) {
   let st = unsavedNewStudents.find(s => s.id === id);
   if (st) {
@@ -1180,15 +1152,15 @@ async function updateStudentField(id, field, value) {
   await setDoc(doc(db, 'students', id), st, { merge: true }).catch(console.error);
 }
 
-function buildStudentRowHTML(s, isSecretaria=true){
+function buildStudentRowHTML(s, isSecretaria=true, seq=''){
   const st = situacaoStatus(s.ultimaFreq);
   let optionsProf = PROFESSORES.map(p=>`<option value="${p}" ${normName(s.professor)===normName(p)?'selected':''}>${p}</option>`).join('');
   const dateFormatted = toBR(s.ultimaFreq);
   const diasSemFreq = s.ultimaFreq ? `${diasDesde(s.ultimaFreq)} dias` : '---';
 
-  // AMBIENTE DO PROFESSOR: APENAS CONTATO E DATA DE FREQUÊNCIA PODEM SER EDITADOS
   if (!isSecretaria) {
     return `<tr data-id="${s.id}">
+      <td style="text-align:center; font-weight:bold; color:var(--muted);">${seq}</td>
       <td><input class="cell" value="${s.mat||''}" disabled style="width:65px; background:rgba(0,0,0,0.04); color:var(--ink);"></td>
       <td>
         <select class="cell" disabled style="background:rgba(0,0,0,0.04); color:var(--ink);">
@@ -1208,7 +1180,6 @@ function buildStudentRowHTML(s, isSecretaria=true){
     </tr>`;
   }
 
-  // AMBIENTE DA SECRETARIA
   let matColHTML = '';
   if (isRetirarMode) {
     matColHTML = `<div style="display:flex; align-items:center; gap:6px;">
@@ -1220,6 +1191,7 @@ function buildStudentRowHTML(s, isSecretaria=true){
   }
 
   return `<tr data-id="${s.id}">
+    <td style="text-align:center; font-weight:bold; color:var(--muted);">${seq}</td>
     <td>${matColHTML}</td>
     <td>
       <select class="cell" data-field="nivel" onchange="updateStudentField('${s.id}', 'nivel', this.value)">
@@ -1253,15 +1225,13 @@ function renderTable(){
       const listSaved = filterStudentsList(students, currentSubTab, currentAno, filterP);
       const listUnsaved = unsavedNewStudents.filter(s => {
         if(filterP && normName(s.professor) !== normName(filterP)) return false;
-        if(currentSubTab === 'atuais') {
-          return (s.ano === currentAno) && (!s.concludente);
-        }
+        if(currentSubTab === 'atuais') return (s.ano === currentAno) && (!s.concludente);
         return (s.concludente) || (s.ano < currentAno);
       });
       combinedList = [...listUnsaved, ...listSaved];
   }
 
-  body.innerHTML = combinedList.map(s => buildStudentRowHTML(s, true)).join('');
+  body.innerHTML = combinedList.map((s, idx) => buildStudentRowHTML(s, true, idx + 1)).join('');
 }
 
 function renderSecPorProfModule(){
@@ -1292,31 +1262,37 @@ function renderSecPorProfModule(){
     const listSaved = filterStudentsList(students, 'atuais', currentAno, selectedSecProfName);
     const listUnsaved = unsavedNewStudents.filter(s => normName(s.professor) === normName(selectedSecProfName) && s.ano === currentAno && !s.concludente);
     const combinedList = [...listUnsaved, ...listSaved];
-    body.innerHTML = combinedList.map(s => buildStudentRowHTML(s, true)).join('');
+    body.innerHTML = combinedList.map((s, idx) => buildStudentRowHTML(s, true, idx + 1)).join('');
   }
 }
 
-function renderSecGeralPorProfModule(){
-  const body = document.getElementById('secGeralPorProfStudentsBody');
+function renderSecNiveisModule(){
+  const body = document.getElementById('secNiveisStudentsBody');
   if(!body) return;
 
   let combinedAll = [...unsavedNewStudents, ...students];
   let combinedList;
 
-  if (currentSubTab === 'duplicados') {
-      combinedList = filterStudentsListByProf(combinedAll, 'duplicados', currentAno);
-  } else {
-      const listSaved = filterStudentsListByProf(students, currentSubTab, currentAno);
-      const listUnsaved = unsavedNewStudents.filter(s => {
-        if(currentSubTab === 'atuais') {
-          return (s.ano === currentAno) && (!s.concludente);
-        }
-        return (s.concludente) || (s.ano < currentAno);
-      });
-      combinedList = [...listUnsaved, ...listSaved];
-  }
+  const listSaved = students.filter(s => {
+      if (s.nivel !== currentNivelTab) return false;
+      if(currentSubTab === 'atuais') return (s.ano === currentAno) && (!s.concludente);
+      if(currentSubTab === 'antigas') return (s.concludente) || (s.ano < currentAno);
+      return true;
+  });
   
-  body.innerHTML = combinedList.map(s => buildStudentRowHTML(s, true)).join('');
+  const listUnsaved = unsavedNewStudents.filter(s => {
+      if (s.nivel !== currentNivelTab) return false;
+      if(currentSubTab === 'atuais') return (s.ano === currentAno) && (!s.concludente);
+      if(currentSubTab === 'antigas') return (s.concludente) || (s.ano < currentAno);
+      return true;
+  });
+
+  combinedList = [...listUnsaved, ...listSaved];
+  
+  // Ordenar alfabeticamente os alunos do respectivo nível
+  combinedList.sort((a,b) => (a.aluno||'').localeCompare(b.aluno||'', 'pt-BR'));
+
+  body.innerHTML = combinedList.map((s, idx) => buildStudentRowHTML(s, true, idx + 1)).join('');
 }
 
 function renderProfs(){
@@ -1605,7 +1581,7 @@ function renderProfView(){
   const bodyTurma = document.getElementById('profStudentsBody');
   if(bodyTurma){
     const myStudents = filterStudentsList(students, currentSubTab2, currentAno, myName);
-    bodyTurma.innerHTML = myStudents.map(s=>buildStudentRowHTML(s, false)).join('');
+    bodyTurma.innerHTML = myStudents.map((s, idx)=>buildStudentRowHTML(s, false, idx+1)).join('');
   }
 }
 
@@ -1664,7 +1640,6 @@ async function saveAllStudents(){
     }
   }
 
-  // Persiste novos alunos temporários no Firebase
   if(unsavedNewStudents.length > 0){
     for(let tempSt of unsavedNewStudents){
       const realId = 's' + Date.now() + Math.random().toString(36).substring(2, 5);
@@ -1685,7 +1660,6 @@ async function saveAllStudents(){
     unsavedNewStudents = [];
   }
 
-  // Atualiza alunos existentes
   for(let row of rows){
     const id = row.dataset.id;
     if(!id.startsWith('temp_')){
@@ -1739,13 +1713,13 @@ function exportCSVPorProf(){
   downloadFile(csv, `estudantes_${selectedSecProfName}.csv`, 'text/csv;charset=utf-8;');
 }
 
-function exportCSVGeralPorProf(){
+function exportCSVNiveis(){
   let csv = "MAT;NIVEL;ALUNO;ULTIMA_FREQ;CONTATO;PROFESSOR;CONCLUDENTE\n";
-  const list = filterStudentsListByProf(students, currentSubTab, currentAno);
+  const list = students.filter(s => s.nivel === currentNivelTab);
   list.forEach(s=>{
     csv += `"${s.mat||''}';'${s.nivel||'EM'}';'${s.aluno||''}';'${toBR(s.ultimaFreq)}';'${s.contato||''}';'${s.professor||''}';'${s.concludente?'SIM':'NÃO'}"\n`;
   });
-  downloadFile(csv, `estudantes_geral_por_professor.csv`, 'text/csv;charset=utf-8;');
+  downloadFile(csv, `estudantes_nivel_${currentNivelTab}.csv`, 'text/csv;charset=utf-8;');
 }
 
 function exportCSVRemat(){
@@ -1870,6 +1844,7 @@ window.loginProfessor = loginProfessor;
 window.doLogout = doLogout;
 window.setModule = setModule;
 window.setSecViewMode = setSecViewMode;
+window.setNivelTab = setNivelTab;
 window.setSubTab = setSubTab;
 window.setSubTab2 = setSubTab2;
 window.addProfessor = addProfessor;
@@ -1891,7 +1866,7 @@ window.addNewYearCert = addNewYearCert;
 window.adminChangePass = adminChangePass;
 window.exportCSV = exportCSV;
 window.exportCSVPorProf = exportCSVPorProf;
-window.exportCSVGeralPorProf = exportCSVGeralPorProf;
+window.exportCSVNiveis = exportCSVNiveis;
 window.exportCSVRemat = exportCSVRemat;
 window.exportWord = exportWord;
 window.printSection = printSection;
