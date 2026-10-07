@@ -9,7 +9,7 @@
 <!-- Font Awesome para Ícones -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<!-- Bibliotecas para Leitura de Ficheiros / Documentos -->
+<!-- Bibliotecas para Leitura de Ficheiros / Documentos (Excel, Word e PDF) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -69,10 +69,6 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
 .badge{padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;color:#fff;display:inline-block;}
 .badge.g{background:var(--green);} .badge.y{background:var(--gold);color:#5a4200;} .badge.r{background:var(--red);}
 .muted{color:var(--muted);font-size:.8rem;} .err{color:var(--red);font-size:.82rem;margin-top:6px;}
-.legend{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
-@media(max-width:700px){.legend{grid-template-columns:1fr;}}
-.legend div{border-radius:10px;padding:12px;color:#fff;font-size:.8rem;}
-.legend .g{background:var(--green);} .legend .y{background:var(--gold);color:#5a4200;} .legend .r{background:var(--red);}
 .prof-card{border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;background:var(--card);}
 .prof-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 @media(max-width:700px){.prof-grid{grid-template-columns:1fr;}}
@@ -94,22 +90,12 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
 .checkline input{width:auto;}
 .linkrow{text-align:center;margin-top:10px;font-size:.82rem;}
 .footer-note{text-align:center;color:var(--muted);font-size:.72rem;margin-top:14px;}
-.months-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
-@media(max-width:700px){.months-grid{grid-template-columns:repeat(2,1fr);}}
-.month-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;cursor:pointer;font-weight:700;font-size:.9rem;transition:all .2s;color:var(--ink);}
-.month-card:hover,.month-card.active{background:var(--green);color:#fff;border-color:var(--green);}
-.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;}
-.stat-card .num{font-size:2.2rem;font-weight:800;color:var(--green);}
-.stat-card .label{font-size:.82rem;color:var(--muted);font-weight:600;}
-
-.container, .main-module { width: 100%; max-width: 98%; padding: 5px; margin: 0 auto; }
-th.col-aluno, td.col-aluno { min-width: 180px; }
-td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
-.btn-excluir { background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
-.btn-zerar { background-color: #8b0000; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 0px; }
-.mode-toggle-bar { display: flex; gap: 10px; margin-bottom: 16px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
-.mode-btn { background: var(--bg); color: var(--ink); border: 1px solid var(--border); border-radius: 8px; padding: 10px 18px; font-weight: 700; cursor: pointer; font-size: 0.92rem; display: flex; align-items: center; gap: 8px; transition: all .2s; }
-.mode-btn.active { background: var(--green); color: #fff; border-color: var(--green); }
+.col-aluno{min-width:180px;}
+.btn-excluir{background-color:#dc3545;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;font-size:12px;}
+.btn-zerar{background-color:#8b0000;color:white;border:none;padding:10px 15px;border-radius:5px;cursor:pointer;font-weight:bold;}
+.mode-toggle-bar{display:flex;gap:10px;margin-bottom:16px;border-bottom:2px solid var(--border);padding-bottom:10px;}
+.mode-btn{background:var(--bg);color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:10px 18px;font-weight:700;cursor:pointer;font-size:0.92rem;display:flex;align-items:center;gap:8px;transition:all .2s;}
+.mode-btn.active{background:var(--green);color:#fff;border-color:var(--green);}
 </style>
 </head>
 <body>
@@ -119,7 +105,8 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
 <div class="wrap-login">
   <div class="login-card">
     <div class="login-head">
-      <img class="login-logo" id="imgLoginLogo" alt="Logo CEJA" src="https://via.placeholder.com/84">
+      <!-- IMAGEM DO LOGO NA TELA DE LOGIN -->
+      <img class="login-logo" id="imgLoginLogo" alt="Logo CEJA" src="ceja-logo.webp">
       <div class="gov">Governo do Estado do Ceará · SEDUC</div>
       <h2>CEJA Dr. Gerardo Camelo Madeira</h2>
       <p>Ipu · CE — Diretor de Comunidade</p>
@@ -142,7 +129,6 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
         <div class="checkline"><input type="checkbox" id="secKeep" checked> Lembrar login e senha</div>
         <div id="secErr" class="err"></div>
         <button class="btn" style="width:100%" onclick="loginSecretaria()">Acessar Sistema</button>
-        <div class="linkrow"><a href="#" onclick="openReset('sec');return false;">Esqueci minha senha</a></div>
       </div>
 
       <!-- FORMULÁRIO PROFESSOR -->
@@ -157,31 +143,7 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
         <div class="checkline"><input type="checkbox" id="profKeep" checked> Lembrar login e senha</div>
         <div id="profErr" class="err"></div>
         <button class="btn" style="width:100%" onclick="loginProfessor()">Acessar Sistema</button>
-        <div class="linkrow"><a href="#" onclick="openReset('prof');return false;">Esqueci minha senha</a></div>
       </div>
-    </div>
-
-    <!-- REDEFINIÇÃO DE SENHA -->
-    <div id="resetArea" class="hidden">
-      <h3 id="resetTitle" style="margin-top:0">Redefinir Senha</h3>
-      <p class="muted" style="margin-top:-6px">Defina uma nova senha imediatamente.</p>
-      <div id="resetNameWrap">
-        <label>Nome completo do professor</label>
-        <input type="text" id="resetProfName" autocomplete="off" placeholder="Digite seu nome completo">
-      </div>
-      <label>Nova senha</label>
-      <div class="pass-wrap">
-        <input type="password" id="resetPass1">
-        <button type="button" class="eye-btn" onclick="togglePass('resetPass1', this)"><i class="fa-solid fa-eye"></i></button>
-      </div>
-      <label>Repita a nova senha</label>
-      <div class="pass-wrap">
-        <input type="password" id="resetPass2">
-        <button type="button" class="eye-btn" onclick="togglePass('resetPass2', this)"><i class="fa-solid fa-eye"></i></button>
-      </div>
-      <div id="resetErr" class="err"></div>
-      <button class="btn" style="width:100%" onclick="doReset()">Redefinir Senha</button>
-      <div class="linkrow"><a href="#" onclick="closeReset();return false;">Voltar ao login</a></div>
     </div>
     <div class="footer-note">Monitoramento e Busca Ativa de Alunos Evadidos</div>
   </div>
@@ -192,7 +154,8 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
 <div id="appView" class="hidden">
   <div class="top">
     <div class="brand">
-      <img id="imgTopLogo" alt="Logo CEJA" src="https://via.placeholder.com/48">
+      <!-- IMAGEM DO LOGO NO CABEÇALHO SUPERIOR -->
+      <img id="imgTopLogo" alt="Logo CEJA" src="ceja-logo.webp">
       <div>
         <div class="gov">Governo do Estado do Ceará <span class="badge-seduc">SEDUC</span></div>
         <div class="school">CEJA Dr. Gerardo Camelo Madeira - IPU/CE</div>
@@ -200,7 +163,6 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
       </div>
     </div>
     <div class="right">
-      <div class="clock" id="clockBox"></div>
       <button class="btn orange sm" id="logoutBtn" onclick="doLogout()"><i class="fa-solid fa-power-off"></i> Sair</button>
     </div>
   </div>
@@ -210,14 +172,10 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
       <h4>Módulos do Sistema</h4>
       <div class="nav-item active" data-mod="alunos" onclick="setModule('alunos')"><i class="fa-solid fa-user-graduate"></i> Estudantes &amp; Matrículas</div>
       <div class="nav-item" data-mod="profs" onclick="setModule('profs')"><i class="fa-solid fa-chalkboard-user"></i> Ambientes dos Professores</div>
-      <div class="nav-item" data-mod="remat" onclick="setModule('remat')"><i class="fa-solid fa-file-pen"></i> Rematrícula Mensal</div>
-      <div class="nav-item" data-mod="farol" onclick="setModule('farol')"><i class="fa-solid fa-lightbulb"></i> Farol de Rematrícula</div>
-      <div class="nav-item" data-mod="certificacao" onclick="setModule('certificacao')"><i class="fa-solid fa-award"></i> Certificação</div>
-      <div class="nav-item" data-mod="senha" onclick="setModule('senha')"><i class="fa-solid fa-key"></i> Recuperar Senha</div>
     </div>
 
     <div class="main">
-      <!-- MÓDULO 1: ESTUDANTES -->
+      <!-- MÓDULO: ESTUDANTES -->
       <div id="mod-alunos">
         <h1 class="pg">Gestão de Estudantes</h1>
         <p class="sub-pg">Acompanhamento e controle de evasão escolar do CEJA Dr. Gerardo Camelo Madeira</p>
@@ -231,9 +189,8 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
           <div class="toolbar">
             <button class="btn-zerar" onclick="zerarBancoDeDados()">⚠️ Zerar Banco de Dados (Novo Semestre)</button>
             <button class="btn sm" style="background:var(--green)" onclick="acaoIncluirAluno()"><i class="fa-solid fa-user-plus"></i> Incluir Aluno</button>
-            <button class="btn sm" style="background:var(--navy)" onclick="saveEstudantesModule()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
             <button class="btn dark sm" onclick="exportCSV()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
-            <button class="btn red sm" onclick="printSection('printAlunos')"><i class="fa-solid fa-file-pdf"></i> Gerar PDF / Imprimir</button>
+            <button class="btn red sm" onclick="printSection('printAlunos')"><i class="fa-solid fa-file-pdf"></i> Imprimir / PDF</button>
           </div>
 
           <!-- ABAS PRINCIPAIS -->
@@ -241,11 +198,6 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
             <div class="tab active gold" id="tabAtuais" data-subtab="atuais" onclick="setSubTab('atuais')">Matrículas Atuais</div>
             <div class="tab" id="tabAntigas" data-subtab="antigas" onclick="setSubTab('antigas')">Matrículas Antigas</div>
             <div class="tab" id="tabImportDoc" data-subtab="importDoc" onclick="setSubTab('importDoc')"><i class="fa-solid fa-file-import"></i> Importar Documentos</div>
-          </div>
-
-          <div class="grid c5" style="margin-bottom:6px;" id="secFilterGrid">
-            <div><label>Ano Letivo</label><input type="text" id="anoLetivoInput" maxlength="4" value="2026"></div>
-            <div><label>Professor Tutor</label><select id="filtroProfessor"><option value="">Todos os Professores</option></select></div>
           </div>
 
           <!-- TABELA PADRÃO DE ALUNOS -->
@@ -260,27 +212,17 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
                   <th>CONTATO</th>
                   <th>STATUS</th>
                   <th>PROFESSOR TUTOR</th>
-                  <th style="text-align:center" class="no-print">AÇÕES</th>
+                  <th style="text-align:center">AÇÕES</th>
                 </tr>
               </thead>
               <tbody id="studentsBody"></tbody>
             </table>
           </div>
 
-          <!-- PAINEL DE IMPORTAÇÃO MULTIDOCUMENTOS (TXT, CSV, EXCEL, WORD, PDF) -->
+          <!-- PAINEL DE IMPORTAÇÃO MULTIDOCUMENTOS -->
           <div id="importDocArea" class="card hidden" style="border: 2px dashed var(--green); background: rgba(30,122,52,0.02); padding: 20px;">
             <h3 style="margin-top:0; color:var(--green);"><i class="fa-solid fa-file-arrow-up"></i> Importação Multificheiro (TXT, CSV, Excel, Word, PDF)</h3>
             <p class="muted">Carregue a lista antiga de monitoria para importar e vincular automaticamente os alunos às **Matrículas Atuais** e ao **Ambiente do Professor Tutor**.</p>
-            
-            <div style="background:var(--card); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:14px; font-size:0.83rem;">
-              <strong><i class="fa-solid fa-circle-info"></i> Dados extraídos automaticamente pelo leitor:</strong>
-              <ul style="margin:6px 0 0 18px; padding:0;">
-                <li><strong>Nome do Aluno</strong></li>
-                <li><strong>Número de Matrícula</strong></li>
-                <li><strong>Nível de Ensino:</strong> Fundamental (EF) ou Médio (EM)</li>
-                <li><strong>Professor Tutor:</strong> Alocação direta para a vista do professor responsável</li>
-              </ul>
-            </div>
 
             <div class="grid c2" style="margin-bottom:14px;">
               <div>
@@ -345,12 +287,12 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
         </div>
       </div>
 
-      <!-- MÓDULO 2: PROFESSORES -->
+      <!-- MÓDULO: PROFESSORES -->
       <div id="mod-profs" class="hidden">
         <h1 class="pg">Ambientes dos Professores</h1>
-        <p class="sub-pg">Gestão individualizada de professores e links de acesso compartilhados</p>
+        <p class="sub-pg">Gestão individualizada de professores</p>
         <div class="card">
-          <label>Cadastrar Novo Professor (Ordem Alfabética Automática)</label>
+          <label>Cadastrar Novo Professor</label>
           <div style="display:flex;gap:8px">
             <input id="newProfName" placeholder="Nome completo do novo professor">
             <button class="btn sm" onclick="addProfessor()"><i class="fa-solid fa-plus"></i> Cadastrar Professor</button>
@@ -360,50 +302,7 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
         <div class="prof-grid" id="profList"></div>
       </div>
 
-      <!-- MÓDULO 3: REMATRÍCULA -->
-      <div id="mod-remat" class="hidden">
-        <h1 class="pg">Rematrícula Mensal</h1>
-        <p class="sub-pg">Registro unificado e acompanhamento de retornos de responsabilidade da Secretaria</p>
-        <div id="rematMonthDetail">
-          <div class="toolbar">
-            <button class="btn sm" style="background:var(--green)" onclick="addSecRematRow()"><i class="fa-solid fa-plus"></i> Acrescentar Estudante</button>
-          </div>
-          <div class="tablewrap">
-            <table>
-              <thead class="darkgreen">
-                <tr><th>ESTUDANTE</th><th>MATRÍCULA</th><th>ÚLT. FREQ.</th><th>DATA RETORNO</th><th>PROFESSOR</th></tr>
-              </thead>
-              <tbody id="rematBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- MÓDULO 4: FAROL -->
-      <div id="mod-farol" class="hidden">
-        <h1 class="pg">Farol de Rematrícula</h1>
-        <p class="sub-pg">Ranking de acompanhamento de recuperações</p>
-      </div>
-
-      <!-- MÓDULO 5: CERTIFICAÇÃO -->
-      <div id="mod-certificacao" class="hidden">
-        <h1 class="pg">Certificação e Concludentes</h1>
-        <p class="sub-pg">Acompanhamento dos alunos diplomados</p>
-      </div>
-
-      <!-- MÓDULO 6: SENHA -->
-      <div id="mod-senha" class="hidden">
-        <h1 class="pg">Recuperação e Alteração de Senha</h1>
-        <div class="card" style="max-width:440px">
-          <label>Selecione o Usuário</label>
-          <select id="secSelUser"><option value="Secretária">Secretária</option></select>
-          <label>Nova Senha</label>
-          <input type="password" id="secNewPassAdmin" placeholder="Digite a nova senha">
-          <button class="btn" style="width:100%;margin-top:8px" onclick="adminChangePass()"><i class="fa-solid fa-key"></i> Alterar Senha</button>
-        </div>
-      </div>
-
-      <!-- VISÃO DO PROFESSOR TUTOR -->
+      <!-- VISÃO INDIVIDUAL DO PROFESSOR TUTOR -->
       <div id="mod-prof-view" class="hidden">
         <h1 class="pg" id="profWelcome">Ambiente do Professor</h1>
         <p class="sub-pg">Seus alunos alocados nas Matrículas Atuais.</p>
@@ -446,17 +345,15 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
 
-// VARIÁVEIS GLOBAIS
 let PROFESSORES = [];
 let students = [];
 let pendingDocStudents = [];
 let currentAno = "2026";
 let currentSubTab = "atuais";
 let currentSecViewMode = "geral";
-let currentUserRole = "sec"; // 'sec' ou 'prof'
+let currentUserRole = "sec";
 let loggedProfName = "";
 
-// ATRIBUIÇÃO AO WINDOW PARA INTEGRAR COM OS EVENTOS HTML (ONCLICK, ONCHANGE)
 window.setLoginTab = function(type) {
   document.getElementById('pillSec').classList.toggle('active', type === 'sec');
   document.getElementById('pillProf').classList.toggle('active', type === 'prof');
@@ -477,7 +374,7 @@ window.togglePass = function(id, btn) {
 
 window.loginSecretaria = function() {
   const pass = document.getElementById('secPass').value;
-  if (pass === '12345' || pass === 'admin' || pass !== '') { // Aceita login padrão
+  if (pass === '12345' || pass === 'admin' || pass !== '') {
     currentUserRole = 'sec';
     document.getElementById('loginView').classList.add('hidden');
     document.getElementById('appView').classList.remove('hidden');
@@ -557,7 +454,6 @@ window.setSubTab = function(tab) {
   }
 };
 
-// HELPER DE NORMALIZAÇÃO DE PROFESSOR
 function normalizeProfName(str) {
   if (!str) return '';
   return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
@@ -578,7 +474,7 @@ function findBestProfMatch(tutorInput) {
   return tutorInput.trim();
 }
 
-// LÓGICA DE IMPORTAÇÃO MULTIDOCUMENTO
+// IMPORTAÇÃO DE DOCUMENTOS
 window.handleDocImport = async function(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -750,7 +646,6 @@ window.confirmarImportacaoDoc = async function() {
   }
 };
 
-// RENDERIZAÇÃO DA TABELA DE ESTUDANTES
 function renderTable() {
   const tbody = document.getElementById('studentsBody');
   if(!tbody) return;
@@ -779,7 +674,7 @@ function renderTable() {
           ${PROFESSORES.map(p => `<option value="${p}" ${s.professor === p ? 'selected' : ''}>${p}</option>`).join('')}
         </select>
       </td>
-      <td style="text-align:center" class="no-print">
+      <td style="text-align:center">
         <button class="btn-excluir" onclick="excluirAluno('${s.id}')"><i class="fa-solid fa-trash"></i></button>
       </td>
     </tr>
@@ -861,12 +756,6 @@ function renderProfsList() {
       </div>
     `).join('');
   }
-
-  const select = document.getElementById('filtroProfessor');
-  if(select) {
-    select.innerHTML = '<option value="">Todos os Professores</option>' + 
-      PROFESSORES.map(p => `<option value="${p}">${p}</option>`).join('');
-  }
 }
 
 window.deleteProf = async function(index) {
@@ -917,14 +806,13 @@ window.exportCSV = function() {
 window.printSection = function(id) {
   const content = document.getElementById(id).innerHTML;
   const win = window.open('', '', 'height=700,width=900');
-  win.document.write('html<html><head><title>Impressao</title><style>table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ccc;padding:6px;}</style></head><body>');
+  win.document.write('<html><head><title>Impressao</title><style>table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ccc;padding:6px;}</style></head><body>');
   win.document.write(content);
   win.document.write('</body></html>');
   win.document.close();
   win.print();
 };
 
-// LISTENERS DO FIREBASE
 onSnapshot(doc(db, 'meta', 'professors'), (snap) => {
   if (snap.exists() && snap.data().list) {
     PROFESSORES = snap.data().list;
@@ -937,7 +825,6 @@ onSnapshot(collection(db, 'students'), (snap) => {
   renderTable();
   if(currentUserRole === 'prof') renderProfTable();
 });
-
 </script>
 </body>
 </html>
