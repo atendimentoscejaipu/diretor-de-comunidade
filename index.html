@@ -99,6 +99,247 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
 .container, .main-module { width: 100%; max-width: 98%; padding: 5px; margin: 0 auto; }
 th.col-aluno, td.col-aluno { min-width: 180px; }
 td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
+th.col-nivel, td.col-nivel { min-width: 80px; text-align: center; }
+td.col-nivel select.cell { min-width: 65px; width: 100%; font-size: 14px; text-align: center; font-weight: bold; }
+.btn-excluir { background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+.btn-zerar { background-color: #8b0000; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 0px; }
+.mode-toggle-bar { display: flex; gap: 10px; margin-bottom: 16px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
+.mode-btn { background: var(--bg); color: var(--ink); border: 1px solid var(--border); border-radius: 8px; padding: 10px 18px; font-weight: 700; cursor: pointer; font-size: 0.92rem; display: flex; align-items: center; gap: 8px; transition: all .2s; }
+.mode-btn.active { background: var(--green); color: #fff; border-color: var(--green); }
+</style>
+</head>
+<body>
+
+<div id="loginView">
+<div class="wrap-login">
+  <div class="login-card">
+    <div class="login-head">
+      <img class="login-logo" id="imgLoginLogo" alt="Logo CEJA">
+      <div class="gov">Governo do Estado do Ceará · SEDUC</div>
+      <h2>CEJA Dr. Gerardo Camelo Madeira</h2>
+      <p>Ipu · CE — Diretor de Comunidade</p>
+    </div>
+
+    <div id="loginFormArea">
+      <div class="pill-toggle">
+        <div class="pill active" id="pillSec" onclick="setLoginTab('sec')">Secretária</div>
+        <div class="pill" id="pillProf" onclick="setLoginTab('prof')">Professor</div>
+      </div>
+
+      <!-- FORMULÁRIO SECRETÁRIA -->
+      <div id="secForm">
+        <label>Usuário</label><input value="Secretária" disabled>
+        <label>Senha</label>
+        <div class="pass-wrap">
+          <input type="password" id="secPass" placeholder="Senha da secretária">
+          <button type="button" class="eye-btn" onclick="togglePass('secPass', this)"><i class="fa-solid fa-eye"></i></button>
+        </div>
+        <div class="checkline"><input type="checkbox" id="secKeep" checked> Lembrar login e senha</div>
+        <div id="secErr" class="err"></div>
+        <button class="btn" style="width:100%" onclick="loginSecretaria()">Acessar Sistema</button>
+        <div class="linkrow"><a href="#" onclick="openReset('sec');return false;">Esqueci minha senha</a></div>
+      </div>
+
+      <!-- FORMULÁRIO PROFESSOR -->
+      <div id="profForm" class="hidden">
+        <label>Nome completo</label>
+        <input type="text" id="profNameInput" autocomplete="off" placeholder="Digite seu nome completo">
+        <label>Senha</label>
+        <div class="pass-wrap">
+          <input type="password" id="profPass" placeholder="Senha (padrão: 12345)">
+          <button type="button" class="eye-btn" onclick="togglePass('profPass', this)"><i class="fa-solid fa-eye"></i></button>
+        </div>
+        <div class="checkline"><input type="checkbox" id="profKeep" checked> Lembrar login e senha</div>
+        <div id="profErr" class="err"></div>
+        <button class="btn" style="width:100%" onclick="loginProfessor()">Acessar Sistema</button>
+        <div class="linkrow"><a href="#" onclick="openReset('prof');return false;">Esqueci minha senha</a></div>
+      </div>
+    </div>
+
+    <!-- REDEFINIÇÃO DE SENHA -->
+    <div id="resetArea" class="hidden">
+      <h3 id="resetTitle" style="margin-top:0"></h3>
+      <p class="muted" style="margin-top:-6px">Defina uma nova senha imediatamente — não é necessário informar a senha antiga.</p>
+      <div id="resetNameWrap">
+        <label>Nome completo do professor</label>
+        <input type="text" id="resetProfName" autocomplete="off" placeholder="Digite seu nome completo">
+      </div>
+      <label>Nova senha</label>
+      <div class="pass-wrap">
+        <input type="password" id="resetPass1">
+        <button type="button" class="eye-btn" onclick="togglePass('resetPass1', this)"><i class="fa-solid fa-eye"></i></button>
+      </div>
+      <label>Repita a nova senha</label>
+      <div class="pass-wrap">
+        <input type="password" id="resetPass2">
+        <button type="button" class="eye-btn" onclick="togglePass('resetPass2', this)"><i class="fa-solid fa-eye"></i></button>
+      </div>
+      <div id="resetErr" class="err"></div>
+      <button class="btn" style="width:100%" onclick="doReset()">Redefinir Senha</button>
+      <div class="linkrow"><a href="#" onclick="closeReset();return false;">Voltar ao login</a></div>
+    </div>
+    <div class="footer-note">Monitoramento e Busca Ativa de Alunos Evadidos</div>
+  </div>
+</div>
+</div>
+
+<!-- TELA PRINCIPAL -->
+<div id="appView" class="hidden">
+  <div class="top">
+    <div class="brand">
+      <img id="imgTopLogo" alt="Logo CEJA">
+      <div>
+        <div class="gov">Governo do Estado do Ceará <span class="badge-seduc">SEDUC</span></div>
+        <div class="school">CEJA Dr. Gerardo Camelo Madeira - IPU/CE</div>
+        <div class="sub" id="whoami"></div>
+      </div>
+    </div>
+    <div class="right">
+      <div class="clock" id="clockBox"></div>
+      <button class="btn orange sm" id="logoutBtn" onclick="doLogout()"><i class="fa-solid fa-power-off"></i> Sair</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar" id="sidebarSec">
+      <h4>Módulos do Sistema</h4>
+      <div class="nav-item active" data-mod="alunos" onclick="setModule('alunos')"><i class="fa-solid fa-user-graduate"></i> Estudantes &amp; Matrículas</div>
+      <div class="nav-item" data-mod="profs" onclick="setModule('profs')"><i class="fa-solid fa-chalkboard-user"></i> Ambientes dos Professores</div>
+      <div class="nav-item" data-mod="remat" onclick="setModule('remat')"><i class="fa-solid fa-file-pen"></i> Rematrícula Mensal</div>
+      <div class="nav-item" data-mod="farol" onclick="setModule('farol')"><i class="fa-solid fa-lightbulb"></i> Farol de Rematrícula</div>
+      <div class="nav-item" data-mod="certificacao" onclick="setModule('certificacao')"><i class="fa-solid fa-award"></i> Certificação</div>
+      <div class="nav-item" data-mod="senha" onclick="setModule('senha')"><i class="fa-solid fa-key"></i> Recuperar Senha</div>
+    </div>
+
+    <div class="main">
+      <!-- ESTUDANTES (SECRETARIA) -->
+      <div id="mod-alunos">
+        <h1 class="pg">Gestão de Estudantes</h1>
+        <p class="sub-pg">Acompanhamento e controle de evasão escolar do CEJA Dr. Gerardo Camelo Madeira</p>
+
+        <!-- NAVEGAÇÃO ENTRE VISÕES -->
+        <div class="mode-toggle-bar">
+          <button class="mode-btn active" id="btnModeGeral" onclick="setSecViewMode('geral')"><i class="fa-solid fa-list-check"></i> Matrícula Geral</button>
+          <button class="mode-btn" id="btnModePorProf" onclick="setSecViewMode('porProf')"><i class="fa-solid fa-chalkboard-user"></i> Por Professor</button>
+          <button class="mode-btn" id="btnModeNiveis" onclick="setSecViewMode('niveis')"><i class="fa-solid fa-layer-group"></i> Níveis de Ensino</button>
+        </div>
+
+        <!-- VISUALIZAÇÃO: MATRÍCULA GERAL -->
+        <div id="secViewGeral">
+          <div class="toolbar">
+            <button class="btn-zerar" onclick="zerarBancoDeDados()">⚠️ Zerar Banco de Dados (Novo Semestre)</button>
+            
+            <div class="actions-dropdown" style="position:relative; display:inline-block;">
+              <button type="button" class="btn orange sm" onclick="toggleAcoesDropdown(event, this)"><i class="fa-solid fa-gears"></i> Ações <i class="fa-solid fa-caret-down"></i></button>
+              <div class="actions-menu hidden" style="position:absolute; top:100%; left:0; margin-top:4px; background:var(--card); border:1px solid var(--border); box-shadow:0 6px 16px rgba(0,0,0,0.15); border-radius:8px; z-index:1000; min-width:170px; overflow:hidden;">
+                <button type="button" onclick="acaoIncluirAluno()" style="width:100%; text-align:left; padding:10px 14px; background:none; border:none; cursor:pointer; color:var(--ink); font-size:0.85rem; display:flex; align-items:center; gap:8pxAqui está o código atualizado. Para resolver o problema, adicionei a classe `.col-nivel` ao CSS e apliquei essa classe nas colunas de "NÍVEL" (tanto no cabeçalho `<th>` quanto nas células `<td>` das tabelas da secretária e do professor) com uma largura mínima configurada para que as letras "F" e "M" apareçam perfeitamente[cite: 1]. Todas as demais configurações foram mantidas, incluindo a referência à imagem `ceja-logo.webp`[cite: 1].
+
+Abaixo está o código completo para você copiar e colar:
+
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Diretor de Comunidade - CEJA Dr. Gerardo Camelo Madeira</title>
+<!-- Ativa a instalação do site como App (PWA) -->
+<link rel="manifest" href="manifest.json">
+<!-- Font Awesome para Ícones -->
+<link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css)">
+<style>
+:root{
+  --bg:#f4f7f4; --card:#ffffff; --ink:#1f2937; --muted:#6b7280;
+  --green:#1E7A34; --green-d:#155526; --gold:#F2B705; --red:#c62828; --navy:#1c2540;
+  --border:#dfe6df;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); box-sizing:border-box;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#12160f; --card:#1b221a; --ink:#e6e9ef; --muted:#9aa4b2; --border:#2b3327; } }
+:root[data-theme="dark"]{ --bg:#12160f; --card:#1b221a; --ink:#e6e9ef; --muted:#9aa4b2; --border:#2b3327; }
+*{box-sizing:border-box;}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
+a{color:var(--green);text-decoration:none;}
+.top{background:var(--green);color:#fff;padding:10px 16px calc(10px + env(safe-area-inset-top,0px)) 16px;border-bottom:4px solid var(--gold);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+.top .brand{display:flex;align-items:center;gap:10px;}
+.top .brand img{height:48px;width:48px;border-radius:50%;background:#fff;object-fit:cover;flex-shrink:0;border:2px solid var(--gold);}
+.top .gov{font-size:.72rem;font-weight:700;color:var(--gold);letter-spacing:.5px;display:flex;align-items:center;gap:6px;}
+.badge-seduc{background:rgba(255,255,255,.18);border-radius:6px;padding:1px 6px;font-size:.65rem;}
+.top .school{font-weight:700;font-size:.95rem;}
+.top .sub{font-size:.72rem;opacity:.9;}
+.top .right{display:flex;align-items:center;gap:10px;}
+.clock{background:rgba(0,0,0,.15);border-radius:20px;padding:5px 12px;font-size:.78rem;}
+.btn{background:var(--green);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:.9rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
+.btn:hover{background:var(--green-d);}
+.btn.orange{background:#e08a00;} .btn.orange:hover{background:#c67600;}
+.btn.sm{padding:6px 11px;font-size:.78rem;} .btn.red{background:var(--red);} .btn.dark{background:var(--navy);}
+.btn:disabled{background:#a9b3a9;cursor:not-allowed;}
+.layout{display:flex;max-width:1350px;margin:0 auto;min-height:calc(100vh - 62px);}
+.sidebar{width:240px;flex-shrink:0;padding:18px 10px;border-right:1px solid var(--border);}
+.sidebar h4{font-size:.72rem;color:var(--muted);text-transform:uppercase;margin:4px 8px 10px;}
+.nav-item{display:flex;align-items:center;gap:8px;padding:10px 10px;border-radius:8px;cursor:pointer;color:var(--ink);font-size:.87rem;margin-bottom:4px;transition:all .2s;}
+.nav-item:hover{background:rgba(30,122,52,.08);}
+.nav-item.active{background:rgba(30,122,52,.12);color:var(--green);font-weight:700;border:1px solid rgba(30,122,52,.3);}
+.main{flex:1;padding:20px;min-width:0;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px;}
+h1.pg{font-size:1.3rem;margin:0 0 2px;} .sub-pg{color:var(--muted);font-size:.85rem;margin:0 0 16px;}
+label{display:block;font-size:.78rem;color:var(--muted);margin:8px 0 4px;}
+input,select{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--ink);font-size:.87rem;}
+.grid{display:grid;gap:10px;} .grid.c5{grid-template-columns:repeat(5,1fr);} .grid.c2{grid-template-columns:1fr 1fr;} .grid.c4{grid-template-columns:repeat(4,1fr);}
+@media(max-width:900px){.grid.c5,.grid.c4{grid-template-columns:1fr 1fr;} .layout{flex-direction:column;} .sidebar{width:100%;display:flex;flex-wrap:wrap;gap:4px;} .nav-item{flex:1;justify-content:center;}}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
+.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+.tab{padding:9px 16px;border-radius:20px;cursor:pointer;color:var(--muted);background:var(--bg);border:1px solid var(--border);font-size:.85rem;white-space:nowrap;transition:all .2s;}
+.tab.active{background:var(--green);color:#fff;border-color:var(--green);font-weight:600;}
+.tab.gold.active{background:var(--gold);color:#5a4200;border-color:var(--gold);}
+.tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;background:var(--card);}
+table{border-collapse:collapse;width:100%;min-width:880px;font-size:.8rem;}
+th{padding:9px 6px;text-align:left;position:sticky;top:0;font-weight:700;} thead.blue th{background:#3b5fa8;color:#fff;}
+thead.darkgreen th{background:var(--green-d);color:#fff;} thead.navy th{background:var(--navy);color:#fff;}
+td{padding:6px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:nth-child(even) td{background:rgba(30,122,52,.03);}
+input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--border);border-radius:6px;}
+.badge{padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;color:#fff;display:inline-block;}
+.badge.g{background:var(--green);} .badge.y{background:var(--gold);color:#5a4200;} .badge.r{background:var(--red);}
+.muted{color:var(--muted);font-size:.8rem;} .err{color:var(--red);font-size:.82rem;margin-top:6px;}
+.legend{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+@media(max-width:700px){.legend{grid-template-columns:1fr;}}
+.legend div{border-radius:10px;padding:12px;color:#fff;font-size:.8rem;}
+.legend .g{background:var(--green);} .legend .y{background:var(--gold);color:#5a4200;} .legend .r{background:var(--red);}
+.prof-card{border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;background:var(--card);}
+.prof-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(max-width:700px){.prof-grid{grid-template-columns:1fr;}}
+.hidden{display:none!important;}
+.wrap-login{max-width:420px;margin:40px auto;padding:0 16px;}
+.login-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:0 6px 24px rgba(0,0,0,.06);}
+.login-head{text-align:center;margin-bottom:16px;}
+.login-logo{display:block;margin:0 auto 8px;height:84px;width:84px;border-radius:50%;object-fit:cover;border:3px solid var(--green);background:#fff;}
+.login-head .gov{color:var(--green);font-weight:700;font-size:.78rem;text-transform:uppercase;}
+.login-head h2{margin:2px 0 0;color:var(--navy);font-size:1.05rem;}
+.login-head p{color:var(--muted);font-size:.78rem;margin:2px 0 0;}
+.pill-toggle{display:flex;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:16px;}
+.pill-toggle .pill{flex:1;text-align:center;padding:9px;border-radius:8px;cursor:pointer;font-weight:700;font-size:.85rem;color:var(--muted);}
+.pill-toggle .pill.active{background:var(--green);color:#fff;}
+.pass-wrap{position:relative;display:flex;align-items:center;}
+.pass-wrap input{padding-right:36px;}
+.pass-wrap .eye-btn{position:absolute;right:8px;background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;font-size:.9rem;}
+.checkline{display:flex;align-items:center;gap:6px;margin:10px 0;font-size:.82rem;color:var(--muted);}
+.checkline input{width:auto;}
+.linkrow{text-align:center;margin-top:10px;font-size:.82rem;}
+.footer-note{text-align:center;color:var(--muted);font-size:.72rem;margin-top:14px;}
+.months-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+@media(max-width:700px){.months-grid{grid-template-columns:repeat(2,1fr);}}
+.month-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;cursor:pointer;font-weight:700;font-size:.9rem;transition:all .2s;color:var(--ink);}
+.month-card:hover,.month-card.active{background:var(--green);color:#fff;border-color:var(--green);}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;}
+.stat-card .num{font-size:2.2rem;font-weight:800;color:var(--green);}
+.stat-card .label{font-size:.82rem;color:var(--muted);font-weight:600;}
+
+.container, .main-module { width: 100%; max-width: 98%; padding: 5px; margin: 0 auto; }
+th.col-aluno, td.col-aluno { min-width: 180px; }
+td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
+th.col-nivel, td.col-nivel { min-width: 80px; text-align: center; }
+td.col-nivel select { width: 100%; min-width: 70px; font-size: 14px; text-align: center; }
 .btn-excluir { background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
 .btn-zerar { background-color: #8b0000; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 0px; }
 .mode-toggle-bar { display: flex; gap: 10px; margin-bottom: 16px; border-bottom: 2px solid var(--border); padding-bottom: 10px; }
@@ -260,7 +501,7 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
                 <tr>
                   <th style="width:40px; text-align:center;">Nº</th>
                   <th>MAT</th>
-                  <th>NÍVEL</th>
+                  <th class="col-nivel">NÍVEL</th>
                   <th class="col-aluno">ALUNO(A)</th>
                   <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
                   <th>CONTATO</th>
@@ -308,7 +549,7 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
                   <tr>
                     <th style="width:40px; text-align:center;">Nº</th>
                     <th>MAT</th>
-                    <th>NÍVEL</th>
+                    <th class="col-nivel">NÍVEL</th>
                     <th class="col-aluno">ALUNO(A)</th>
                     <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
                     <th>CONTATO</th>
@@ -356,7 +597,7 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
                 <tr>
                   <th style="width:40px; text-align:center;">Nº</th>
                   <th>MAT</th>
-                  <th>NÍVEL</th>
+                  <th class="col-nivel">NÍVEL</th>
                   <th class="col-aluno">ALUNO(A)</th>
                   <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
                   <th>CONTATO</th>
@@ -498,7 +739,7 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
               <tr>
                 <th>MATRÍCULA</th>
                 <th>NOME DO CONCLUDENTE</th>
-                <th>NÍVEL</th>
+                <th class="col-nivel">NÍVEL</th>
                 <th>CONTATO</th>
                 <th>PROFESSOR RESPONSÁVEL</th>
                 <th>ANO DE CONCLUSÃO</th>
@@ -548,7 +789,7 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
                 <tr>
                   <th style="width:40px; text-align:center;">Nº</th>
                   <th>MAT</th>
-                  <th>NÍVEL</th>
+                  <th class="col-nivel">NÍVEL</th>
                   <th class="col-aluno">ALUNO(A)</th>
                   <th>ÚLT. FREQ. (DD/MM/AAAA)</th>
                   <th>CONTATO</th>
@@ -568,10 +809,10 @@ td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { initializeApp } from "[https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js](https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js)";
 import {
   getFirestore, collection, doc, setDoc, onSnapshot, deleteDoc, getDocs, writeBatch
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+} from "[https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js](https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js)";
 
 const firebaseConfig = {
   apiKey: "AIzaSyB8Uf77lKEjPHNqiHP7tbJjLg6sgJHz43Y",
@@ -595,7 +836,7 @@ function setupLogos() {
     './logo.webp'
   ];
 
-  const svgFallback = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='%231E7A34' stroke='%23F2B705' stroke-width='4'/><path d='M50 18 L78 32 L78 62 L50 82 L22 62 L22 32 Z' fill='%23155526' stroke='%23F2B705' stroke-width='2'/><text x='50' y='46' text-anchor='middle' fill='%23ffffff' font-size='14' font-weight='bold' font-family='sans-serif'>CEJA</text><text x='50' y='60' text-anchor='middle' fill='%23F2B705' font-size='9' font-weight='bold' font-family='sans-serif'>IPU/CE</text></svg>";
+  const svgFallback = "data:image/svg+xml;utf8,<svg xmlns='[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)' viewBox='0 0 100 100'><circle cx='50' cy='50' r='46' fill='%231E7A34' stroke='%23F2B705' stroke-width='4'/><path d='M50 18 L78 32 L78 62 L50 82 L22 62 L22 32 Z' fill='%23155526' stroke='%23F2B705' stroke-width='2'/><text x='50' y='46' text-anchor='middle' fill='%23ffffff' font-size='14' font-weight='bold' font-family='sans-serif'>CEJA</text><text x='50' y='60' text-anchor='middle' fill='%23F2B705' font-size='9' font-weight='bold' font-family='sans-serif'>IPU/CE</text></svg>";
 
   function applyToElement(imgEl) {
     if (!imgEl) return;
@@ -1124,7 +1365,7 @@ function buildStudentRowHTML(s, isSecretaria=true, seq=''){
       <tr data-id="${s.id}">
         <td style="text-align:center; font-weight:700; color:var(--muted);">${seq}</td>
         <td><input class="cell" data-field="mat" value="${s.mat||''}" disabled style="background:rgba(0,0,0,0.04);"></td>
-        <td>
+        <td class="col-nivel">
           <select class="cell" disabled style="background:rgba(0,0,0,0.04); color:var(--ink);">
             <option value="F" ${(s.nivel==='F'||s.nivel==='EF')?'selected':''}>F</option>
             <option value="M" ${(s.nivel==='M'||s.nivel==='EM')?'selected':''}>M</option>
@@ -1150,7 +1391,7 @@ function buildStudentRowHTML(s, isSecretaria=true, seq=''){
         ${checkboxRetirar}
         <input class="cell" data-field="mat" value="${s.mat||''}" onchange="updateStudentField('${s.id}', 'mat', this.value)">
       </td>
-      <td>
+      <td class="col-nivel">
         <select class="cell" data-field="nivel" onchange="updateStudentField('${s.id}', 'nivel', this.value)">
           <option value="F" ${(s.nivel==='F'||s.nivel==='EF')?'selected':''}>F</option>
           <option value="M" ${(s.nivel==='M'||s.nivel==='EM')?'selected':''}>M</option>
@@ -1731,7 +1972,7 @@ function renderCertificacaoModule(){
     <tr>
       <td>${s.mat||'-'}</td>
       <td><b>${s.aluno||'-'}</b></td>
-      <td><span class="badge g">${(s.nivel==='F'||s.nivel==='EF')?'F':'M'}</span></td>
+      <td class="col-nivel"><span class="badge g">${(s.nivel==='F'||s.nivel==='EF')?'F':'M'}</span></td>
       <td>${s.contato||'-'}</td>
       <td>${s.professor||'-'}</td>
       <td>${selectedCertYear}</td>
@@ -1830,7 +2071,7 @@ function exportWord(containerId, filename) {
   const el = document.getElementById(containerId);
   if(!el) return;
   const html = `
-    <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+    <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='[http://www.w3.org/TR/REC-html40](http://www.w3.org/TR/REC-html40)'>
     <head><title>Export</title><style>table{border-collapse:collapse;width:100%;}th,td{border:1px solid #000;padding:5px;font-family:Arial;font-size:10pt;}</style></head>
     <body>${el.innerHTML}</body>
     </html>
