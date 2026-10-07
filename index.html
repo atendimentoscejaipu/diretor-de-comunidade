@@ -679,7 +679,7 @@ function acaoIncluirAluno(){
     id: tempId,
     mat: '',
     aluno: '',
-    nivel: currentSecViewMode === 'niveis' ? currentNivelTab : 'EM',
+    nivel: currentSecViewMode === 'niveis' ? (currentNivelTab === 'EF' ? 'F' : 'M') : 'M',
     contato: '',
     ultimaFreq: toISO(new Date().toLocaleDateString('pt-BR')),
     rematricula: 0,
@@ -819,11 +819,11 @@ function prefillFromLink(){
 
 function seedData(){
   const base=[
-    ["520","FRANCISCO DANIEL RIBEIRO DE MORAES","EM","","2026-08-27",28,"Samuel Martins de Sousa", false],
-    ["740","CARLOS ALBERTO INÁCIO DE OLIVEIRA","EF","","2026-06-10",106,"Samuel Martins de Sousa", false],
-    ["765","ANDREA LOPES ALVES DO NASCIMENTO","EM","","2026-06-23",93,"Aline Dantas Moreira", false],
-    ["1590","NAZELIA ALVES RODRIGUES","EF","88993610217","2026-09-21",3,"Carliana Lima Almeida", false],
-    ["1601","IURI RIBEIRO MATOS","EM","88996514766","2026-09-16",8,"Glaucia Paiva Timbó", false]
+    ["520","FRANCISCO DANIEL RIBEIRO DE MORAES","M","","2026-08-27",28,"Samuel Martins de Sousa", false],
+    ["740","CARLOS ALBERTO INÁCIO DE OLIVEIRA","F","","2026-06-10",106,"Samuel Martins de Sousa", false],
+    ["765","ANDREA LOPES ALVES DO NASCIMENTO","M","","2026-06-23",93,"Aline Dantas Moreira", false],
+    ["1590","NAZELIA ALVES RODRIGUES","F","88993610217","2026-09-21",3,"Carliana Lima Almeida", false],
+    ["1601","IURI RIBEIRO MATOS","M","88996514766","2026-09-16",8,"Glaucia Paiva Timbó", false]
   ];
   return base.map((r,i)=>({id:'s'+Date.now()+i,mat:r[0],aluno:r[1],nivel:r[2],contato:r[3],ultimaFreq:r[4],rematricula:r[5],professor:r[6],concludente:r[7],ano:'2026'}));
 }
@@ -1072,6 +1072,8 @@ function setSubTab(tab){
 
   if(currentSecViewMode === 'niveis'){
     renderSecNiveisModule();
+  } else if(currentSecViewMode === 'porProf'){
+    renderSecPorProfModule();
   } else {
     renderTable();
   }
@@ -1084,305 +1086,443 @@ function setSubTab2(tab){
   renderProfView();
 }
 
-function renderAll(){
-  renderAnosPills();
-  renderTable();
-  renderSecPorProfModule();
-  renderSecNiveisModule();
-  renderProfs();
-  renderRematModule();
-  renderFarolModule();
-  renderCertificacaoModule();
-  if(session && session.role==='professor') renderProfView();
-}
-
-function filterStudentsList(list, subtabFilter, yearFilter, profFilter){
-  if (subtabFilter === 'duplicados') {
-    const counts = {};
-    list.forEach(s => {
-      const key = `${(s.mat||'').trim().toLowerCase()}|${(s.aluno||'').trim().toLowerCase()}|${(s.nivel||'').trim().toLowerCase()}`;
-      counts[key] = (counts[key] || 0) + 1;
-    });
-    const filtered = list.filter(s => {
-      if (profFilter && normName(s.professor) !== normName(profFilter)) return false;
-      const key = `${(s.mat||'').trim().toLowerCase()}|${(s.aluno||'').trim().toLowerCase()}|${(s.nivel||'').trim().toLowerCase()}`;
-      return counts[key] > 1;
-    });
-    return filtered.sort((a,b) => (a.aluno||'').localeCompare(b.aluno||'', 'pt-BR'));
-  }
-
-  const filtered = list.filter(s=>{
-    if(profFilter && normName(s.professor) !== normName(profFilter)) return false;
-    if(subtabFilter==='atuais'){
-      return (s.ano === yearFilter) && (!s.concludente);
-    }
-    return (s.concludente) || (s.ano < yearFilter);
+function getDuplicateKeysSet(list) {
+  const counts = {};
+  list.forEach(s => {
+    const key = `${(s.mat||'').trim().toLowerCase()}|${(s.aluno||'').trim().toLowerCase()}|${(s.nivel||'').trim().toLowerCase()}`;
+    counts[key] = (counts[key] || 0) + 1;
   });
 
-  return filtered.sort((a, b) => {
-    const numA = parseFloat(a.mat) || 0;
-    const numB = parseFloat(b.mat) || 0;
-    if (numA !== numB) return numA - numB;
-    return (a.mat || '').localeCompare(b.mat || '', undefined, {numeric: true});
-  });
-}
-
-async function updateStudentField(id, field, value) {
-  let st = unsavedNewStudents.find(s => s.id === id);
-  if (st) {
-    if (field === 'concludente') {
-      st[field] = !!value;
-    } else if (field === 'ultimaFreq') {
-      st[field] = toISO(value);
-    } else {
-      st[field] = value;
+  const dupSet = new Set();
+  list.forEach(s => {
+    const key = `${(s.mat||'').trim().toLowerCase()}|${(s.aluno||'').trim().toLowerCase()}|${(s.nivel||'').trim().toLowerCase()}`;
+    if(counts[key] > 1) {
+      dupSet.add(s.id);
     }
-    return;
-  }
-
-  st = students.find(s => s.id === id);
-  if (!st) return;
-  if (field === 'concludente') {
-    st[field] = !!value;
-  } else if (field === 'ultimaFreq') {
-    st[field] = toISO(value);
-  } else {
-    st[field] = value;
-  }
-  await setDoc(doc(db, 'students', id), st, { merge: true }).catch(console.error);
+  });
+  return dupSet;
 }
 
 function buildStudentRowHTML(s, isSecretaria=true, seq=''){
+  const dias = diasDesde(s.ultimaFreq);
   const st = situacaoStatus(s.ultimaFreq);
-  let optionsProf = PROFESSORES.map(p=>`<option value="${p}" ${normName(s.professor)===normName(p)?'selected':''}>${p}</option>`).join('');
-  const dateFormatted = toBR(s.ultimaFreq);
-  const diasSemFreq = s.ultimaFreq ? `${diasDesde(s.ultimaFreq)} dias` : '---';
+  const brFreq = toBR(s.ultimaFreq);
 
-  if (!isSecretaria) {
-    return `<tr data-id="${s.id}">
-      <td style="text-align:center; font-weight:bold; color:var(--muted);">${seq}</td>
-      <td><input class="cell" value="${s.mat||''}" disabled style="width:65px; background:rgba(0,0,0,0.04); color:var(--ink);"></td>
+  let optionsProf = '<option value="">Sem Professor</option>';
+  sortProfessors();
+  PROFESSORES.forEach(p => {
+    optionsProf += `<option value="${p}" ${s.professor===p?'selected':''}>${p}</option>`;
+  });
+
+  let checkboxRetirar = '';
+  if (isRetirarMode) {
+    checkboxRetirar = `<input type="checkbox" onchange="confirmarRetirarAluno('${s.id}', this)" title="Marque para retirar o aluno" style="margin-right: 6px; cursor: pointer; transform: scale(1.2);">`;
+  }
+
+  if(!isSecretaria){
+    return `
+      <tr data-id="${s.id}">
+        <td style="text-align:center; font-weight:700; color:var(--muted);">${seq}</td>
+        <td><input class="cell" data-field="mat" value="${s.mat||''}" disabled style="background:rgba(0,0,0,0.04);"></td>
+        <td>
+          <select class="cell" disabled style="background:rgba(0,0,0,0.04); color:var(--ink);">
+            <option value="F" ${(s.nivel==='F'||s.nivel==='EF')?'selected':''}>F</option>
+            <option value="M" ${(s.nivel==='M'||s.nivel==='EM')?'selected':''}>M</option>
+          </select>
+        </td>
+        <td class="col-aluno"><input class="cell" data-field="aluno" value="${s.aluno||''}"></td>
+        <td><input class="cell" data-field="ultimaFreq" value="${brFreq}" placeholder="DD/MM/AAAA"></td>
+        <td><input class="cell" data-field="contato" value="${s.contato||''}"></td>
+        <td><span class="badge ${st.cls}">${st.situacao}</span></td>
+        <td style="text-align:center"><b>${dias}</b></td>
+        <td><input class="cell" value="${s.professor||''}" disabled style="background:rgba(0,0,0,0.04);"></td>
+        <td style="text-align:center">
+          <input type="checkbox" data-field="concludente" ${s.concludente?'checked':''} onchange="updateStudentField('${s.id}', 'concludente', this.checked)">
+        </td>
+      </tr>
+    `;
+  }
+
+  return `
+    <tr data-id="${s.id}">
+      <td style="text-align:center; font-weight:700; color:var(--muted);">${seq}</td>
+      <td style="display: flex; align-items: center; border-bottom: none;">
+        ${checkboxRetirar}
+        <input class="cell" data-field="mat" value="${s.mat||''}" onchange="updateStudentField('${s.id}', 'mat', this.value)">
+      </td>
       <td>
-        <select class="cell" disabled style="background:rgba(0,0,0,0.04); color:var(--ink);">
-          <option value="EF" ${s.nivel==='EF'?'selected':''}>EF</option>
-          <option value="EM" ${s.nivel==='EM'?'selected':''}>EM</option>
+        <select class="cell" data-field="nivel" onchange="updateStudentField('${s.id}', 'nivel', this.value)">
+          <option value="F" ${(s.nivel==='F'||s.nivel==='EF')?'selected':''}>F</option>
+          <option value="M" ${(s.nivel==='M'||s.nivel==='EM')?'selected':''}>M</option>
         </select>
       </td>
-      <td class="col-aluno"><input class="cell" value="${s.aluno||''}" disabled style="background:rgba(0,0,0,0.04); color:var(--ink);"></td>
-      <td><input class="cell" value="${dateFormatted}" data-field="ultimaFreq" onchange="updateStudentField('${s.id}', 'ultimaFreq', this.value)" placeholder="DD/MM/AAAA" style="width:105px"></td>
-      <td><input class="cell" value="${s.contato||''}" data-field="contato" onchange="updateStudentField('${s.id}', 'contato', this.value)" placeholder="Celular"></td>
+      <td class="col-aluno"><input class="cell" data-field="aluno" value="${s.aluno||''}" onchange="updateStudentField('${s.id}', 'aluno', this.value)"></td>
+      <td><input class="cell" data-field="ultimaFreq" value="${brFreq}" placeholder="DD/MM/AAAA" onchange="updateStudentField('${s.id}', 'ultimaFreq', this.value)"></td>
+      <td><input class="cell" data-field="contato" value="${s.contato||''}" onchange="updateStudentField('${s.id}', 'contato', this.value)"></td>
       <td><span class="badge ${st.cls}">${st.situacao}</span></td>
-      <td style="text-align:center; font-weight:bold; color:var(--muted)">${diasSemFreq}</td>
-      <td><input class="cell" value="${s.professor||''}" disabled style="background:rgba(0,0,0,0.04); color:var(--ink);"></td>
-      <td style="text-align:center">
-        <input type="checkbox" disabled ${s.concludente?'checked':''} style="width:18px;height:18px;opacity:0.6;">
+      <td style="text-align:center"><b>${dias}</b></td>
+      <td>
+        <select class="cell" data-field="professor" onchange="updateStudentField('${s.id}', 'professor', this.value)">
+          ${optionsProf}
+        </select>
       </td>
-    </tr>`;
+      <td style="text-align:center">
+        <input type="checkbox" data-field="concludente" ${s.concludente?'checked':''} onchange="updateStudentField('${s.id}', 'concludente', this.checked)">
+      </td>
+      <td style="text-align:center" class="no-print">
+        <button class="btn-excluir" onclick="deleteStudentRow('${s.id}')"><i class="fa-solid fa-trash"></i> Excluir</button>
+      </td>
+    </tr>
+  `;
+}
+
+function filterStudentsList(list, subTab, anoRef, profFiltro=''){
+  let filtered = list;
+
+  if (profFiltro) {
+    filtered = filtered.filter(s => s.professor === profFiltro);
   }
 
-  let matColHTML = '';
-  if (isRetirarMode) {
-    matColHTML = `<div style="display:flex; align-items:center; gap:6px;">
-      <input type="checkbox" class="chk-retirar-aluno" onchange="confirmarRetirarAluno('${s.id}', this)" title="Clique para retirar este aluno" style="width:18px; height:18px; cursor:pointer; accent-color:var(--red);">
-      <input class="cell" value="${s.mat||''}" data-field="mat" onchange="updateStudentField('${s.id}', 'mat', this.value)" style="width:55px" placeholder="MAT">
-    </div>`;
+  if (subTab === 'duplicados') {
+    const dupIds = getDuplicateKeysSet(filtered);
+    return filtered.filter(s => dupIds.has(s.id));
+  }
+
+  if (subTab === 'atuais') {
+    return filtered.filter(s => (s.ano === anoRef) && (!s.concludente));
   } else {
-    matColHTML = `<input class="cell" value="${s.mat||''}" data-field="mat" onchange="updateStudentField('${s.id}', 'mat', this.value)" style="width:65px" placeholder="MAT">`;
+    return filtered.filter(s => (s.concludente) || (s.ano < anoRef));
   }
+}
 
-  return `<tr data-id="${s.id}">
-    <td style="text-align:center; font-weight:bold; color:var(--muted);">${seq}</td>
-    <td>${matColHTML}</td>
-    <td>
-      <select class="cell" data-field="nivel" onchange="updateStudentField('${s.id}', 'nivel', this.value)">
-        <option value="EF" ${s.nivel==='EF'?'selected':''}>EF</option>
-        <option value="EM" ${s.nivel==='EM'?'selected':''}>EM</option>
-      </select>
-    </td>
-    <td class="col-aluno"><input class="cell" value="${s.aluno||''}" data-field="aluno" onchange="updateStudentField('${s.id}', 'aluno', this.value)" placeholder="Nome do Aluno"></td>
-    <td><input class="cell" value="${dateFormatted}" data-field="ultimaFreq" onchange="updateStudentField('${s.id}', 'ultimaFreq', this.value)" placeholder="DD/MM/AAAA" style="width:105px"></td>
-    <td><input class="cell" value="${s.contato||''}" data-field="contato" onchange="updateStudentField('${s.id}', 'contato', this.value)" placeholder="Contato"></td>
-    <td><span class="badge ${st.cls}">${st.situacao}</span></td>
-    <td style="text-align:center; font-weight:bold; color:var(--muted)">${diasSemFreq}</td>
-    <td><select class="cell" data-field="professor" onchange="updateStudentField('${s.id}', 'professor', this.value)"><option value="">Selecione...</option>${optionsProf}</select></td>
-    <td style="text-align:center">
-      <input type="checkbox" data-field="concludente" ${s.concludente?'checked':''} onchange="updateStudentField('${s.id}', 'concludente', this.checked)" style="width:18px;height:18px;cursor:pointer">
-    </td>
-    <td class="no-print"><button class="btn-excluir" onclick="deletarAluno('${s.id}')">🗑️ Excluir</button></td>
-  </tr>`;
+function sortStudentsByName(list) {
+  return list.sort((a, b) => (a.aluno || '').localeCompare(b.aluno || '', 'pt-BR', { sensitivity: 'base' }));
 }
 
 function renderTable(){
   const body = document.getElementById('studentsBody'); if(!body) return;
-  const filterP = document.getElementById('filtroProfessor')?.value || '';
+  const profFiltro = document.getElementById('filtroProfessor')?.value || '';
   
   let combinedAll = [...unsavedNewStudents, ...students];
-  let combinedList;
+  let listSaved = filterStudentsList(students, currentSubTab, currentAno, profFiltro);
+  let listUnsaved = filterStudentsList(unsavedNewStudents, currentSubTab, currentAno, profFiltro);
 
-  if (currentSubTab === 'duplicados') {
-      combinedList = filterStudentsList(combinedAll, 'duplicados', currentAno, filterP);
-  } else {
-      const listSaved = filterStudentsList(students, currentSubTab, currentAno, filterP);
-      const listUnsaved = unsavedNewStudents.filter(s => {
-        if(filterP && normName(s.professor) !== normName(filterP)) return false;
-        if(currentSubTab === 'atuais') return (s.ano === currentAno) && (!s.concludente);
-        return (s.concludente) || (s.ano < currentAno);
-      });
-      combinedList = [...listUnsaved, ...listSaved];
-  }
+  listSaved = sortStudentsByName(listSaved);
+  listUnsaved = sortStudentsByName(listUnsaved);
 
-  body.innerHTML = combinedList.map((s, idx) => buildStudentRowHTML(s, true, idx + 1)).join('');
+  const combined = [...listUnsaved, ...listSaved];
+
+  body.innerHTML = combined.map((s, idx) => buildStudentRowHTML(s, true, idx + 1)).join('');
+
+  const anoInp = document.getElementById('anoLetivoInput');
+  if(anoInp) anoInp.value = currentAno;
 }
 
 function renderSecPorProfModule(){
-  const wrap = document.getElementById('secProfsPills'); if(!wrap) return;
-  wrap.innerHTML = '';
+  const pillsWrap = document.getElementById('secProfsPills');
+  if(!pillsWrap) return;
+  
+  pillsWrap.innerHTML = '';
   sortProfessors();
   
   if(!selectedSecProfName || !PROFESSORES.includes(selectedSecProfName)){
     if(PROFESSORES.length) selectedSecProfName = PROFESSORES[0];
   }
 
-  PROFESSORES.forEach(p=>{
-    const countSaved = students.filter(s => normName(s.professor) === normName(p) && s.ano === currentAno && !s.concludente).length;
-    const countUnsaved = unsavedNewStudents.filter(s => normName(s.professor) === normName(p) && s.ano === currentAno && !s.concludente).length;
-    const count = countSaved + countUnsaved;
+  PROFESSORES.forEach(p => {
     const d = document.createElement('div');
-    d.className = 'tab' + (normName(p) === normName(selectedSecProfName) ? ' active gold' : '');
-    d.textContent = `👤 ${p} (${count})`;
-    d.onclick = () => { selectedSecProfName = p; renderSecPorProfModule(); };
-    wrap.appendChild(d);
+    d.className = 'tab' + (p === selectedSecProfName ? ' active gold' : '');
+    d.textContent = p;
+    d.onclick = () => {
+      selectedSecProfName = p;
+      renderSecPorProfModule();
+    };
+    pillsWrap.appendChild(d);
   });
 
   const titleEl = document.getElementById('secProfSelectedTitle');
-  if(titleEl) titleEl.textContent = `Planilha de Estudantes do Professor(a): ${selectedSecProfName}`;
+  if(titleEl) titleEl.textContent = `Alunos do Prof(a): ${selectedSecProfName}`;
 
   const body = document.getElementById('secProfStudentsBody');
-  if(body){
-    const listSaved = filterStudentsList(students, 'atuais', currentAno, selectedSecProfName);
-    const listUnsaved = unsavedNewStudents.filter(s => normName(s.professor) === normName(selectedSecProfName) && s.ano === currentAno && !s.concludente);
-    const combinedList = [...listUnsaved, ...listSaved];
-    body.innerHTML = combinedList.map((s, idx) => buildStudentRowHTML(s, true, idx + 1)).join('');
-  }
+  if(!body) return;
+
+  let listSaved = filterStudentsList(students, currentSubTab, currentAno, selectedSecProfName);
+  let listUnsaved = filterStudentsList(unsavedNewStudents, currentSubTab, currentAno, selectedSecProfName);
+
+  listSaved = sortStudentsByName(listSaved);
+  listUnsaved = sortStudentsByName(listUnsaved);
+
+  const combined = [...listUnsaved, ...listSaved];
+
+  body.innerHTML = combined.map((s, idx) => buildStudentRowHTML(s, true, idx + 1)).join('');
 }
 
 function renderSecNiveisModule(){
   const body = document.getElementById('secNiveisStudentsBody');
   if(!body) return;
 
-  let combinedAll = [...unsavedNewStudents, ...students];
-  let combinedList;
+  const matchNivel = (sNivel) => currentNivelTab === 'EF' ? (sNivel === 'F' || sNivel === 'EF') : (sNivel === 'M' || sNivel === 'EM');
 
   const listSaved = students.filter(s => {
-      if (s.nivel !== currentNivelTab) return false;
+      if (!matchNivel(s.nivel)) return false;
       if(currentSubTab === 'atuais') return (s.ano === currentAno) && (!s.concludente);
       if(currentSubTab === 'antigas') return (s.concludente) || (s.ano < currentAno);
       return true;
   });
   
   const listUnsaved = unsavedNewStudents.filter(s => {
-      if (s.nivel !== currentNivelTab) return false;
+      if (!matchNivel(s.nivel)) return false;
       if(currentSubTab === 'atuais') return (s.ano === currentAno) && (!s.concludente);
       if(currentSubTab === 'antigas') return (s.concludente) || (s.ano < currentAno);
       return true;
   });
 
-  combinedList = [...listUnsaved, ...listSaved];
+  const sortedSaved = sortStudentsByName(listSaved);
+  const sortedUnsaved = sortStudentsByName(listUnsaved);
+
+  const combined = [...sortedUnsaved, ...sortedSaved];
+
+  body.innerHTML = combined.map((s, idx) => buildStudentRowHTML(s, true, idx + 1)).join('');
+}
+
+function renderProfView(){
+  const body = document.getElementById('profStudentsBody'); if(!body) return;
+  const profName = session ? session.name : '';
   
-  // Ordenar alfabeticamente os alunos do respectivo nível
-  combinedList.sort((a,b) => (a.aluno||'').localeCompare(b.aluno||'', 'pt-BR'));
+  let myStudents = students.filter(s => s.professor === profName);
 
-  body.innerHTML = combinedList.map((s, idx) => buildStudentRowHTML(s, true, idx + 1)).join('');
-}
-
-function renderProfs(){
-  const list = document.getElementById('profList'); if(!list) return;
-  sortProfessors();
-  document.getElementById('profCount').textContent = PROFESSORES.length;
-  list.innerHTML = PROFESSORES.map(p => {
-    const link = getProfLink(p);
-    return `<div class="prof-card">
-      <b><i class="fa-solid fa-chalkboard-user"></i> ${p}</b>
-      <div class="muted" style="margin-top:6px;word-break:break-all;font-size:0.75rem;background:var(--bg);padding:6px;border-radius:6px;border:1px solid var(--border);">${link}</div>
-      <div style="margin-top:10px;display:flex;gap:6px">
-        <button class="btn sm" onclick="copyProfLink('${p}')"><i class="fa-solid fa-copy"></i> Copiar Link Atualizado</button>
-        <button class="btn red sm" onclick="deleteProfessor('${p}')"><i class="fa-solid fa-trash"></i> Excluir</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function copyProfLink(p){
-  const link = getProfLink(p);
-  navigator.clipboard.writeText(link).then(()=>alert(`Link do professor(a) ${p} copiado com sucesso!\n\n${link}`));
-}
-
-async function addNewYearRemat(){
-  const inp = document.getElementById('addYearRemat');
-  const val = inp.value.trim();
-  if(val && !anosCriados.includes(val)){
-    anosCriados.push(val);
-    selectedRematYear = val;
-    await persistAnos();
+  if (currentSubTab2 === 'atuais') {
+    myStudents = myStudents.filter(s => (!s.concludente) && (s.ano === currentAno || !s.ano));
+  } else {
+    myStudents = myStudents.filter(s => (s.concludente) || (s.ano && s.ano < currentAno));
   }
-  inp.value = '';
+
+  myStudents = sortStudentsByName(myStudents);
+
+  body.innerHTML = myStudents.map((s, idx) => buildStudentRowHTML(s, false, idx + 1)).join('');
+}
+
+function updateStudentField(id, field, value){
+  if(id.startsWith('temp_')){
+    const st = unsavedNewStudents.find(s => s.id === id);
+    if(st){
+      if(field === 'ultimaFreq') value = toISO(value);
+      st[field] = value;
+    }
+    return;
+  }
+
+  const st = students.find(s=>s.id===id);
+  if(!st) return;
+  if(field === 'ultimaFreq') value = toISO(value);
+  st[field] = value;
+}
+
+async function deleteStudentRow(id){
+  if(!confirm('Deseja realmente excluir este estudante?')) return;
+  if(id.startsWith('temp_')){
+    unsavedNewStudents = unsavedNewStudents.filter(s => s.id !== id);
+    renderAll();
+    return;
+  }
+  await deleteDoc(doc(db,'students',id)).catch(console.error);
+}
+
+async function saveEstudantesModule(){
+  const inputAno = document.getElementById('anoLetivoInput')?.value.trim();
+  if(inputAno && inputAno.length === 4 && !isNaN(inputAno)){
+    if(!anosCriados.includes(inputAno)){
+      anosCriados.push(inputAno);
+      await persistAnos();
+    }
+    currentAno = inputAno;
+  }
+
+  await saveAllStudents();
+}
+
+async function saveAllStudents(){
+  const tables = ['studentsBody', 'secProfStudentsBody', 'secNiveisStudentsBody', 'profStudentsBody'];
+  
+  for(const tableId of tables){
+    const tbody = document.getElementById(tableId);
+    if(!tbody) continue;
+
+    const rows = tbody.querySelectorAll('tr[data-id]');
+    for(const row of rows){
+      const id = row.dataset.id;
+      
+      const mat = row.querySelector('[data-field="mat"]')?.value || '';
+      const nivel = row.querySelector('[data-field="nivel"]')?.value || 'M';
+      const aluno = row.querySelector('[data-field="aluno"]')?.value || '';
+      const ultimaFreqBR = row.querySelector('[data-field="ultimaFreq"]')?.value || '';
+      const contato = row.querySelector('[data-field="contato"]')?.value || '';
+      const profSel = row.querySelector('[data-field="professor"]');
+      const professor = profSel ? profSel.value : (session && session.role==='professor' ? session.name : '');
+      const concludente = row.querySelector('[data-field="concludente"]')?.checked || false;
+
+      const ultimaFreq = toISO(ultimaFreqBR);
+
+      if(id.startsWith('temp_')){
+        const tempSt = unsavedNewStudents.find(s => s.id === id);
+        if(!tempSt) continue;
+
+        const newDocRef = doc(collection(db, 'students'));
+        const payload = {
+          mat,
+          nivel: (tempSt.nivel === 'EF' || tempSt.nivel === 'F') ? 'F' : 'M',
+          aluno,
+          ultimaFreq,
+          contato,
+          professor,
+          concludente,
+          ano: tempSt.ano || currentAno,
+          rematricula: diasDesde(ultimaFreq)
+        };
+        await setDoc(newDocRef, payload);
+      } else {
+        const existingSt = students.find(s => s.id === id);
+        if(!existingSt) continue;
+
+        const payload = {
+          ...existingSt,
+          mat,
+          nivel,
+          aluno,
+          ultimaFreq,
+          contato,
+          professor,
+          concludente,
+          rematricula: diasDesde(ultimaFreq)
+        };
+        await setDoc(doc(db, 'students', id), payload);
+      }
+    }
+  }
+
+  unsavedNewStudents = [];
+  alert('Todas as alterações foram salvas com sucesso!');
+  renderAll();
+}
+
+async function zerarBancoDeDados(){
+  const c1 = confirm("ATENÇÃO! Esta ação irá apagar TODOS os estudantes do banco de dados para o início de um novo semestre.\n\nTem certeza que deseja continuar?");
+  if(!c1) return;
+  
+  const c2 = confirm("CONFIRMAÇÃO FINAL: Todos os dados de alunos serão PERMANENTEMENTE excluídos. Deseja realmente zerar?");
+  if(!c2) return;
+
+  try {
+    const snap = await getDocs(collection(db, 'students'));
+    const batch = writeBatch(db);
+    snap.docs.forEach(d => batch.delete(d.ref));
+    await batch.commit();
+    unsavedNewStudents = [];
+    alert("Banco de dados de estudantes zerado com sucesso!");
+    renderAll();
+  } catch(e) {
+    console.error(e);
+    alert("Erro ao zerar banco de dados: " + e.message);
+  }
+}
+
+function renderProfessorsModule(){
+  const list = document.getElementById('profList'); if(!list) return;
+  document.getElementById('profCount').textContent = PROFESSORES.length;
+  sortProfessors();
+  list.innerHTML = PROFESSORES.map((p, idx)=>`
+    <div class="prof-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <b>${idx+1}. ${p}</b>
+        <button class="btn red sm" onclick="removeProfessor('${p}')"><i class="fa-solid fa-trash"></i> Remover</button>
+      </div>
+      <label>Link de acesso direto para a turma do professor:</label>
+      <input readonly value="${getProfLink(p)}" style="font-size:.75rem;background:var(--bg)">
+    </div>
+  `).join('');
+}
+
+async function addProfessor(){
+  const inp = document.getElementById('newProfName');
+  const val = inp.value.trim();
+  if(!val) return;
+  if(!PROFESSORES.includes(val)){
+    PROFESSORES.push(val);
+    sortProfessors();
+    await setDoc(doc(db,'meta','professors'), {list: PROFESSORES});
+    inp.value = '';
+    buildProfessorFilter();
+    renderAll();
+  }
+}
+
+async function removeProfessor(p){
+  if(!confirm(`Remover o professor ${p}?`)) return;
+  PROFESSORES = PROFESSORES.filter(x => x !== p);
+  sortProfessors();
+  await setDoc(doc(db,'meta','professors'), {list: PROFESSORES});
+  buildProfessorFilter();
+  renderAll();
+}
+
+async function saveProfessors(){
+  sortProfessors();
+  await setDoc(doc(db,'meta','professors'), {list: PROFESSORES});
+  alert('Lista de professores salva com sucesso!');
 }
 
 function renderRematModule(){
-  const wrapYears = document.getElementById('rematYearsPills'); if(!wrapYears) return;
-  wrapYears.innerHTML = '';
+  const yearsWrap = document.getElementById('rematYearsPills'); if(!yearsWrap) return;
+  yearsWrap.innerHTML = '';
   sortYears();
-  anosCriados.forEach(y=>{
-    const d = document.createElement('div'); d.className = 'tab' + (y === selectedRematYear ? ' active' : '');
-    d.textContent = '📅 Ano ' + y;
+  anosCriados.forEach(y => {
+    const d = document.createElement('div');
+    d.className = 'tab' + (y === selectedRematYear ? ' active gold' : '');
+    d.textContent = '📅 ' + y;
     d.onclick = () => { selectedRematYear = y; renderRematModule(); };
-    wrapYears.appendChild(d);
+    yearsWrap.appendChild(d);
   });
 
-  document.getElementById('rematYearTitle').textContent = `Selecione o Mês (${selectedRematYear}):`;
-  const wrapMonths = document.getElementById('rematMonthsGrid');
-  wrapMonths.innerHTML = MESES.map(m => `<div class="month-card ${m === selectedRematMonth ? 'active' : ''}" onclick="selectRematMonth('${m}')">🗓️ ${m}</div>`).join('');
-
-  renderRematProfPills();
-  renderRematTable();
-}
-
-function renderRematProfPills(){
-  const wrapProfs = document.getElementById('rematProfPills'); if(!wrapProfs) return;
-  wrapProfs.innerHTML = '';
-
-  if(selectedRematProf !== 'todos' && !PROFESSORES.some(p=>normName(p)===normName(selectedRematProf))){
-    selectedRematProf = 'todos';
+  const mGrid = document.getElementById('rematMonthsGrid');
+  if(mGrid){
+    mGrid.innerHTML = MESES.map(m => `
+      <div class="month-card ${m === selectedRematMonth ? 'active' : ''}" onclick="selectRematMonth('${m}')">
+        ${m}
+      </div>
+    `).join('');
   }
 
-  const totalGeral = rematriculas.filter(r => (r.mes === selectedRematMonth) && (r.ano === selectedRematYear || !r.ano)).length;
+  const pWrap = document.getElementById('rematProfPills');
+  if(pWrap){
+    pWrap.innerHTML = '';
+    sortProfessors();
 
-  const divTodos = document.createElement('div');
-  divTodos.className = 'tab' + (selectedRematProf === 'todos' ? ' active' : '');
-  divTodos.textContent = `👥 Todos os Professores (${totalGeral})`;
-  divTodos.onclick = () => { selectedRematProf = 'todos'; renderRematProfPills(); renderRematTable(); };
-  wrapProfs.appendChild(divTodos);
+    const dTodos = document.createElement('div');
+    dTodos.className = 'tab' + (selectedRematProf === 'todos' ? ' active gold' : '');
+    dTodos.textContent = 'Todos os Professores';
+    dTodos.onclick = () => { selectedRematProf = 'todos'; renderRematModule(); };
+    pWrap.appendChild(dTodos);
 
-  sortProfessors();
-  PROFESSORES.forEach(p => {
-    const countProf = rematriculas.filter(r => 
-      (r.mes === selectedRematMonth) && 
-      (r.ano === selectedRematYear || !r.ano) && 
-      (normName(r.prof) === normName(p))
-    ).length;
+    PROFESSORES.forEach(p => {
+      const d = document.createElement('div');
+      d.className = 'tab' + (p === selectedRematProf ? ' active gold' : '');
+      d.textContent = p;
+      d.onclick = () => { selectedRematProf = p; renderRematModule(); };
+      pWrap.appendChild(d);
+    });
+  }
 
-    const d = document.createElement('div');
-    d.className = 'tab' + (selectedRematProf === p ? ' active' : '');
-    d.textContent = `👤 ${p} (${countProf})`;
-    d.onclick = () => { selectRematProf(p); };
-    wrapProfs.appendChild(d);
-  });
-}
-
-function selectRematProf(profName){
-  selectedRematProf = profName;
-  renderRematProfPills();
-  renderRematTable();
+  const detail = document.getElementById('rematMonthDetail');
+  if(!detail) return;
+  
+  if(selectedRematMonth){
+    detail.classList.remove('hidden');
+    let profLabel = selectedRematProf === 'todos' ? 'Todos os Professores' : selectedRematProf;
+    document.getElementById('rematMonthTitle').textContent = `Registros de Retorno — ${selectedRematMonth} / ${selectedRematYear} (${profLabel})`;
+    renderRematTable();
+  } else {
+    detail.classList.add('hidden');
+  }
 }
 
 function selectRematMonth(m){
@@ -1390,87 +1530,134 @@ function selectRematMonth(m){
   renderRematModule();
 }
 
-function renderRematTable(){
-  const detail = document.getElementById('rematMonthDetail');
-  detail.classList.remove('hidden');
-
-  const profLabel = selectedRematProf === 'todos' ? 'Todos os Professores' : selectedRematProf;
-  document.getElementById('rematMonthTitle').textContent = `Rematrículas do Mês: ${selectedRematMonth} / ${selectedRematYear} — (${profLabel})`;
-
-  const filtered = rematriculas.filter(r => {
-    const matchMonth = (r.mes === selectedRematMonth);
-    const matchYear = (r.ano === selectedRematYear || !r.ano);
-    const matchProf = (selectedRematProf === 'todos') || (normName(r.prof) === normName(selectedRematProf));
-    return matchMonth && matchYear && matchProf;
-  });
-
-  filtered.sort((a, b) => parseDateForSort(a.ultFreq) - parseDateForSort(b.ultFreq));
-
-  const body = document.getElementById('rematBody');
-  body.innerHTML = filtered.map(r=>{
-    const globalIdx = rematriculas.indexOf(r);
-    let profSelect = `<select class="cell" onchange="updateRematItem(${globalIdx}, 'prof', this.value)"><option value="">Selecione...</option>${PROFESSORES.map(p=>`<option value="${p}" ${normName(r.prof)===normName(p)?'selected':''}>${p}</option>`).join('')}</select>`;
-    
-    return `<tr>
-      <td><input class="cell" value="${r.aluno||''}" onchange="updateRematItem(${globalIdx},'aluno',this.value)"></td>
-      <td><input class="cell" value="${r.mat||''}" onchange="updateRematItem(${globalIdx},'mat',this.value)" style="width:70px"></td>
-      <td><input class="cell" value="${toBR(r.ultFreq)}" onchange="updateRematItem(${globalIdx},'ultFreq',this.value)" placeholder="DD/MM/AAAA" style="width:105px"></td>
-      <td><input class="cell" value="${toBR(r.retorno)}" onchange="updateRematItem(${globalIdx},'retorno',this.value)" placeholder="DD/MM/AAAA" style="width:105px"></td>
-      <td>${r.mes||selectedRematMonth} / ${r.ano||selectedRematYear}</td>
-      <td>${profSelect}</td>
-      <td class="no-print"><button class="btn red sm" onclick="deletarRematricula(${globalIdx})"><i class="fa-solid fa-trash"></i> Excluir</button></td>
-    </tr>`;
-  }).join('');
-  document.getElementById('rematEmpty').classList.toggle('hidden', filtered.length>0);
-}
-
-async function updateRematItem(globalIdx, field, val){
-  if(rematriculas[globalIdx]){
-    rematriculas[globalIdx][field] = (field==='ultFreq'||field==='retorno') ? toISO(val) : val;
-    await setDoc(doc(db, 'meta', 'rematriculas'), { list: rematriculas }).catch(console.error);
+async function addNewYearRemat(){
+  const inp = document.getElementById('addYearRemat');
+  const val = inp.value.trim();
+  if(val && val.length===4 && !isNaN(val)){
+    if(!anosCriados.includes(val)){
+      anosCriados.push(val);
+      await persistAnos();
+      selectedRematYear = val;
+      inp.value = '';
+      renderAll();
+    }
   }
 }
 
-async function addSecRematRow(){
-  const defaultProf = selectedRematProf === 'todos' ? (PROFESSORES[0] || '') : selectedRematProf;
-  rematriculas.push({
+function renderRematTable(){
+  const body = document.getElementById('rematBody'); if(!body) return;
+  const empty = document.getElementById('rematEmpty');
+  
+  let list = rematriculas.filter(r => r.ano === selectedRematYear && r.mes === selectedRematMonth);
+  
+  if(selectedRematProf !== 'todos'){
+    list = list.filter(r => r.professor === selectedRematProf);
+  }
+
+  list.sort((a,b) => parseDateForSort(b.retorno) - parseDateForSort(a.retorno));
+
+  if(list.length === 0){
+    body.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+
+  let profOptionsHtml = '<option value="">Sem Professor</option>';
+  sortProfessors();
+  PROFESSORES.forEach(p => {
+    profOptionsHtml += `<option value="${p}">${p}</option>`;
+  });
+
+  body.innerHTML = list.map(r => `
+    <tr data-remat-id="${r.id}">
+      <td><input class="cell" data-rfield="aluno" value="${r.aluno||''}"></td>
+      <td><input class="cell" data-rfield="mat" value="${r.mat||''}"></td>
+      <td><input class="cell" data-rfield="ultimaFreq" value="${toBR(r.ultimaFreq)}" placeholder="DD/MM/AAAA"></td>
+      <td><input class="cell" data-rfield="retorno" value="${toBR(r.retorno)}" placeholder="DD/MM/AAAA"></td>
+      <td><b>${r.mes}/${r.ano}</b></td>
+      <td>
+        <select class="cell" data-rfield="professor">
+          ${PROFESSORES.map(p=>`<option value="${p}" ${r.professor===p?'selected':''}>${p}</option>`).join('')}
+        </select>
+      </td>
+      <td class="no-print" style="text-align:center"><button class="btn red sm" onclick="removeRematRow('${r.id}')"><i class="fa-solid fa-trash"></i> Excluir</button></td>
+    </tr>
+  `).join('');
+}
+
+function addSecRematRow(){
+  const newObj = {
+    id: 'r_' + Date.now() + '_' + Math.random().toString(36).substring(2,6),
     aluno: '',
     mat: '',
-    ultFreq: toISO(new Date().toLocaleDateString('pt-BR')),
+    ultimaFreq: toISO(new Date().toLocaleDateString('pt-BR')),
     retorno: toISO(new Date().toLocaleDateString('pt-BR')),
     mes: selectedRematMonth,
     ano: selectedRematYear,
-    prof: defaultProf,
-    status: 'aprovado'
-  });
-  await saveAllRemat();
-  renderRematModule();
+    professor: selectedRematProf !== 'todos' ? selectedRematProf : (PROFESSORES[0]||'')
+  };
+  rematriculas.push(newObj);
+  renderRematTable();
 }
 
-async function deletarRematricula(globalIdx){
-  if(confirm("Deseja remover este registro de rematrícula?")){
-    rematriculas.splice(globalIdx, 1);
-    await saveAllRemat();
-    renderRematModule();
-  }
+async function removeRematRow(id){
+  if(!confirm('Excluir esta rematrícula?')) return;
+  rematriculas = rematriculas.filter(r => r.id !== id);
+  await setDoc(doc(db,'meta','rematriculas'), {list: rematriculas});
+  renderRematTable();
+}
+
+async function saveAllRemat(){
+  const body = document.getElementById('rematBody'); if(!body) return;
+  const rows = body.querySelectorAll('tr[data-remat-id]');
+  
+  rows.forEach(row => {
+    const id = row.dataset.rematId;
+    const r = rematriculas.find(x => x.id === id);
+    if(r){
+      r.aluno = row.querySelector('[data-rfield="aluno"]')?.value || '';
+      r.mat = row.querySelector('[data-rfield="mat"]')?.value || '';
+      r.ultimaFreq = toISO(row.querySelector('[data-rfield="ultimaFreq"]')?.value || '');
+      r.retorno = toISO(row.querySelector('[data-rfield="retorno"]')?.value || '');
+      r.professor = row.querySelector('[data-rfield="professor"]')?.value || '';
+    }
+  });
+
+  await setDoc(doc(db,'meta','rematriculas'), {list: rematriculas});
+  alert('Rematrículas salvas com sucesso!');
+  renderAll();
 }
 
 function renderFarolModule(){
-  const wrapYears = document.getElementById('farolYearsPills'); if(!wrapYears) return;
-  wrapYears.innerHTML = '';
+  const yearsWrap = document.getElementById('farolYearsPills'); if(!yearsWrap) return;
+  yearsWrap.innerHTML = '';
   sortYears();
-  anosCriados.forEach(y=>{
-    const d = document.createElement('div'); d.className = 'tab' + (y === selectedFarolYear ? ' active' : '');
-    d.textContent = '📅 Ano ' + y;
+  anosCriados.forEach(y => {
+    const d = document.createElement('div');
+    d.className = 'tab' + (y === selectedFarolYear ? ' active gold' : '');
+    d.textContent = '📅 ' + y;
     d.onclick = () => { selectedFarolYear = y; renderFarolModule(); };
-    wrapYears.appendChild(d);
+    yearsWrap.appendChild(d);
   });
 
-  document.getElementById('farolYearTitle').textContent = `Selecione o Mês (${selectedFarolYear}):`;
-  const wrapMonths = document.getElementById('farolMonthsGrid');
-  wrapMonths.innerHTML = MESES.map(m => `<div class="month-card ${m === selectedFarolMonth ? 'active' : ''}" onclick="selectFarolMonth('${m}')">🚨 ${m}</div>`).join('');
+  const mGrid = document.getElementById('farolMonthsGrid');
+  if(mGrid){
+    mGrid.innerHTML = MESES.map(m => `
+      <div class="month-card ${m === selectedFarolMonth ? 'active' : ''}" onclick="selectFarolMonth('${m}')">
+        ${m}
+      </div>
+    `).join('');
+  }
 
-  renderFarolTable();
+  const detail = document.getElementById('farolMonthDetail'); if(!detail) return;
+  if(selectedFarolMonth){
+    detail.classList.remove('hidden');
+    document.getElementById('farolMonthTitle').textContent = `Farol de Desempenho — ${selectedFarolMonth} / ${selectedFarolYear}`;
+    renderFarolRanking();
+  } else {
+    detail.classList.add('hidden');
+  }
 }
 
 function selectFarolMonth(m){
@@ -1478,205 +1665,92 @@ function selectFarolMonth(m){
   renderFarolModule();
 }
 
-function renderFarolTable(){
-  document.getElementById('farolMonthDetail').classList.remove('hidden');
-  document.getElementById('farolMonthTitle').textContent = `Ranking Farol: ${selectedFarolMonth} / ${selectedFarolYear}`;
-
+function renderFarolRanking(){
   const body = document.getElementById('rankBody'); if(!body) return;
+  
   const counts = {};
   sortProfessors();
-  PROFESSORES.forEach(p=>counts[p]=0);
+  PROFESSORES.forEach(p => counts[p] = 0);
 
-  rematriculas.forEach(r=>{
-    const rMes = r.mes;
-    const rAno = r.ano || selectedFarolYear;
-    if(rMes === selectedFarolMonth && rAno === selectedFarolYear){
-      const foundProf = PROFESSORES.find(p => normName(p) === normName(r.prof));
-      if(foundProf){
-        counts[foundProf]++;
-      }
+  rematriculas.forEach(r => {
+    if(r.ano === selectedFarolYear && r.mes === selectedFarolMonth && counts[r.professor] !== undefined){
+      counts[r.professor]++;
     }
   });
 
-  const sorted = PROFESSORES.map(p=>({name:p, count:counts[p]})).sort((a,b)=>b.count-a.count);
-  
-  body.innerHTML = sorted.map(item=>{
-    let badge = '<span class="badge r">Vermelho</span>';
-    let profColor = '#c62828';
-    
-    if(item.count >= 4) {
-      badge = '<span class="badge g">Verde</span>';
-      profColor = '#1E7A34';
-    } else if(item.count >= 1) {
-      badge = '<span class="badge y">Amarelo</span>';
-      profColor = '#d48800';
-    }
+  const ranked = PROFESSORES.map(p => ({ prof: p, count: counts[p] }))
+    .sort((a,b) => b.count - a.count || a.prof.localeCompare(b.prof, 'pt-BR'));
 
-    return `<tr>
-      <td style="text-align:center; font-weight:bold; color:${profColor};">${item.name}</td>
-      <td style="text-align:center; font-weight:bold;">${item.count}</td>
-      <td style="text-align:center;">${badge}</td>
-    </tr>`;
+  body.innerHTML = ranked.map(item => {
+    let badgeCls = 'r', label = 'Sem Rematrícula (0)';
+    if(item.count >= 4){ badgeCls = 'g'; label = 'Excelente (4+)'; }
+    else if(item.count >= 1){ badgeCls = 'y'; label = 'Em Progresso (1-3)'; }
+
+    return `
+      <tr>
+        <td style="text-align:center"><b>${item.prof}</b></td>
+        <td style="text-align:center; font-size:1.1rem; font-weight:800;">${item.count}</td>
+        <td style="text-align:center"><span class="badge ${badgeCls}">${label}</span></td>
+      </tr>
+    `;
   }).join('');
+}
+
+function renderCertificacaoModule(){
+  const yearsWrap = document.getElementById('certYearsPills'); if(!yearsWrap) return;
+  yearsWrap.innerHTML = '';
+  sortYears();
+  
+  if(!anosCriados.includes(selectedCertYear)){
+    selectedCertYear = anosCriados[0] || '2026';
+  }
+
+  anosCriados.forEach(y => {
+    const d = document.createElement('div');
+    d.className = 'tab' + (y === selectedCertYear ? ' active gold' : '');
+    d.textContent = '🎓 ' + y;
+    d.onclick = () => { selectedCertYear = y; renderCertificacaoModule(); };
+    yearsWrap.appendChild(d);
+  });
+
+  document.querySelectorAll('.currentYearLabel').forEach(el => el.textContent = selectedCertYear);
+
+  const concludentes = students.filter(s => s.concludente && (s.ano === selectedCertYear || !s.ano));
+
+  const efCount = concludentes.filter(s => s.nivel === 'F' || s.nivel === 'EF').length;
+  const emCount = concludentes.filter(s => s.nivel === 'M' || s.nivel === 'EM').length;
+
+  document.getElementById('countCertEF').textContent = efCount;
+  document.getElementById('countCertEM').textContent = emCount;
+
+  const body = document.getElementById('certificacaoBody'); if(!body) return;
+  
+  const sorted = sortStudentsByName(concludentes);
+
+  body.innerHTML = sorted.map(s => `
+    <tr>
+      <td>${s.mat||'-'}</td>
+      <td><b>${s.aluno||'-'}</b></td>
+      <td><span class="badge g">${(s.nivel==='F'||s.nivel==='EF')?'F':'M'}</span></td>
+      <td>${s.contato||'-'}</td>
+      <td>${s.professor||'-'}</td>
+      <td>${selectedCertYear}</td>
+    </tr>
+  `).join('');
 }
 
 async function addNewYearCert(){
   const inp = document.getElementById('addYearCert');
   const val = inp.value.trim();
-  if(val && !anosCriados.includes(val)){
-    anosCriados.push(val);
-    selectedCertYear = val;
-    await persistAnos();
-  }
-  inp.value = '';
-}
-
-function renderCertificacaoModule(){
-  const wrapYears = document.getElementById('certYearsPills'); 
-  if(wrapYears){
-    wrapYears.innerHTML = '';
-    sortYears();
-    anosCriados.forEach(y=>{
-      const d = document.createElement('div'); 
-      d.className = 'tab' + (y === selectedCertYear ? ' active' : '');
-      d.textContent = '🎓 Ano ' + y;
-      d.onclick = () => { selectedCertYear = y; renderCertificacaoModule(); };
-      wrapYears.appendChild(d);
-    });
-  }
-
-  const concludentes = students.filter(s => s.concludente && (s.ano === selectedCertYear));
-  
-  concludentes.sort((a, b) => {
-    const numA = parseFloat(a.mat) || 0;
-    const numB = parseFloat(b.mat) || 0;
-    if (numA !== numB) return numA - numB;
-    return (a.mat || '').localeCompare(b.mat || '', undefined, {numeric: true});
-  });
-
-  const efCount = concludentes.filter(s => s.nivel === 'EF').length;
-  const emCount = concludentes.filter(s => s.nivel === 'EM').length;
-
-  document.getElementById('countCertEF').textContent = efCount;
-  document.getElementById('countCertEM').textContent = emCount;
-  document.querySelectorAll('.currentYearLabel').forEach(el=>el.textContent = selectedCertYear);
-
-  const body = document.getElementById('certificacaoBody');
-  if(body){
-    body.innerHTML = concludentes.length > 0 ? concludentes.map(s => `<tr>
-      <td>${s.mat||'--'}</td>
-      <td><b>${s.aluno}</b></td>
-      <td><span class="badge g">${s.nivel||'EM'}</span></td>
-      <td>${s.contato||'--'}</td>
-      <td>${s.professor||'--'}</td>
-      <td>${s.ano}</td>
-    </tr>`).join('') : `<tr><td colspan="6" style="text-align:center;padding:16px;color:var(--muted)">Nenhum concludente registrado no ano de ${selectedCertYear}.</td></tr>`;
-  }
-}
-
-function renderProfView(){
-  if(!session || session.role!=='professor') return;
-  const myName = session.name;
-
-  const bodyTurma = document.getElementById('profStudentsBody');
-  if(bodyTurma){
-    const myStudents = filterStudentsList(students, currentSubTab2, currentAno, myName);
-    bodyTurma.innerHTML = myStudents.map((s, idx)=>buildStudentRowHTML(s, false, idx+1)).join('');
-  }
-}
-
-async function addProfessor(){
-  const inp = document.getElementById('newProfName');
-  const name = inp.value.trim();
-  if(!name) return;
-  if(!PROFESSORES.includes(name)){
-    PROFESSORES.push(name);
-    sortProfessors();
-    await saveProfessors();
-  }
-  inp.value = '';
-}
-
-async function deleteProfessor(name){
-  if(confirm(`Deseja remover o professor "${name}"?`)){
-    PROFESSORES = PROFESSORES.filter(p=>p!==name);
-    sortProfessors();
-    await saveProfessors();
-  }
-}
-
-async function saveProfessors(){
-  sortProfessors();
-  await setDoc(doc(db, 'meta', 'professors'), { list: PROFESSORES }).catch(console.error);
-  alert('Lista de professores atualizada com sucesso no banco de dados!');
-}
-
-async function saveEstudantesModule(){
-  const anoInp = document.getElementById('anoLetivoInput')?.value.trim();
-  if(anoInp && !anosCriados.includes(anoInp)){
-    anosCriados.push(anoInp);
-    currentAno = anoInp;
-    await persistAnos();
-  }
-  await saveAllStudents();
-}
-
-async function saveAllStudents(){
-  const rows = document.querySelectorAll('tr[data-id]');
-  for(let row of rows){
-    const id = row.dataset.id;
-    let st = unsavedNewStudents.find(s=>s.id===id) || students.find(s=>s.id===id);
-    if(st){
-      row.querySelectorAll('[data-field]').forEach(input=>{
-        if(input.disabled) return;
-        if(input.type === 'checkbox'){
-          st[input.dataset.field] = input.checked;
-        } else if(input.dataset.field === 'ultimaFreq'){
-          st[input.dataset.field] = toISO(input.value);
-        } else {
-          st[input.dataset.field] = input.value;
-        }
-      });
+  if(val && val.length===4 && !isNaN(val)){
+    if(!anosCriados.includes(val)){
+      anosCriados.push(val);
+      await persistAnos();
+      selectedCertYear = val;
+      inp.value = '';
+      renderAll();
     }
   }
-
-  if(unsavedNewStudents.length > 0){
-    for(let tempSt of unsavedNewStudents){
-      const realId = 's' + Date.now() + Math.random().toString(36).substring(2, 5);
-      const studentToSave = {
-        id: realId,
-        mat: tempSt.mat || '',
-        aluno: tempSt.aluno || '',
-        nivel: tempSt.nivel || 'EM',
-        contato: tempSt.contato || '',
-        ultimaFreq: tempSt.ultimaFreq || toISO(new Date().toLocaleDateString('pt-BR')),
-        rematricula: tempSt.rematricula || 0,
-        professor: tempSt.professor || '',
-        concludente: !!tempSt.concludente,
-        ano: tempSt.ano || currentAno
-      };
-      await setDoc(doc(db, 'students', realId), studentToSave).catch(console.error);
-    }
-    unsavedNewStudents = [];
-  }
-
-  for(let row of rows){
-    const id = row.dataset.id;
-    if(!id.startsWith('temp_')){
-      const st = students.find(s=>s.id===id);
-      if(st){
-        await setDoc(doc(db,'students',id), st, {merge:true}).catch(console.error);
-      }
-    }
-  }
-
-  alert('Alterações salvas e sincronizadas em tempo real!');
-  renderAll();
-}
-
-async function saveAllRemat(){
-  await setDoc(doc(db, 'meta', 'rematriculas'), { list: rematriculas }).catch(console.error);
-  alert('Rematrículas salvas e sincronizadas em tempo real!');
 }
 
 async function adminChangePass(){
@@ -1684,13 +1758,17 @@ async function adminChangePass(){
   const p1 = document.getElementById('secNewPassAdmin').value;
   const p2 = document.getElementById('secNewPassAdmin2').value;
   const err = document.getElementById('secAdminErr');
-  if(!user || !p1 || p1!==p2){ err.textContent='Selecione um usuário e digite senhas coincidentes.'; return; }
-  if(user==='Secretária'){
+  
+  if(!user){ err.textContent = 'Selecione um usuário.'; return; }
+  if(!p1 || p1 !== p2){ err.textContent = 'As senhas não coincidem ou estão em branco.'; return; }
+
+  if(user === 'Secretária'){
     authData.secPass = p1;
   } else {
     if(!authData.profPasswords) authData.profPasswords = {};
     authData.profPasswords[user] = p1;
   }
+
   await setDoc(doc(db,'meta','auth'), authData).catch(console.error);
   err.textContent = '';
   alert(`Senha de ${user} alterada com sucesso!`);
@@ -1699,7 +1777,7 @@ async function adminChangePass(){
 function exportCSV(){
   let csv = "MAT;NIVEL;ALUNO;ULTIMA_FREQ;CONTATO;REMATRICULAS;PROFESSOR;CONCLUDENTE\n";
   students.forEach(s=>{
-    csv += `"${s.mat||''}';'${s.nivel||'EM'}';'${s.aluno||''}';'${toBR(s.ultimaFreq)}';'${s.contato||''}';'${s.rematricula||0}';'${s.professor||''}';'${s.concludente?'SIM':'NÃO'}"\n`;
+    csv += `"${s.mat||''}';'${(s.nivel==='F'||s.nivel==='EF')?'F':'M'}';'${s.aluno||''}';'${toBR(s.ultimaFreq)}';'${s.contato||''}';'${s.rematricula||0}';'${s.professor||''}';'${s.concludente?'SIM':'NÃO'}"\n`;
   });
   downloadFile(csv, 'estudantes.csv', 'text/csv;charset=utf-8;');
 }
@@ -1708,134 +1786,92 @@ function exportCSVPorProf(){
   let csv = "MAT;NIVEL;ALUNO;ULTIMA_FREQ;CONTATO;PROFESSOR;CONCLUDENTE\n";
   const list = filterStudentsList(students, 'atuais', currentAno, selectedSecProfName);
   list.forEach(s=>{
-    csv += `"${s.mat||''}';'${s.nivel||'EM'}';'${s.aluno||''}';'${toBR(s.ultimaFreq)}';'${s.contato||''}';'${s.professor||''}';'${s.concludente?'SIM':'NÃO'}"\n`;
+    csv += `"${s.mat||''}';'${(s.nivel==='F'||s.nivel==='EF')?'F':'M'}';'${s.aluno||''}';'${toBR(s.ultimaFreq)}';'${s.contato||''}';'${s.professor||''}';'${s.concludente?'SIM':'NÃO'}"\n`;
   });
   downloadFile(csv, `estudantes_${selectedSecProfName}.csv`, 'text/csv;charset=utf-8;');
 }
 
 function exportCSVNiveis(){
   let csv = "MAT;NIVEL;ALUNO;ULTIMA_FREQ;CONTATO;PROFESSOR;CONCLUDENTE\n";
-  const list = students.filter(s => s.nivel === currentNivelTab);
+  const matchNivelCsv = (sNivel) => currentNivelTab === 'EF' ? (sNivel === 'F' || sNivel === 'EF') : (sNivel === 'M' || sNivel === 'EM');
+  const list = students.filter(s => matchNivelCsv(s.nivel));
   list.forEach(s=>{
-    csv += `"${s.mat||''}';'${s.nivel||'EM'}';'${s.aluno||''}';'${toBR(s.ultimaFreq)}';'${s.contato||''}';'${s.professor||''}';'${s.concludente?'SIM':'NÃO'}"\n`;
+    csv += `"${s.mat||''}';'${(s.nivel==='F'||s.nivel==='EF')?'F':'M'}';'${s.aluno||''}';'${toBR(s.ultimaFreq)}';'${s.contato||''}';'${s.professor||''}';'${s.concludente?'SIM':'NÃO'}"\n`;
   });
   downloadFile(csv, `estudantes_nivel_${currentNivelTab}.csv`, 'text/csv;charset=utf-8;');
 }
 
 function exportCSVRemat(){
   let csv = "ESTUDANTE;MATRICULA;ULT_FREQ;RETORNO;MES_ANO;PROFESSOR\n";
-  const filtered = rematriculas.filter(r => (r.mes === selectedRematMonth) && (r.ano === selectedRematYear || !r.ano));
-  filtered.sort((a, b) => parseDateForSort(a.ultFreq) - parseDateForSort(b.ultFreq));
-  filtered.forEach(r=>{
-    csv += `"${r.aluno||''}';'${r.mat||''}';'${toBR(r.ultFreq)}';'${toBR(r.retorno)}';'${r.mes}/${r.ano}';'${r.prof||''}"\n`;
+  const list = rematriculas.filter(r => r.ano === selectedRematYear && r.mes === selectedRematMonth);
+  list.forEach(r=>{
+    csv += `"${r.aluno||''}';'${r.mat||''}';'${toBR(r.ultimaFreq)}';'${toBR(r.retorno)}';'${r.mes}/${r.ano}';'${r.professor||''}"\n`;
   });
   downloadFile(csv, `rematriculas_${selectedRematMonth}_${selectedRematYear}.csv`, 'text/csv;charset=utf-8;');
 }
 
-function exportWord(id, prefix) {
-  const el = document.getElementById(id);
-  if(!el) return;
-  
-  const clone = el.cloneNode(true);
-  const elementsToRemove = clone.querySelectorAll('.no-print, input[type="button"], button');
-  elementsToRemove.forEach(e => e.parentNode.removeChild(e));
-  
-  const inputs = clone.querySelectorAll('input, select');
-  inputs.forEach(input => {
-    let span = document.createElement('span');
-    span.textContent = input.type === 'checkbox' ? (input.checked ? 'SIM' : 'NÃO') : input.value;
-    input.parentNode.replaceChild(span, input);
-  });
-
-  const html = `<html>
-    <head><meta charset='utf-8'><style>
-      table { width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 12px; }
-      th, td { border: 1px solid #ccc; padding: 8px; }
-      th { background-color: #f4f4f4; text-align: center; }
-      .badge { padding: 4px 10px; border-radius: 12px; font-weight: bold; color: #fff; display: inline-block; }
-      .g { background-color: #1E7A34 !important; color: #ffffff !important; }
-      .y { background-color: #F2B705 !important; color: #5a4200 !important; }
-      .r { background-color: #c62828 !important; color: #ffffff !important; }
-    </style></head>
-    <body>${clone.outerHTML}</body>
-  </html>`;
-  
-  downloadFile(html, `${prefix}_${new Date().getTime()}.doc`, 'application/msword');
+function downloadFile(content, fileName, mimeType) {
+  const a = document.createElement('a');
+  mimeType = mimeType || 'application/octet-stream';
+  if (navigator.msSaveBlob) {
+    navigator.msSaveBlob(new Blob([content], { type: mimeType }), fileName);
+  } else if (URL && 'download' in a) {
+    a.href = URL.createObjectURL(new Blob([content], { type: mimeType }));
+    a.setAttribute('download', fileName);
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } else {
+    location.href = 'data:' + mimeType + ',' + encodeURIComponent(content);
+  }
 }
 
-function printSection(id){
-  const el = document.getElementById(id);
+function exportWord(containerId, filename) {
+  const el = document.getElementById(containerId);
   if(!el) return;
-  const clone = el.cloneNode(true);
-  const elementsToRemove = clone.querySelectorAll('.no-print, input[type="button"], button');
-  elementsToRemove.forEach(e => e.parentNode.removeChild(e));
-  
-  const inputs = clone.querySelectorAll('input, select');
-  inputs.forEach(input => {
-    let span = document.createElement('span');
-    span.textContent = input.type === 'checkbox' ? (input.checked ? 'SIM' : 'NÃO') : input.value;
-    input.parentNode.replaceChild(span, input);
-  });
+  const html = `
+    <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+    <head><title>Export</title><style>table{border-collapse:collapse;width:100%;}th,td{border:1px solid #000;padding:5px;font-family:Arial;font-size:10pt;}</style></head>
+    <body>${el.innerHTML}</body>
+    </html>
+  `;
+  downloadFile(html, filename + '.doc', 'application/msword');
+}
 
-  const win = window.open('','_blank');
-  win.document.write(`<html><head><title>Impressão</title><style>
-    body { font-family: sans-serif; margin: 20px; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 15px; }
-    th, td { border: 1px solid #ccc; padding: 8px; }
-    th { background-color: #f4f4f4; text-align: center; }
-    .badge { padding: 4px 10px; border-radius: 12px; font-weight: bold; color: #fff; display: inline-block; }
-    .g { background: #1E7A34 !important; color: #fff !important; }
-    .y { background: #F2B705 !important; color: #5a4200 !important; }
-    .r { background: #c62828 !important; color: #fff !important; }
-  </style></head><body><h2>Relatório do Sistema</h2>${clone.outerHTML}</body></html>`);
+function printSection(containerId) {
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  const win = window.open('', '', 'height=700,width=900');
+  win.document.write('<html><head><title>Impressão - CEJA</title>');
+  win.document.write('<style>body{font-family:sans-serif;padding:20px;} table{width:100%;border-collapse:collapse;} th,td{border:1px solid #ccc;padding:8px;text-align:left;font-size:12px;} th{background:#f2f2f2;} .no-print{display:none!important;}</style>');
+  win.document.write('</head><body>');
+  win.document.write(el.innerHTML);
+  win.document.write('</body></html>');
   win.document.close();
   win.focus();
-  setTimeout(() => { win.print(); }, 500);
+  setTimeout(() => win.print(), 500);
 }
 
-function downloadFile(content, fileName, contentType){
-  const a = document.createElement('a');
-  const blob = new Blob([content], {type: contentType});
-  a.href = URL.createObjectURL(blob);
-  a.download = fileName;
-  a.click();
+function renderAll(){
+  renderAnosPills();
+  buildProfessorFilter();
+
+  if(session && session.role === 'secretaria'){
+    if(currentSecViewMode === 'porProf') renderSecPorProfModule();
+    else if(currentSecViewMode === 'niveis') renderSecNiveisModule();
+    else renderTable();
+
+    renderProfessorsModule();
+    renderRematModule();
+    renderFarolModule();
+    renderCertificacaoModule();
+  } else if(session && session.role === 'professor'){
+    renderProfView();
+  }
 }
 
-async function deletarAluno(id) {
-    if(confirm("Tem certeza que deseja excluir este aluno definitivamente?")) {
-        try {
-            await deleteDoc(doc(db, "students", id));
-            alert("Aluno excluído com sucesso!");
-        } catch (error) {
-            console.error("Erro ao deletar aluno:", error);
-            alert("Erro ao excluir o aluno.");
-        }
-    }
-}
-
-async function zerarBancoDeDados() {
-    let confirmacao = prompt("ATENÇÃO! Digite 'CONFIRMAR' (em maiúsculas) para apagar TODOS os alunos do sistema. Essa ação não tem volta.");
-    
-    if(confirmacao === "CONFIRMAR") {
-        try {
-            const snapshot = await getDocs(collection(db, 'students'));
-            const batch = writeBatch(db);
-            snapshot.docs.forEach((d) => {
-                batch.delete(d.ref);
-            });
-            await batch.commit();
-            alert("Banco de dados zerado com sucesso! O sistema está pronto para um novo ciclo.");
-        } catch (error) {
-            console.error("Erro ao zerar o banco de dados:", error);
-            alert("Ocorreu um erro ao tentar limpar os dados. Verifique o console.");
-        }
-    } else {
-        alert("Ação cancelada. Nenhum dado foi apagado.");
-    }
-}
-
-window.togglePass = togglePass;
 window.setLoginTab = setLoginTab;
+window.togglePass = togglePass;
 window.openReset = openReset;
 window.closeReset = closeReset;
 window.doReset = doReset;
@@ -1843,25 +1879,21 @@ window.loginSecretaria = loginSecretaria;
 window.loginProfessor = loginProfessor;
 window.doLogout = doLogout;
 window.setModule = setModule;
-window.setSecViewMode = setSecViewMode;
-window.setNivelTab = setNivelTab;
 window.setSubTab = setSubTab;
 window.setSubTab2 = setSubTab2;
-window.addProfessor = addProfessor;
-window.deleteProfessor = deleteProfessor;
-window.copyProfLink = copyProfLink;
-window.saveEstudantesModule = saveEstudantesModule;
-window.saveAllStudents = saveAllStudents;
 window.updateStudentField = updateStudentField;
+window.deleteStudentRow = deleteStudentRow;
+window.saveEstudantesModule = saveEstudantesModule;
+window.zerarBancoDeDados = zerarBancoDeDados;
+window.addProfessor = addProfessor;
+window.removeProfessor = removeProfessor;
 window.saveProfessors = saveProfessors;
 window.addNewYearRemat = addNewYearRemat;
 window.selectRematMonth = selectRematMonth;
-window.selectRematProf = selectRematProf;
-window.selectFarolMonth = selectFarolMonth;
-window.updateRematItem = updateRematItem;
 window.addSecRematRow = addSecRematRow;
-window.deletarRematricula = deletarRematricula;
+window.removeRematRow = removeRematRow;
 window.saveAllRemat = saveAllRemat;
+window.selectFarolMonth = selectFarolMonth;
 window.addNewYearCert = addNewYearCert;
 window.adminChangePass = adminChangePass;
 window.exportCSV = exportCSV;
@@ -1870,12 +1902,12 @@ window.exportCSVNiveis = exportCSVNiveis;
 window.exportCSVRemat = exportCSVRemat;
 window.exportWord = exportWord;
 window.printSection = printSection;
-window.deletarAluno = deletarAluno;
-window.zerarBancoDeDados = zerarBancoDeDados;
 window.toggleAcoesDropdown = toggleAcoesDropdown;
 window.acaoIncluirAluno = acaoIncluirAluno;
 window.acaoAlternarRetirarAluno = acaoAlternarRetirarAluno;
 window.confirmarRetirarAluno = confirmarRetirarAluno;
+window.setSecViewMode = setSecViewMode;
+window.setNivelTab = setNivelTab;
 
 boot();
 </script>
