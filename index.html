@@ -250,18 +250,38 @@ tr.highlight-search td { background: rgba(242, 183, 5, 0.4) !important; border-t
             <button class="btn dark sm" onclick="exportWord('printAlunos', 'Estudantes')"><i class="fa-solid fa-file-word"></i> Exportar Word</button>
             <button class="btn red sm" onclick="printSection('printAlunos')"><i class="fa-solid fa-file-pdf"></i> Gerar PDF / Imprimir</button>
           </div>
+          
           <div class="tabs" style="align-items: center;">
             <div class="tab active gold" id="tabAtuais" data-subtab="atuais" onclick="setSubTab('atuais')">Matrículas Atuais</div>
             <div class="tab" id="tabAntigas" data-subtab="antigas" onclick="setSubTab('antigas')">Matrículas Antigas</div>
             <div class="tab" id="tabDuplicados" data-subtab="duplicados" onclick="setSubTab('duplicados')"><i class="fa-solid fa-users-viewfinder"></i> Alunos Duplicados</div>
             
-            <!-- NOVA CAIXA DE PESQUISA -->
-            <div style="display: flex; align-items: center; gap: 6px; margin-left: 10px;">
-               <input type="text" id="inputPesquisaAluno" placeholder="Pesquisar aluno..." onkeypress="if(event.key === 'Enter') buscarProximoAluno()" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 20px; font-size: .85rem; width: 220px; outline: none;">
-               <button type="button" onclick="buscarProximoAluno()" style="background: var(--green); color: #fff; border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s;"><i class="fa-solid fa-magnifying-glass"></i></button>
-            </div>
+            <!-- CAIXAS DE PESQUISA ATUALIZADAS COM LISTAGEM E BUSCA POR MATRÍCULA -->
+            <div style="display: flex; align-items: center; gap: 12px; margin-left: 10px; flex-wrap: wrap;">
+               
+               <!-- Busca por Nome -->
+               <div style="position: relative;">
+                   <div style="display: flex; align-items: center; gap: 6px;">
+                      <input type="text" id="inputPesquisaAluno" placeholder="Pesquisar aluno por nome..." oninput="pesquisarAlunoEmTempoReal()" onkeypress="if(event.key === 'Enter') pesquisarAlunoEmTempoReal()" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 20px; font-size: .85rem; width: 230px; outline: none;">
+                      <button type="button" onclick="pesquisarAlunoEmTempoReal()" style="background: var(--green); color: #fff; border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s;"><i class="fa-solid fa-magnifying-glass"></i></button>
+                   </div>
+                   <!-- Container dos resultados por Nome -->
+                   <div id="resultadoPesquisaNome" style="position: absolute; top: 100%; left: 0; margin-top: 6px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; width: 100%; max-height: 250px; overflow-y: auto; z-index: 2000; display: none; box-shadow: 0 6px 16px rgba(0,0,0,0.15);"></div>
+               </div>
 
+               <!-- Busca por Matrícula -->
+               <div style="position: relative;">
+                   <div style="display: flex; align-items: center; gap: 6px;">
+                      <input type="text" id="inputPesquisaMatricula" placeholder="Pesquisar por matrícula..." oninput="pesquisarMatriculaEmTempoReal()" onkeypress="if(event.key === 'Enter') pesquisarMatriculaEmTempoReal()" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 20px; font-size: .85rem; width: 210px; outline: none;">
+                      <button type="button" onclick="pesquisarMatriculaEmTempoReal()" style="background: var(--navy); color: #fff; border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s;"><i class="fa-solid fa-magnifying-glass"></i></button>
+                   </div>
+                   <!-- Container dos resultados por Matrícula -->
+                   <div id="resultadoPesquisaMat" style="position: absolute; top: 100%; left: 0; margin-top: 6px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; width: 100%; max-height: 250px; overflow-y: auto; z-index: 2000; display: none; box-shadow: 0 6px 16px rgba(0,0,0,0.15);"></div>
+               </div>
+
+            </div>
           </div>
+          
           <div class="grid c5" style="margin-bottom:6px;">
             <div><label>Ano Letivo (digite e clique em Salvar)</label><input type="text" id="anoLetivoInput" maxlength="4" placeholder="Ex: 2027"></div>
             <div><label>Professor</label><select id="filtroProfessor"></select></div>
@@ -647,7 +667,7 @@ let selectedRematYear='2026', selectedRematMonth='Setembro', selectedRematProf='
 let selectedFarolYear='2026', selectedFarolMonth='Setembro';
 let selectedCertYear='2026';
 
-let currentSecViewMode = 'geral'; // 'geral', 'porProf' ou 'niveis'
+let currentSecViewMode = 'geral'; 
 let selectedSecProfName = '';
 let currentNivelTab = 'EF';
 
@@ -1303,7 +1323,6 @@ function renderSecNiveisModule(){
 
   combinedList = [...listUnsaved, ...listSaved];
   
-  // Ordenar alfabeticamente os alunos do respectivo nível
   combinedList.sort((a,b) => (a.aluno||'').localeCompare(b.aluno||'', 'pt-BR'));
 
   body.innerHTML = combinedList.map((s, idx) => buildStudentRowHTML(s, true, idx + 1)).join('');
@@ -1848,17 +1867,18 @@ async function zerarBancoDeDados() {
     }
 }
 
-// NOVA FUNÇÃO: Lógica de Busca e Scroll Sequencial
-let termoPesquisaAtual = "";
-let indicePesquisaAtual = -1;
-let linhasEncontradas = [];
+function pesquisarAlunoLista(tipo) {
+    const inputId = tipo === 'nome' ? 'inputPesquisaAluno' : 'inputPesquisaMatricula';
+    const resultadoId = tipo === 'nome' ? 'resultadoPesquisaNome' : 'resultadoPesquisaMat';
+    const input = document.getElementById(inputId);
+    const resultadoBox = document.getElementById(resultadoId);
 
-function buscarProximoAluno() {
-    const input = document.getElementById('inputPesquisaAluno');
-    if (!input) return;
+    if (!input || !resultadoBox) return;
+
     const termo = input.value.toLowerCase().trim();
-    
+
     if (!termo) {
+        resultadoBox.style.display = 'none';
         limparDestaquesPesquisa();
         return;
     }
@@ -1866,48 +1886,81 @@ function buscarProximoAluno() {
     const tbody = document.getElementById('studentsBody');
     if (!tbody) return;
 
-    // Se o termo de pesquisa mudar ou a tabela for reconstruída (re-render), faz a busca novamente
-    const precisaRecarregar = termo !== termoPesquisaAtual || (linhasEncontradas.length > 0 && !document.body.contains(linhasEncontradas[0]));
+    const rows = tbody.querySelectorAll('tr');
+    let resultadosHTML = '';
+    let encontrou = false;
 
-    if (precisaRecarregar) {
-        termoPesquisaAtual = termo;
-        indicePesquisaAtual = -1;
-        linhasEncontradas = [];
+    rows.forEach((row, index) => {
+        const inputA = row.querySelector('input[data-field="aluno"]');
+        const inputM = row.querySelector('input[data-field="mat"]');
+        const tdSeq = row.querySelector('td:first-child'); 
+
+        if (!inputA || !inputM || !tdSeq) return;
+
+        const nome = inputA.value;
+        const mat = inputM.value;
+        const linhaNum = tdSeq.textContent.trim();
+
+        let match = false;
+        if (tipo === 'nome' && nome.toLowerCase().includes(termo)) match = true;
+        if (tipo === 'matricula' && mat.toLowerCase().includes(termo)) match = true;
+
+        if (match) {
+            encontrou = true;
+            resultadosHTML += `<div style="padding: 10px 14px; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 0.85rem; color: var(--ink); text-align: left; transition: background 0.2s;" 
+                                onclick="irParaLinha(${index})" 
+                                onmouseover="this.style.background='rgba(30,122,52,0.1)'" 
+                                onmouseout="this.style.background='transparent'">
+                <b style="color:var(--green)">Linha ${linhaNum}</b> &nbsp;|&nbsp; <b>Matrícula:</b> ${mat || 'S/N'}<br>
+                <span style="font-weight:600">${nome}</span>
+            </div>`;
+        }
+    });
+
+    if (encontrou) {
+        resultadoBox.innerHTML = resultadosHTML;
+        resultadoBox.style.display = 'block';
+    } else {
+        resultadoBox.innerHTML = `<div style="padding: 10px 14px; font-size: 0.85rem; color: var(--muted); text-align: left;">Nenhum aluno encontrado na lista atual.</div>`;
+        resultadoBox.style.display = 'block';
+    }
+}
+
+function irParaLinha(index) {
+    const tbody = document.getElementById('studentsBody');
+    if (!tbody) return;
+
+    const rows = tbody.querySelectorAll('tr');
+    if(rows[index]){
         limparDestaquesPesquisa();
-
-        const rows = tbody.querySelectorAll('tr');
-        rows.forEach(row => {
-            const inputAluno = row.querySelector('.col-aluno input');
-            if (inputAluno && inputAluno.value.toLowerCase().includes(termo)) {
-                linhasEncontradas.push(row);
-            }
-        });
+        rows[index].scrollIntoView({ behavior: "smooth", block: "center" });
+        rows[index].classList.add('highlight-search');
+        
+        const boxNome = document.getElementById('resultadoPesquisaNome');
+        const boxMat = document.getElementById('resultadoPesquisaMat');
+        if(boxNome) boxNome.style.display = 'none';
+        if(boxMat) boxMat.style.display = 'none';
     }
-
-    if (linhasEncontradas.length === 0) {
-        alert("Nenhum aluno encontrado com esse nome na visualização atual.");
-        return;
-    }
-
-    // Remove destaque do anterior
-    if (indicePesquisaAtual >= 0 && linhasEncontradas[indicePesquisaAtual]) {
-        linhasEncontradas[indicePesquisaAtual].classList.remove('highlight-search');
-    }
-
-    indicePesquisaAtual++;
-    if (indicePesquisaAtual >= linhasEncontradas.length) {
-        indicePesquisaAtual = 0; // Se chegar ao fim, recomeça do primeiro
-    }
-
-    const linha = linhasEncontradas[indicePesquisaAtual];
-    linha.scrollIntoView({ behavior: "smooth", block: "center" });
-    linha.classList.add('highlight-search');
 }
 
 function limparDestaquesPesquisa() {
     document.querySelectorAll('.highlight-search').forEach(el => el.classList.remove('highlight-search'));
 }
 
+function pesquisarAlunoEmTempoReal() { pesquisarAlunoLista('nome'); }
+function pesquisarMatriculaEmTempoReal() { pesquisarAlunoLista('matricula'); }
+
+// Fechar as listas suspensas (dropdowns) de busca ao clicar fora
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('#resultadoPesquisaNome') && e.target.id !== 'inputPesquisaAluno') {
+        const b = document.getElementById('resultadoPesquisaNome');
+        if(b) b.style.display = 'none';
+    }
+    if (!e.target.closest('#resultadoPesquisaMat') && e.target.id !== 'inputPesquisaMatricula') {
+        const b = document.getElementById('resultadoPesquisaMat');
+        if(b) b.style.display = 'none';
+    }
+});
 
 window.togglePass = togglePass;
 window.setLoginTab = setLoginTab;
@@ -1945,15 +1998,11 @@ window.exportCSVNiveis = exportCSVNiveis;
 window.exportCSVRemat = exportCSVRemat;
 window.exportWord = exportWord;
 window.printSection = printSection;
-window.deletarAluno = deletarAluno;
 window.zerarBancoDeDados = zerarBancoDeDados;
-window.toggleAcoesDropdown = toggleAcoesDropdown;
-window.acaoIncluirAluno = acaoIncluirAluno;
-window.acaoAlternarRetirarAluno = acaoAlternarRetirarAluno;
-window.confirmarRetirarAluno = confirmarRetirarAluno;
-window.buscarProximoAluno = buscarProximoAluno; // Acesso global à nova função
-
-boot();
+window.deletarAluno = deletarAluno;
+window.pesquisarAlunoEmTempoReal = pesquisarAlunoEmTempoReal;
+window.pesquisarMatriculaEmTempoReal = pesquisarMatriculaEmTempoReal;
+window.irParaLinha = irParaLinha;
 </script>
 </body>
 </html>
