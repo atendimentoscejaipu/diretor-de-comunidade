@@ -110,13 +110,6 @@ select.cell-nivel { min-width: 75px; width: 100%; text-align: center; padding: 5
 
 /* Destaque para busca de alunos */
 tr.highlight-search td { background: rgba(242, 183, 5, 0.4) !important; border-top: 1px solid var(--gold); border-bottom: 1px solid var(--gold); transition: background-color 0.3s ease; }
-
-/* Estilos da caixa de resultados de pesquisa */
-.search-result-item { padding: 10px 14px; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; flex-direction: column; gap: 4px; transition: background 0.2s; }
-.search-result-item:last-child { border-bottom: none; }
-.search-result-item:hover { background: rgba(30,122,52,.08); }
-.search-result-title { font-weight: 700; color: var(--green); font-size: 0.9rem; }
-.search-result-info { color: var(--muted); font-size: 0.78rem; display: flex; gap: 10px; }
 </style>
 </head>
 <body>
@@ -257,24 +250,18 @@ tr.highlight-search td { background: rgba(242, 183, 5, 0.4) !important; border-t
             <button class="btn dark sm" onclick="exportWord('printAlunos', 'Estudantes')"><i class="fa-solid fa-file-word"></i> Exportar Word</button>
             <button class="btn red sm" onclick="printSection('printAlunos')"><i class="fa-solid fa-file-pdf"></i> Gerar PDF / Imprimir</button>
           </div>
-          
-          <div class="tabs" style="align-items: center; justify-content: flex-start; margin-bottom: 15px;">
+          <div class="tabs" style="align-items: center;">
             <div class="tab active gold" id="tabAtuais" data-subtab="atuais" onclick="setSubTab('atuais')">Matrículas Atuais</div>
             <div class="tab" id="tabAntigas" data-subtab="antigas" onclick="setSubTab('antigas')">Matrículas Antigas</div>
             <div class="tab" id="tabDuplicados" data-subtab="duplicados" onclick="setSubTab('duplicados')"><i class="fa-solid fa-users-viewfinder"></i> Alunos Duplicados</div>
             
-            <!-- NOVAS CAIXAS DE PESQUISA (NOME E MATRÍCULA) -->
-            <div style="display: flex; align-items: center; gap: 6px; margin-left: auto; position: relative;" id="containerBuscaAlunos">
-               <!-- Busca por Nome -->
-               <input type="text" id="inputPesquisaNome" placeholder="Pesquisar por nome..." oninput="realizarPesquisa('nome')" onkeypress="if(event.key === 'Enter') realizarPesquisa('nome')" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 20px; font-size: .85rem; width: 200px; outline: none;">
-               <button type="button" onclick="realizarPesquisa('nome')" style="background: var(--green); color: #fff; border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s;" title="Pesquisar por Nome"><i class="fa-solid fa-magnifying-glass"></i></button>
+            <!-- CAIXAS DE PESQUISA -->
+            <div style="display: flex; align-items: center; gap: 6px; margin-left: 10px; flex-wrap: wrap;">
+               <input type="text" id="inputPesquisaMatricula" placeholder="Pesquisar matrícula..." onkeypress="if(event.key === 'Enter') buscarProximoAlunoMatricula()" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 20px; font-size: .85rem; width: 170px; outline: none;">
+               <button type="button" onclick="buscarProximoAlunoMatricula()" style="background: var(--navy); color: #fff; border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; margin-right: 10px;" title="Buscar por Matrícula"><i class="fa-solid fa-magnifying-glass"></i></button>
 
-               <!-- Busca por Matrícula -->
-               <input type="text" id="inputPesquisaMat" placeholder="Pesquisar matrícula..." oninput="realizarPesquisa('mat')" onkeypress="if(event.key === 'Enter') realizarPesquisa('mat')" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 20px; font-size: .85rem; width: 170px; outline: none; margin-left: 8px;">
-               <button type="button" onclick="realizarPesquisa('mat')" style="background: var(--navy); color: #fff; border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s;" title="Pesquisar por Matrícula"><i class="fa-solid fa-id-card"></i></button>
-
-               <!-- Caixa de Resultados Dropdown -->
-               <div id="boxResultadosPesquisa" class="hidden" style="position: absolute; top: 100%; right: 0; margin-top: 8px; width: 100%; min-width: 400px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,0.15); z-index: 2000; max-height: 320px; overflow-y: auto;"></div>
+               <input type="text" id="inputPesquisaAluno" placeholder="Pesquisar nome do aluno..." onkeypress="if(event.key === 'Enter') buscarProximoAluno()" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 20px; font-size: .85rem; width: 200px; outline: none;">
+               <button type="button" onclick="buscarProximoAluno()" style="background: var(--green); color: #fff; border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s;" title="Buscar por Nome"><i class="fa-solid fa-magnifying-glass"></i></button>
             </div>
 
           </div>
@@ -675,11 +662,6 @@ let lockedProfLink = null;
 document.addEventListener('click', (e) => {
   if (!e.target.closest('.actions-dropdown')) {
     document.querySelectorAll('.actions-menu').forEach(m => m.classList.add('hidden'));
-  }
-  // Fechar janela de pesquisa se clicar fora
-  if (!e.target.closest('#boxResultadosPesquisa') && !e.target.closest('#inputPesquisaNome') && !e.target.closest('#inputPesquisaMat')) {
-      const searchBox = document.getElementById('boxResultadosPesquisa');
-      if (searchBox) searchBox.classList.add('hidden');
   }
 });
 
@@ -1869,89 +1851,119 @@ async function zerarBancoDeDados() {
     }
 }
 
-// ==========================================
-// NOVA LÓGICA DE PESQUISA (NOME E MATRÍCULA)
-// ==========================================
-function realizarPesquisa(tipo) {
-    const inputNome = document.getElementById('inputPesquisaNome');
-    const inputMat = document.getElementById('inputPesquisaMat');
-    const box = document.getElementById('boxResultadosPesquisa');
-    
-    let termo = '';
-    if(tipo === 'nome') {
-        termo = inputNome.value.toLowerCase().trim();
-        inputMat.value = ''; // Limpa a outra caixa para não confundir
-    } else {
-        termo = inputMat.value.toLowerCase().trim();
-        inputNome.value = ''; 
-    }
+// Lógica de Busca e Scroll Sequencial por NOME DO ALUNO
+let termoPesquisaAtual = "";
+let indicePesquisaAtual = -1;
+let linhasEncontradas = [];
 
-    if(!termo) {
-        box.classList.add('hidden');
+function buscarProximoAluno() {
+    const input = document.getElementById('inputPesquisaAluno');
+    if (!input) return;
+    const termo = input.value.toLowerCase().trim();
+    
+    if (!termo) {
         limparDestaquesPesquisa();
         return;
     }
 
     const tbody = document.getElementById('studentsBody');
-    if(!tbody) return;
+    if (!tbody) return;
 
-    const rows = tbody.querySelectorAll('tr');
-    let htmlResultados = '';
-    let count = 0;
+    const precisaRecarregar = termo !== termoPesquisaAtual || (linhasEncontradas.length > 0 && !document.body.contains(linhasEncontradas[0]));
 
-    rows.forEach((row) => {
-        // Encontrar os campos independentemente do modo (Retirar Aluno ou não)
-        const inputAluno = row.querySelector('input[data-field="aluno"]');
-        const inputMatricula = row.querySelector('input[data-field="mat"]');
-        const celulaSequencia = row.querySelector('td:nth-child(1)');
-        
-        const nomeVal = inputAluno ? inputAluno.value : '';
-        const matVal = inputMatricula ? inputMatricula.value : '';
-        const seq = celulaSequencia ? celulaSequencia.textContent.trim() : '';
+    if (precisaRecarregar) {
+        termoPesquisaAtual = termo;
+        indicePesquisaAtual = -1;
+        linhasEncontradas = [];
+        limparDestaquesPesquisa();
 
-        let isMatch = false;
-        if(tipo === 'nome' && nomeVal.toLowerCase().includes(termo)) isMatch = true;
-        if(tipo === 'mat' && matVal.toLowerCase().includes(termo)) isMatch = true;
-
-        if(isMatch) {
-            count++;
-            const rowId = row.getAttribute('data-id');
-            htmlResultados += `<div class="search-result-item" onclick="irParaAluno('${rowId}')">
-                <div class="search-result-title">${nomeVal}</div>
-                <div class="search-result-info">
-                    <span>Matrícula: <b>${matVal}</b></span>
-                    <span>|</span>
-                    <span>Ordem/Linha: <b>${seq}</b></span>
-                </div>
-            </div>`;
-        }
-    });
-
-    if(count > 0) {
-        box.innerHTML = htmlResultados;
-        box.classList.remove('hidden');
-    } else {
-        box.innerHTML = '<div style="padding: 16px; color: var(--muted); font-size: 0.85rem; text-align: center;">Nenhum aluno correspondente encontrado na lista exibida.</div>';
-        box.classList.remove('hidden');
+        const rows = tbody.querySelectorAll('tr');
+        rows.forEach(row => {
+            const inputAluno = row.querySelector('.col-aluno input');
+            if (inputAluno && inputAluno.value.toLowerCase().includes(termo)) {
+                linhasEncontradas.push(row);
+            }
+        });
     }
+
+    if (linhasEncontradas.length === 0) {
+        alert("Nenhum aluno encontrado com esse nome na visualização atual.");
+        return;
+    }
+
+    if (indicePesquisaAtual >= 0 && linhasEncontradas[indicePesquisaAtual]) {
+        linhasEncontradas[indicePesquisaAtual].classList.remove('highlight-search');
+    }
+
+    indicePesquisaAtual++;
+    if (indicePesquisaAtual >= linhasEncontradas.length) {
+        indicePesquisaAtual = 0;
+    }
+
+    const linha = linhasEncontradas[indicePesquisaAtual];
+    linha.scrollIntoView({ behavior: "smooth", block: "center" });
+    linha.classList.add('highlight-search');
 }
 
-function irParaAluno(rowId) {
-    const row = document.querySelector(`tr[data-id="${rowId}"]`);
-    if(row) {
-        // Esconde o dropdown
-        document.getElementById('boxResultadosPesquisa').classList.add('hidden');
+// NOVA FUNÇÃO: Lógica de Busca e Scroll Sequencial por NÚMERO DE MATRÍCULA
+let termoPesquisaMatriculaAtual = "";
+let indicePesquisaMatriculaAtual = -1;
+let linhasEncontradasMatricula = [];
+
+function buscarProximoAlunoMatricula() {
+    const input = document.getElementById('inputPesquisaMatricula');
+    if (!input) return;
+    const termo = input.value.toLowerCase().trim();
+    
+    if (!termo) {
         limparDestaquesPesquisa();
-        
-        // Rola até o aluno deixando-o centralizado na tela
-        row.scrollIntoView({ behavior: "smooth", block: "center" });
-        row.classList.add('highlight-search');
+        return;
     }
+
+    const tbody = document.getElementById('studentsBody');
+    if (!tbody) return;
+
+    const precisaRecarregar = termo !== termoPesquisaMatriculaAtual || (linhasEncontradasMatricula.length > 0 && !document.body.contains(linhasEncontradasMatricula[0]));
+
+    if (precisaRecarregar) {
+        termoPesquisaMatriculaAtual = termo;
+        indicePesquisaMatriculaAtual = -1;
+        linhasEncontradasMatricula = [];
+        limparDestaquesPesquisa();
+
+        const rows = tbody.querySelectorAll('tr');
+        rows.forEach(row => {
+            // Procura diretamente o campo input com data-field="mat"
+            const inputMatricula = row.querySelector('input[data-field="mat"]');
+            if (inputMatricula && inputMatricula.value.toLowerCase().includes(termo)) {
+                linhasEncontradasMatricula.push(row);
+            }
+        });
+    }
+
+    if (linhasEncontradasMatricula.length === 0) {
+        alert("Nenhum aluno encontrado com essa matrícula na visualização atual.");
+        return;
+    }
+
+    if (indicePesquisaMatriculaAtual >= 0 && linhasEncontradasMatricula[indicePesquisaMatriculaAtual]) {
+        linhasEncontradasMatricula[indicePesquisaMatriculaAtual].classList.remove('highlight-search');
+    }
+
+    indicePesquisaMatriculaAtual++;
+    if (indicePesquisaMatriculaAtual >= linhasEncontradasMatricula.length) {
+        indicePesquisaMatriculaAtual = 0; 
+    }
+
+    const linha = linhasEncontradasMatricula[indicePesquisaMatriculaAtual];
+    linha.scrollIntoView({ behavior: "smooth", block: "center" });
+    linha.classList.add('highlight-search');
 }
 
 function limparDestaquesPesquisa() {
     document.querySelectorAll('.highlight-search').forEach(el => el.classList.remove('highlight-search'));
 }
+
 
 window.togglePass = togglePass;
 window.setLoginTab = setLoginTab;
@@ -1982,8 +1994,23 @@ window.addSecRematRow = addSecRematRow;
 window.deletarRematricula = deletarRematricula;
 window.saveAllRemat = saveAllRemat;
 window.addNewYearCert = addNewYearCert;
-window.realizarPesquisa = realizarPesquisa;
-window.irParaAluno = irParaAluno;
+window.adminChangePass = adminChangePass;
+window.exportCSV = exportCSV;
+window.exportCSVPorProf = exportCSVPorProf;
+window.exportCSVNiveis = exportCSVNiveis;
+window.exportCSVRemat = exportCSVRemat;
+window.exportWord = exportWord;
+window.printSection = printSection;
+window.deletarAluno = deletarAluno;
+window.zerarBancoDeDados = zerarBancoDeDados;
+window.toggleAcoesDropdown = toggleAcoesDropdown;
+window.acaoIncluirAluno = acaoIncluirAluno;
+window.acaoAlternarRetirarAluno = acaoAlternarRetirarAluno;
+window.confirmarRetirarAluno = confirmarRetirarAluno;
+window.buscarProximoAluno = buscarProximoAluno; 
+window.buscarProximoAlunoMatricula = buscarProximoAlunoMatricula; // Acesso global à nova função
+
+boot();
 </script>
 </body>
 </html>
