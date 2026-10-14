@@ -99,7 +99,6 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
 .container, .main-module { width: 100%; max-width: 98%; padding: 5px; margin: 0 auto; }
 th.col-aluno, td.col-aluno { min-width: 180px; }
 td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
-/* Ajuste na largura da Coluna do Nível para exibir EF e EM sem cortes */
 th.col-nivel, td.col-nivel { min-width: 85px; width: 85px; text-align: center; }
 select.cell-nivel { min-width: 75px; width: 100%; text-align: center; padding: 5px 4px; font-weight: bold; }
 .btn-excluir { background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
@@ -108,7 +107,6 @@ select.cell-nivel { min-width: 75px; width: 100%; text-align: center; padding: 5
 .mode-btn { background: var(--bg); color: var(--ink); border: 1px solid var(--border); border-radius: 8px; padding: 10px 18px; font-weight: 700; cursor: pointer; font-size: 0.92rem; display: flex; align-items: center; gap: 8px; transition: all .2s; }
 .mode-btn.active { background: var(--green); color: #fff; border-color: var(--green); }
 
-/* Destaque para busca de alunos */
 tr.highlight-search td { background: rgba(242, 183, 5, 0.4) !important; border-top: 1px solid var(--gold); border-bottom: 1px solid var(--gold); transition: background-color 0.3s ease; }
 </style>
 </head>
@@ -298,7 +296,7 @@ tr.highlight-search td { background: rgba(242, 183, 5, 0.4) !important; border-t
           <div class="tabs" id="secProfsPills" style="margin-bottom:16px;"></div>
 
           <div id="secProfDetail">
-            <div style="display:flex; justify-space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
               <h3 id="secProfSelectedTitle" style="margin:0; color:var(--green)"></h3>
               <div class="toolbar" style="margin:0">
                 <div class="actions-dropdown" style="position:relative; display:inline-block;">
@@ -650,7 +648,7 @@ let selectedRematYear='2026', selectedRematMonth='Setembro', selectedRematProf='
 let selectedFarolYear='2026', selectedFarolMonth='Setembro';
 let selectedCertYear='2026';
 
-let currentSecViewMode = 'geral'; // 'geral', 'porProf' ou 'niveis'
+let currentSecViewMode = 'geral';
 let selectedSecProfName = '';
 let currentNivelTab = 'EF';
 
@@ -1305,8 +1303,6 @@ function renderSecNiveisModule(){
   });
 
   combinedList = [...listUnsaved, ...listSaved];
-  
-  // Ordenar alfabeticamente os alunos do respectivo nível
   combinedList.sort((a,b) => (a.aluno||'').localeCompare(b.aluno||'', 'pt-BR'));
 
   body.innerHTML = combinedList.map((s, idx) => buildStudentRowHTML(s, true, idx + 1)).join('');
@@ -1537,4 +1533,477 @@ function renderFarolTable(){
   }).join('');
 }
 
-async function
+async function addNewYearCert(){
+  const inp = document.getElementById('addYearCert');
+  const val = inp.value.trim();
+  if(val && !anosCriados.includes(val)){
+    anosCriados.push(val);
+    selectedCertYear = val;
+    await persistAnos();
+  }
+  inp.value = '';
+}
+
+function renderCertificacaoModule(){
+  const wrapYears = document.getElementById('certYearsPills'); 
+  if(wrapYears){
+    wrapYears.innerHTML = '';
+    sortYears();
+    anosCriados.forEach(y=>{
+      const d = document.createElement('div'); 
+      d.className = 'tab' + (y === selectedCertYear ? ' active' : '');
+      d.textContent = '🎓 Ano ' + y;
+      d.onclick = () => { selectedCertYear = y; renderCertificacaoModule(); };
+      wrapYears.appendChild(d);
+    });
+  }
+
+  const concludentes = students.filter(s => s.concludente && (s.ano === selectedCertYear));
+  
+  concludentes.sort((a, b) => {
+    const numA = parseFloat(a.mat) || 0;
+    const numB = parseFloat(b.mat) || 0;
+    if (numA !== numB) return numA - numB;
+    return (a.mat || '').localeCompare(b.mat || '', undefined, {numeric: true});
+  });
+
+  const efCount = concludentes.filter(s => s.nivel === 'EF').length;
+  const emCount = concludentes.filter(s => s.nivel === 'EM').length;
+
+  document.getElementById('countCertEF').textContent = efCount;
+  document.getElementById('countCertEM').textContent = emCount;
+  document.querySelectorAll('.currentYearLabel').forEach(el=>el.textContent = selectedCertYear);
+
+  const body = document.getElementById('certificacaoBody');
+  if(body){
+    body.innerHTML = concludentes.length > 0 ? concludentes.map(s => `<tr>
+      <td>${s.mat||'--'}</td>
+      <td><b>${s.aluno}</b></td>
+      <td class="col-nivel"><span class="badge g">${s.nivel||'EM'}</span></td>
+      <td>${s.contato||'--'}</td>
+      <td>${s.professor||'--'}</td>
+      <td>${s.ano}</td>
+    </tr>`).join('') : `<tr><td colspan="6" style="text-align:center;padding:16px;color:var(--muted)">Nenhum concludente registrado no ano de ${selectedCertYear}.</td></tr>`;
+  }
+}
+
+function renderProfView(){
+  if(!session || session.role!=='professor') return;
+  const myName = session.name;
+
+  const bodyTurma = document.getElementById('profStudentsBody');
+  if(bodyTurma){
+    const myStudents = filterStudentsList(students, currentSubTab2, currentAno, myName);
+    bodyTurma.innerHTML = myStudents.map((s, idx)=>buildStudentRowHTML(s, false, idx+1)).join('');
+  }
+}
+
+async function addProfessor(){
+  const inp = document.getElementById('newProfName');
+  const name = inp.value.trim();
+  if(!name) return;
+  if(!PROFESSORES.includes(name)){
+    PROFESSORES.push(name);
+    sortProfessors();
+    await saveProfessors();
+  }
+  inp.value = '';
+}
+
+async function deleteProfessor(name){
+  if(confirm(`Deseja remover o professor "${name}"?`)){
+    PROFESSORES = PROFESSORES.filter(p=>p!==name);
+    sortProfessors();
+    await saveProfessors();
+  }
+}
+
+async function saveProfessors(){
+  sortProfessors();
+  await setDoc(doc(db, 'meta', 'professors'), { list: PROFESSORES }).catch(console.error);
+  alert('Lista de professores atualizada com sucesso no banco de dados!');
+}
+
+async function saveEstudantesModule(){
+  const anoInp = document.getElementById('anoLetivoInput')?.value.trim();
+  if(anoInp && !anosCriados.includes(anoInp)){
+    anosCriados.push(anoInp);
+    currentAno = anoInp;
+    await persistAnos();
+  }
+  await saveAllStudents();
+}
+
+async function saveAllStudents(){
+  const rows = document.querySelectorAll('tr[data-id]');
+  for(let row of rows){
+    const id = row.dataset.id;
+    let st = unsavedNewStudents.find(s=>s.id===id) || students.find(s=>s.id===id);
+    if(st){
+      row.querySelectorAll('[data-field]').forEach(input=>{
+        if(input.disabled) return;
+        if(input.type === 'checkbox'){
+          st[input.dataset.field] = input.checked;
+        } else if(input.dataset.field === 'ultimaFreq'){
+          st[input.dataset.field] = toISO(input.value);
+        } else {
+          st[input.dataset.field] = input.value;
+        }
+      });
+    }
+  }
+
+  if(unsavedNewStudents.length > 0){
+    for(let tempSt of unsavedNewStudents){
+      const realId = 's' + Date.now() + Math.random().toString(36).substring(2, 5);
+      const studentToSave = {
+        id: realId,
+        mat: tempSt.mat || '',
+        aluno: tempSt.aluno || '',
+        nivel: tempSt.nivel || 'EM',
+        contato: tempSt.contato || '',
+        ultimaFreq: tempSt.ultimaFreq || toISO(new Date().toLocaleDateString('pt-BR')),
+        rematricula: tempSt.rematricula || 0,
+        professor: tempSt.professor || '',
+        concludente: !!tempSt.concludente,
+        ano: tempSt.ano || currentAno
+      };
+      await setDoc(doc(db, 'students', realId), studentToSave).catch(console.error);
+    }
+    unsavedNewStudents = [];
+  }
+
+  for(let row of rows){
+    const id = row.dataset.id;
+    if(!id.startsWith('temp_')){
+      const st = students.find(s=>s.id===id);
+      if(st){
+        await setDoc(doc(db,'students',id), st, {merge:true}).catch(console.error);
+      }
+    }
+  }
+
+  alert('Alterações salvas e sincronizadas em tempo real!');
+  renderAll();
+}
+
+async function saveAllRemat(){
+  await setDoc(doc(db, 'meta', 'rematriculas'), { list: rematriculas }).catch(console.error);
+  alert('Rematrículas salvas e sincronizadas em tempo real!');
+}
+
+async function adminChangePass(){
+  const user = document.getElementById('secSelUser').value;
+  const p1 = document.getElementById('secNewPassAdmin').value;
+  const p2 = document.getElementById('secNewPassAdmin2').value;
+  const err = document.getElementById('secAdminErr');
+  if(!user || !p1 || p1!==p2){ err.textContent='Selecione um usuário e digite senhas coincidentes.'; return; }
+  if(user==='Secretária'){
+    authData.secPass = p1;
+  } else {
+    if(!authData.profPasswords) authData.profPasswords = {};
+    authData.profPasswords[user] = p1;
+  }
+  await setDoc(doc(db,'meta','auth'), authData).catch(console.error);
+  err.textContent = '';
+  alert(`Senha de ${user} alterada com sucesso!`);
+}
+
+function exportCSV(){
+  let csv = "MAT;NIVEL;ALUNO;ULTIMA_FREQ;CONTATO;REMATRICULAS;PROFESSOR;CONCLUDENTE\n";
+  students.forEach(s=>{
+    csv += `"${s.mat||''}';'${s.nivel||'EM'}';'${s.aluno||''}';'${toBR(s.ultimaFreq)}';'${s.contato||''}';'${s.rematricula||0}';'${s.professor||''}';'${s.concludente?'SIM':'NÃO'}"\n`;
+  });
+  downloadFile(csv, 'estudantes.csv', 'text/csv;charset=utf-8;');
+}
+
+function exportCSVPorProf(){
+  let csv = "MAT;NIVEL;ALUNO;ULTIMA_FREQ;CONTATO;PROFESSOR;CONCLUDENTE\n";
+  const list = filterStudentsList(students, 'atuais', currentAno, selectedSecProfName);
+  list.forEach(s=>{
+    csv += `"${s.mat||''}';'${s.nivel||'EM'}';'${s.aluno||''}';'${toBR(s.ultimaFreq)}';'${s.contato||''}';'${s.professor||''}';'${s.concludente?'SIM':'NÃO'}"\n`;
+  });
+  downloadFile(csv, `estudantes_${selectedSecProfName}.csv`, 'text/csv;charset=utf-8;');
+}
+
+function exportCSVNiveis(){
+  let csv = "MAT;NIVEL;ALUNO;ULTIMA_FREQ;CONTATO;PROFESSOR;CONCLUDENTE\n";
+  const list = students.filter(s => s.nivel === currentNivelTab);
+  list.forEach(s=>{
+    csv += `"${s.mat||''}';'${s.nivel||'EM'}';'${s.aluno||''}';'${toBR(s.ultimaFreq)}';'${s.contato||''}';'${s.professor||''}';'${s.concludente?'SIM':'NÃO'}"\n`;
+  });
+  downloadFile(csv, `estudantes_nivel_${currentNivelTab}.csv`, 'text/csv;charset=utf-8;');
+}
+
+function exportCSVRemat(){
+  let csv = "ESTUDANTE;MATRICULA;ULT_FREQ;RETORNO;MES_ANO;PROFESSOR\n";
+  const filtered = rematriculas.filter(r => (r.mes === selectedRematMonth) && (r.ano === selectedRematYear || !r.ano));
+  filtered.sort((a, b) => parseDateForSort(a.ultFreq) - parseDateForSort(b.ultFreq));
+  filtered.forEach(r=>{
+    csv += `"${r.aluno||''}';'${r.mat||''}';'${toBR(r.ultFreq)}';'${toBR(r.retorno)}';'${r.mes}/${r.ano}';'${r.prof||''}"\n`;
+  });
+  downloadFile(csv, `rematriculas_${selectedRematMonth}_${selectedRematYear}.csv`, 'text/csv;charset=utf-8;');
+}
+
+function exportWord(id, prefix) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  
+  const clone = el.cloneNode(true);
+  const elementsToRemove = clone.querySelectorAll('.no-print, input[type="button"], button');
+  elementsToRemove.forEach(e => e.parentNode.removeChild(e));
+  
+  const inputs = clone.querySelectorAll('input, select');
+  inputs.forEach(input => {
+    let span = document.createElement('span');
+    span.textContent = input.type === 'checkbox' ? (input.checked ? 'SIM' : 'NÃO') : input.value;
+    input.parentNode.replaceChild(span, input);
+  });
+
+  const html = `<html>
+    <head><meta charset='utf-8'><style>
+      table { width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 12px; }
+      th, td { border: 1px solid #ccc; padding: 8px; }
+      th { background-color: #f4f4f4; text-align: center; }
+      .badge { padding: 4px 10px; border-radius: 12px; font-weight: bold; color: #fff; display: inline-block; }
+      .g { background-color: #1E7A34 !important; color: #ffffff !important; }
+      .y { background-color: #F2B705 !important; color: #5a4200 !important; }
+      .r { background-color: #c62828 !important; color: #ffffff !important; }
+    </style></head>
+    <body>${clone.outerHTML}</body>
+  </html>`;
+  
+  downloadFile(html, `${prefix}_${new Date().getTime()}.doc`, 'application/msword');
+}
+
+function printSection(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  const clone = el.cloneNode(true);
+  const elementsToRemove = clone.querySelectorAll('.no-print, input[type="button"], button');
+  elementsToRemove.forEach(e => e.parentNode.removeChild(e));
+  
+  const inputs = clone.querySelectorAll('input, select');
+  inputs.forEach(input => {
+    let span = document.createElement('span');
+    span.textContent = input.type === 'checkbox' ? (input.checked ? 'SIM' : 'NÃO') : input.value;
+    input.parentNode.replaceChild(span, input);
+  });
+
+  const win = window.open('','_blank');
+  win.document.write(`<html><head><title>Impressão</title><style>
+    body { font-family: sans-serif; margin: 20px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 15px; }
+    th, td { border: 1px solid #ccc; padding: 8px; }
+    th { background-color: #f4f4f4; text-align: center; }
+    .badge { padding: 4px 10px; border-radius: 12px; font-weight: bold; color: #fff; display: inline-block; }
+    .g { background: #1E7A34 !important; color: #fff !important; }
+    .y { background: #F2B705 !important; color: #5a4200 !important; }
+    .r { background: #c62828 !important; color: #fff !important; }
+  </style></head><body><h2>Relatório do Sistema</h2>${clone.outerHTML}</body></html>`);
+  win.document.close();
+  win.focus();
+  setTimeout(() => { win.print(); }, 500);
+}
+
+function downloadFile(content, fileName, contentType){
+  const a = document.createElement('a');
+  const blob = new Blob([content], {type: contentType});
+  a.href = URL.createObjectURL(blob);
+  a.download = fileName;
+  a.click();
+}
+
+async function deletarAluno(id) {
+    if(confirm("Tem certeza que deseja excluir este aluno definitivamente?")) {
+        try {
+            await deleteDoc(doc(db, "students", id));
+            alert("Aluno excluído com sucesso!");
+        } catch (error) {
+            console.error("Erro ao deletar aluno:", error);
+            alert("Erro ao excluir o aluno.");
+        }
+    }
+}
+
+async function zerarBancoDeDados() {
+    let confirmacao = prompt("ATENÇÃO! Digite 'CONFIRMAR' (em maiúsculas) para apagar TODOS os alunos do sistema. Essa ação não tem volta.");
+    
+    if(confirmacao === "CONFIRMAR") {
+        try {
+            const snapshot = await getDocs(collection(db, 'students'));
+            const batch = writeBatch(db);
+            snapshot.docs.forEach((d) => {
+                batch.delete(d.ref);
+            });
+            await batch.commit();
+            alert("Banco de dados zerado com sucesso! O sistema está pronto para um novo ciclo.");
+        } catch (error) {
+            console.error("Erro ao zerar o banco de dados:", error);
+            alert("Ocorreu um erro ao tentar limpar os dados. Verifique o console.");
+        }
+    } else {
+        alert("Ação cancelada. Nenhum dado foi apagado.");
+    }
+}
+
+let termoPesquisaAtual = "";
+let indicePesquisaAtual = -1;
+let linhasEncontradas = [];
+
+function buscarProximoAluno() {
+    const input = document.getElementById('inputPesquisaAluno');
+    if (!input) return;
+    const termo = input.value.toLowerCase().trim();
+    
+    if (!termo) {
+        limparDestaquesPesquisa();
+        return;
+    }
+
+    const tbody = document.getElementById('studentsBody');
+    if (!tbody) return;
+
+    const precisaRecarregar = termo !== termoPesquisaAtual || (linhasEncontradas.length > 0 && !document.body.contains(linhasEncontradas[0]));
+
+    if (precisaRecarregar) {
+        termoPesquisaAtual = termo;
+        indicePesquisaAtual = -1;
+        linhasEncontradas = [];
+        limparDestaquesPesquisa();
+
+        const rows = tbody.querySelectorAll('tr');
+        rows.forEach(row => {
+            const inputAluno = row.querySelector('.col-aluno input');
+            if (inputAluno && inputAluno.value.toLowerCase().includes(termo)) {
+                linhasEncontradas.push(row);
+            }
+        });
+    }
+
+    if (linhasEncontradas.length === 0) {
+        alert("Nenhum aluno encontrado com esse nome na visualização atual.");
+        return;
+    }
+
+    if (indicePesquisaAtual >= 0 && linhasEncontradas[indicePesquisaAtual]) {
+        linhasEncontradas[indicePesquisaAtual].classList.remove('highlight-search');
+    }
+
+    indicePesquisaAtual++;
+    if (indicePesquisaAtual >= linhasEncontradas.length) {
+        indicePesquisaAtual = 0;
+    }
+
+    const linha = linhasEncontradas[indicePesquisaAtual];
+    linha.scrollIntoView({ behavior: "smooth", block: "center" });
+    linha.classList.add('highlight-search');
+}
+
+let termoPesquisaMatriculaAtual = "";
+let indicePesquisaMatriculaAtual = -1;
+let linhasEncontradasMatricula = [];
+
+function buscarProximoAlunoMatricula() {
+    const input = document.getElementById('inputPesquisaMatricula');
+    if (!input) return;
+    const termo = input.value.toLowerCase().trim();
+    
+    if (!termo) {
+        limparDestaquesPesquisa();
+        return;
+    }
+
+    const tbody = document.getElementById('studentsBody');
+    if (!tbody) return;
+
+    const precisaRecarregar = termo !== termoPesquisaMatriculaAtual || (linhasEncontradasMatricula.length > 0 && !document.body.contains(linhasEncontradasMatricula[0]));
+
+    if (precisaRecarregar) {
+        termoPesquisaMatriculaAtual = termo;
+        indicePesquisaMatriculaAtual = -1;
+        linhasEncontradasMatricula = [];
+        limparDestaquesPesquisa();
+
+        const rows = tbody.querySelectorAll('tr');
+        rows.forEach(row => {
+            const inputMatricula = row.querySelector('input[data-field="mat"]');
+            if (inputMatricula && inputMatricula.value.toLowerCase().includes(termo)) {
+                linhasEncontradasMatricula.push(row);
+            }
+        });
+    }
+
+    if (linhasEncontradasMatricula.length === 0) {
+        alert("Nenhum aluno encontrado com essa matrícula na visualização atual.");
+        return;
+    }
+
+    if (indicePesquisaMatriculaAtual >= 0 && linhasEncontradasMatricula[indicePesquisaMatriculaAtual]) {
+        linhasEncontradasMatricula[indicePesquisaMatriculaAtual].classList.remove('highlight-search');
+    }
+
+    indicePesquisaMatriculaAtual++;
+    if (indicePesquisaMatriculaAtual >= linhasEncontradasMatricula.length) {
+        indicePesquisaMatriculaAtual = 0; 
+    }
+
+    const linha = linhasEncontradasMatricula[indicePesquisaMatriculaAtual];
+    linha.scrollIntoView({ behavior: "smooth", block: "center" });
+    linha.classList.add('highlight-search');
+}
+
+function limparDestaquesPesquisa() {
+    document.querySelectorAll('.highlight-search').forEach(el => el.classList.remove('highlight-search'));
+}
+
+// Vinculação de funções no escopo global
+window.loginSecretaria = loginSecretaria;
+window.loginProfessor = loginProfessor;
+window.togglePass = togglePass;
+window.setLoginTab = setLoginTab;
+window.openReset = openReset;
+window.closeReset = closeReset;
+window.doReset = doReset;
+window.doLogout = doLogout;
+window.setModule = setModule;
+window.setSecViewMode = setSecViewMode;
+window.setNivelTab = setNivelTab;
+window.setSubTab = setSubTab;
+window.setSubTab2 = setSubTab2;
+window.addProfessor = addProfessor;
+window.deleteProfessor = deleteProfessor;
+window.copyProfLink = copyProfLink;
+window.saveEstudantesModule = saveEstudantesModule;
+window.saveAllStudents = saveAllStudents;
+window.updateStudentField = updateStudentField;
+window.saveProfessors = saveProfessors;
+window.addNewYearRemat = addNewYearRemat;
+window.selectRematMonth = selectRematMonth;
+window.selectRematProf = selectRematProf;
+window.selectFarolMonth = selectFarolMonth;
+window.updateRematItem = updateRematItem;
+window.addSecRematRow = addSecRematRow;
+window.deletarRematricula = deletarRematricula;
+window.saveAllRemat = saveAllRemat;
+window.addNewYearCert = addNewYearCert;
+window.adminChangePass = adminChangePass;
+window.exportCSV = exportCSV;
+window.exportCSVPorProf = exportCSVPorProf;
+window.exportCSVNiveis = exportCSVNiveis;
+window.exportCSVRemat = exportCSVRemat;
+window.exportWord = exportWord;
+window.printSection = printSection;
+window.deletarAluno = deletarAluno;
+window.zerarBancoDeDados = zerarBancoDeDados;
+window.toggleAcoesDropdown = toggleAcoesDropdown;
+window.acaoIncluirAluno = acaoIncluirAluno;
+window.acaoAlternarRetirarAluno = acaoAlternarRetirarAluno;
+window.confirmarRetirarAluno = confirmarRetirarAluno;
+window.buscarProximoAluno = buscarProximoAluno; 
+window.buscarProximoAlunoMatricula = buscarProximoAlunoMatricula;
+
+boot();
+</script>
+</body>
+</html>
