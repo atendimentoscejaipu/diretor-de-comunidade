@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Backup do Diretor de Comunidade - CEJA</title>
+  <style>
+    :root{font-family:Arial,Helvetica,sans-serif;color:#1f2937;background:#f4f7f4}*{box-sizing:border-box}
+    body{margin:0;padding:24px;display:flex;justify-content:center;align-items:flex-start;min-height:100vh}
+    main{max-width:760px;width:100%;background:white;border:1px solid #dfe6df;border-radius:16px;padding:26px;box-shadow:0 8px 28px #0000000d}
+    h1{margin-top:0;color:#155526;font-size:1.45rem}p{line-height:1.55}.warning{border-left:5px solid #d97706;background:#fff7ed;padding:12px 14px;border-radius:8px}
+    .btn{border:0;border-radius:8px;background:#1e7a34;color:white;padding:13px 18px;font-weight:700;font-size:1rem;cursor:pointer}.btn:disabled{opacity:.55;cursor:wait}
+    #status{margin-top:16px;padding:12px;border-radius:8px;background:#f3f4f6;white-space:pre-wrap;overflow-wrap:anywhere}.ok{background:#ecfdf5!important;color:#065f46}.err{background:#fef2f2!important;color:#991b1b}
+    code{overflow-wrap:anywhere}ul{line-height:1.6}
+  </style>
+</head>
+<body>
+<main>
+  <h1>Backup dos dados do Diretor de Comunidade</h1>
+  <p>Esta ferramenta faz uma cópia de leitura do Firestore original para um arquivo JSON no seu computador. Ela <strong>não altera, apaga nem grava nada</strong> no Firebase.</p>
+  <div class="warning"><strong>Atenção — dados confidenciais.</strong> O backup contém dados pessoais dos estudantes e configurações de login antigas. Não o envie a outras pessoas, não o publique no GitHub e não o anexe a conversas. Guarde-o apenas para a migração e apague-o com segurança depois de confirmar a migração.</div>
+  <p>O processo lê a coleção <code>students</code> e os documentos <code>meta/professors</code>, <code>meta/anos</code>, <code>meta/rematriculas</code> e <code>meta/auth</code>. As senhas antigas serão convertidas no destino da migração; este arquivo local é temporário.</p>
+  <button id="exportBtn" class="btn">Exportar backup JSON</button>
+  <div id="status" role="status">Pronto para iniciar. Clique no botão acima uma única vez.</div>
+  <p><strong>Depois do download:</strong> remova este arquivo <code>exportar-firestore.html</code> do repositório público do GitHub. Não feche nem altere o banco original durante a migração.</p>
+</main>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getFirestore, collection, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: 'AIzaSyB8Uf77lKEjPHNqiHP7tbJjLg6sgJHz43Y',
+  authDomain: 'diretor-de-comunidade.firebaseapp.com',
+  projectId: 'diretor-de-comunidade',
+  storageBucket: 'diretor-de-comunidade.firebasestorage.app',
+  messagingSenderId: '618211503376',
+  appId: '1:618211503376:web:672da6a25ec0820083c995'
+};
+const db = getFirestore(initializeApp(firebaseConfig));
+const btn = document.getElementById('exportBtn');
+const status = document.getElementById('status');
+
+function show(message, state='') {
+  status.textContent = message;
+  status.className = state;
+}
+async function readMeta(key) {
+  const snap = await getDoc(doc(db, 'meta', key));
+  return snap.exists() ? snap.data() : null;
+}
+btn.addEventListener('click', async () => {
+  btn.disabled = true;
+  show('Lendo registros do projeto original. Não feche esta página…');
+  try {
+    const studentsSnap = await getDocs(collection(db, 'students'));
+    const students = studentsSnap.docs.map(s => ({ id: s.id, ...s.data() }));
+    show(`Foram lidos ${students.length} documentos de estudantes. Lendo configurações…`);
+    const [professors, anos, rematriculas, auth] = await Promise.all([
+      readMeta('professors'), readMeta('anos'), readMeta('rematriculas'), readMeta('auth')
+    ]);
+    const backup = {
+      format: 'ceja-firestore-export-v1',
+      sourceProjectId: 'diretor-de-comunidade',
+      exportedAt: new Date().toISOString(),
+      students,
+      meta: { professors, anos, rematriculas, auth }
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const date = new Date().toISOString().slice(0,10);
+    a.href = url;
+    a.download = `backup-diretor-de-comunidade-${date}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+    show(`BACKUP CONCLUÍDO.\nEstudantes exportados: ${students.length}\nDocumentos meta incluídos: professores, anos, rematrículas e configurações de login.\n\nGuarde o JSON localmente. Não o envie nem o publique. Agora remova exportar-firestore.html do GitHub.`, 'ok');
+  } catch (error) {
+    console.error('Falha ao exportar backup:', error);
+    const code = error?.code ? `\nCódigo: ${error.code}` : '';
+    show(`NÃO FOI POSSÍVEL GERAR O BACKUP.\n${error?.message || error}${code}\n\nNenhum registro foi alterado. Se o erro indicar resource-exhausted/quota exceeded, aguarde a renovação da cota antes de tentar novamente.`, 'err');
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
