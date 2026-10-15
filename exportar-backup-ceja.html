@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Exportar backup — Diretor de Comunidade</title>
+  <style>
+    :root { color-scheme: light; }
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px; font: 16px/1.5 Arial, sans-serif; background: #f3f6f4; color: #173222; }
+    main { max-width: 760px; margin: 4vh auto; padding: 28px; background: #fff; border: 1px solid #d5e2d8; border-radius: 16px; box-shadow: 0 8px 28px rgba(20,60,35,.08); }
+    h1 { margin-top: 0; font-size: 1.65rem; }
+    p { margin: 12px 0; }
+    .note { padding: 12px 14px; background: #eef7ef; border-left: 4px solid #287b43; border-radius: 8px; }
+    .warning { padding: 12px 14px; background: #fff7e6; border-left: 4px solid #c78b19; border-radius: 8px; }
+    button { margin-top: 8px; padding: 13px 18px; border: 0; border-radius: 9px; background: #176a35; color: white; font-size: 1rem; font-weight: 700; cursor: pointer; }
+    button:disabled { opacity: .55; cursor: wait; }
+    #status { margin-top: 16px; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .small { color: #506557; font-size: .92rem; }
+    code { overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Backup JSON — Diretor de Comunidade</h1>
+  <p>Esta página lê os registros do Cloud Firestore e gera um arquivo JSON no formato esperado pela importação da planilha CEJA.</p>
+  <div class="note"><strong>Proteção dos dados:</strong> o arquivo é gerado e baixado diretamente neste navegador. Esta página não envia o backup a outro servidor e não lê o documento <code>meta/auth</code> nem exporta credenciais antigas.</div>
+  <div class="warning"><strong>Antes de continuar:</strong> confirme que está usando o repositório/site original do projeto <code>diretor-de-comunidade</code>. Depois de baixar o arquivo, guarde-o em local privado e não o compartilhe publicamente.</div>
+  <button id="exportBtn" type="button">Gerar e baixar backup JSON</button>
+  <div id="status" role="status" aria-live="polite"></div>
+  <p class="small">Se aparecer “Missing or insufficient permissions”, pare e não altere as regras do Firestore. Será necessário verificar o acesso autorizado ao banco.</p>
+</main>
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+  import { getFirestore, collection, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+  const firebaseConfig = {
+    apiKey: 'AIzaSyB8Uf77lKEjPHNqiHP7tbJjLg6sgJHz43Y',
+    authDomain: 'diretor-de-comunidade.firebaseapp.com',
+    projectId: 'diretor-de-comunidade',
+    storageBucket: 'diretor-de-comunidade.firebasestorage.app',
+    messagingSenderId: '618211503376',
+    appId: '1:618211503376:web:672da6a25ec0820083c995'
+  };
+
+  const statusEl = document.getElementById('status');
+  const button = document.getElementById('exportBtn');
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  function toPlain(value) {
+    if (value === null || value === undefined) return value ?? null;
+    if (value instanceof Date) return value.toISOString();
+    if (typeof value !== 'object') return value;
+    if (typeof value.toDate === 'function') return value.toDate().toISOString();
+    if (Array.isArray(value)) return value.map(toPlain);
+    if (typeof value.path === 'string' && value.firestore) return value.path;
+    const output = {};
+    for (const [key, item] of Object.entries(value)) output[key] = toPlain(item);
+    return output;
+  }
+
+  async function readMetaDoc(id) {
+    const snap = await getDoc(doc(db, 'meta', id));
+    return snap.exists() ? toPlain(snap.data()) : {};
+  }
+
+  function listOrEmpty(meta, key) {
+    return meta && Array.isArray(meta.list) ? meta.list : [];
+  }
+
+  function downloadJson(data) {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const date = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `backup-diretor-de-comunidade-${date}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+  }
+
+  button.addEventListener('click', async () => {
+    button.disabled = true;
+    statusEl.textContent = 'Lendo os registros do Firestore… aguarde.';
+    try {
+      // Lê a coleção de estudantes e as três listas necessárias para a migração.
+      // Não lê a coleção/documento meta/auth.
+      const [studentsSnap, professorsMeta, yearsMeta, rematriculasMeta] = await Promise.all([
+        getDocs(collection(db, 'students')),
+        readMetaDoc('professors'),
+        readMetaDoc('anos'),
+        readMetaDoc('rematriculas')
+      ]);
+
+      const students = studentsSnap.docs.map(snap => ({ ...toPlain(snap.data()), id: snap.id }));
+      if (students.length === 0) {
+        throw new Error('A coleção students retornou zero registros. Nenhum arquivo foi criado. Verifique se abriu o projeto correto.');
+      }
+
+      const backup = {
+        format: 'ceja-firestore-export-v1',
+        sourceProjectId: 'diretor-de-comunidade',
+        exportedAt: new Date().toISOString(),
+        students,
+        meta: {
+          professors: { list: listOrEmpty(professorsMeta, 'list') },
+          anos: { list: listOrEmpty(yearsMeta, 'list') },
+          rematriculas: { list: listOrEmpty(rematriculasMeta, 'list') }
+        }
+      };
+
+      downloadJson(backup);
+      statusEl.textContent = `Backup gerado e baixado.\nEstudantes: ${students.length}\nProfessores: ${backup.meta.professors.list.length}\nAnos: ${backup.meta.anos.list.length}\nRematrículas: ${backup.meta.rematriculas.list.length}\n\nConfira se o arquivo apareceu na pasta Downloads. Nenhuma informação foi escrita ou apagada no Firebase.`;
+    } catch (error) {
+      console.error(error);
+      const message = error && error.message ? error.message : String(error);
+      statusEl.textContent = 'Não foi possível gerar o backup.\n\nDetalhe: ' + message + '\n\nNão altere as regras do Firebase nem tente apagar ou recriar coleções. Envie esta mensagem de erro para receber orientação.';
+    } finally {
+      button.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
