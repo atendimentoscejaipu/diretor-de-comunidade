@@ -4,8 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Diretor de Comunidade - CEJA Dr. Gerardo Camelo Madeira</title>
-<!-- Ativa a instalação do site como App (PWA) -->
-<link rel="manifest" href="manifest.json">
+<!-- O repositório não contém manifest.json; removida a referência para evitar erro 404. -->
 <!-- Font Awesome para Ícones -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
@@ -607,7 +606,10 @@ const db = getFirestore(firebaseApp);
 // pois os registros dos estudantes foram encontrados no projeto antigo.
 const autosaveTimers = new Map();
 const autosaveInFlight = new Map();
+const activeStudentWrites = new Map(); // mantém a promessa real do Firestore mesmo se a tela mostrar timeout
+const confirmedStudentPayloads = new Map(); // último conteúdo confirmado pelo servidor por documento
 const dirtyStudentIds = new Set();
+const AUTOSAVE_DELAY_MS = 2500; // agrupa alterações rápidas do mesmo estudante
 let savingStudents = false;
 
 function setSaveStatus(message, state='') {
@@ -621,11 +623,16 @@ function setSaveStatus(message, state='') {
 // Evita que o botão fique indefinidamente aguardando uma gravação sem resposta.
 // O timeout não apaga dados; uma nova tentativa usa o mesmo ID de documento.
 function firebaseWriteWithTimeout(writePromise, description, timeoutMs = 15000) {
+  // Atenção: Promise.race não cancela a escrita original do Firestore.
+  // activeStudentWrites mantém essa escrita registrada para não iniciar outra
+  // operação para o mesmo documento enquanto a primeira ainda estiver pendente.
   let timer;
   const timeoutPromise = new Promise((_, reject) => {
-    timer = setTimeout(() => reject(new Error(`${description}: o Firebase não confirmou a gravação em 15 segundos. Confira a conexão e as regras do Firestore.`)), timeoutMs);
+    timer = setTimeout(() => reject(new Error(
+      `${description}: o Firebase não confirmou em ${Math.round(timeoutMs / 1000)} segundos. A operação pode continuar pendente em segundo plano. Não clique repetidamente. Se o Console mostrar resource-exhausted/Quota exceeded, aguarde a renovação da cota diária.`
+    )), timeoutMs);
   });
-  return Promise.race([writePromise, timeoutPromise]).finally(() => clearTimeout(timer));
+  return Promise.race([Promise.resolve(writePromise), timeoutPromise]).finally(() => clearTimeout(timer));
 }
 
 function stableJson(value) {
@@ -646,6 +653,42 @@ function studentPayload(student, id) {
   const payload = { ...student, id };
   delete payload.isNew;
   return payload;
+}
+
+function stableStudentDocId(tempId) {
+  return 's' + String(tempId).replace(/^temp_/, '').replace(/[^A-Za-z0-9_-]/g, '_');
+}
+
+async function writeStudentPayloadOnce(id, payload, description) {
+  // Se a tentativa anterior desse documento ainda está pendente, aguarde-a;
+  // não crie uma segunda escrita concorrente para tentar contornar um timeout.
+  const active = activeStudentWrites.get(id);
+  if (active) {
+    await firebaseWriteWithTimeout(active.promise, description);
+    confirmedStudentPayloads.set(id, active.payload);
+    if (activeStudentWrites.get(id) === active) activeStudentWrites.delete(id);
+  }
+
+  const confirmed = confirmedStudentPayloads.get(id);
+  if (confirmed && stableJson(confirmed) === stableJson(payload)) {
+    return false; // O conteúdo já está confirmado: não gastar outra gravação.
+  }
+
+  const writePromise = setDoc(doc(db, 'students', id), payload, { merge: true });
+  const record = { promise: writePromise, payload: { ...payload } };
+  activeStudentWrites.set(id, record);
+
+  // Registra a conclusão real do SDK, mesmo se o aviso de timeout já apareceu.
+  writePromise.then(() => {
+    confirmedStudentPayloads.set(id, record.payload);
+  }, () => {}).finally(() => {
+    if (activeStudentWrites.get(id) === record) activeStudentWrites.delete(id);
+  }).catch(() => {});
+
+  await firebaseWriteWithTimeout(writePromise, description);
+  confirmedStudentPayloads.set(id, record.payload);
+  if (activeStudentWrites.get(id) === record) activeStudentWrites.delete(id);
+  return true;
 }
 
 function scheduleStudentAutosave(id) {
@@ -669,44 +712,35 @@ function scheduleStudentAutosave(id) {
       console.error('Falha no salvamento automático do estudante:', error);
       setSaveStatus('Falha ao salvar. ' + (error?.message || 'Confira conexão e permissões.'), 'error');
     }
-  }, 1000);
+  }, AUTOSAVE_DELAY_MS);
   autosaveTimers.set(id, timer);
 }
 
 async function persistStudentById(id) {
-  // Esta função persiste somente alunos já existentes. Alunos temporários são
-  // gravados por saveAllStudents(), com um ID estável para não duplicar registros.
   if (!id || id.startsWith('temp_')) return null;
 
-  const pendingWrite = autosaveInFlight.get(id);
-  if (pendingWrite) {
-    try { await pendingWrite; } catch (error) {
-      console.warn('A gravação anterior falhou; será feita nova tentativa.', error);
-    }
-  }
-
-  const student = students.find(item => item.id === id);
-  if (!student) return null;
+  const existingTask = autosaveInFlight.get(id);
+  if (existingTask) return existingTask;
 
   const task = (async () => {
-    setSaveStatus('Salvando alterações…', 'pending');
-    let lastPayload;
-    for (let attempt = 0; attempt < 4; attempt++) {
-      const latestStudent = students.find(item => item.id === id);
-      if (!latestStudent) throw new Error('O registro do estudante não está mais disponível na memória.');
-      const payload = studentPayload(latestStudent, id);
-      await firebaseWriteWithTimeout(
-        setDoc(doc(db, 'students', id), payload, { merge: true }),
-        `Salvar estudante ${payload.aluno || payload.mat || id}`
-      );
-      lastPayload = payload;
-      const current = students.find(item => item.id === id);
-      if (current && stableJson(payload) === stableJson(studentPayload(current, id))) {
-        dirtyStudentIds.delete(id);
-        return payload;
-      }
+    const student = students.find(item => item.id === id);
+    if (!student) return null;
+
+    const payload = studentPayload(student, id);
+    setSaveStatus('Salvando alteração de ' + (payload.aluno || payload.mat || 'estudante') + '…', 'pending');
+    await writeStudentPayloadOnce(id, payload, `Salvar estudante ${payload.aluno || payload.mat || id}`);
+
+    const latestStudent = students.find(item => item.id === id);
+    if (!latestStudent || stableJson(studentPayload(latestStudent, id)) === stableJson(payload)) {
+      dirtyStudentIds.delete(id);
+      return payload;
     }
-    throw new Error(`Os dados de ${lastPayload?.aluno || 'um estudante'} continuaram mudando durante o salvamento. Clique em Salvar Alterações novamente.`);
+
+    // O utilizador alterou o mesmo estudante enquanto a gravação estava em curso.
+    // Fazemos uma nova tentativa debounced, em vez de uma sequência de writes rápidas.
+    dirtyStudentIds.add(id);
+    scheduleStudentAutosave(id);
+    return payload;
   })();
 
   autosaveInFlight.set(id, task);
@@ -874,8 +908,26 @@ function getProfLink(profName){
 async function boot(){
   setSaveStatus('Conectando ao banco…', 'pending');
 
-  onSnapshot(collection(db,'students'), (snap)=>{
+  onSnapshot(collection(db,'students'), { includeMetadataChanges: true }, (snap)=>{
     const nextStudents = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+    const snapshotById = new Map(snap.docs.map(d => [d.id, d]));
+    for (const documentSnapshot of snap.docs) {
+      if (!documentSnapshot.metadata.hasPendingWrites) {
+        confirmedStudentPayloads.set(documentSnapshot.id, studentPayload({ ...documentSnapshot.data(), id: documentSnapshot.id }, documentSnapshot.id));
+      }
+    }
+    for (const id of [...confirmedStudentPayloads.keys()]) {
+      if (!snapshotById.has(id)) confirmedStudentPayloads.delete(id);
+    }
+    // Se um aluno novo foi confirmado pelo servidor depois de um aviso de timeout,
+    // remova a cópia temporária sem criar outro documento.
+    unsavedNewStudents = unsavedNewStudents.filter(tempStudent => {
+      const realId = stableStudentDocId(tempStudent.id);
+      const documentSnapshot = snapshotById.get(realId);
+      if (!documentSnapshot || documentSnapshot.metadata.hasPendingWrites) return true;
+      const savedPayload = studentPayload({ ...documentSnapshot.data(), id: realId }, realId);
+      return stableJson(savedPayload) !== stableJson(studentPayload(tempStudent, realId));
+    });
     // Evita redesenhar a tabela após o próprio salvamento e interromper a digitação.
     const changed = !studentListsEqual(students, nextStudents);
     students = nextStudents;
@@ -1850,22 +1902,27 @@ async function saveAllStudents(){
       if (changedInRow && !id.startsWith('temp_')) dirtyStudentIds.add(id);
     }
 
-    // Primeiro salva os alunos novos. O ID deriva do ID temporário, então
-    // repetir a tentativa atualiza o mesmo documento e não cria duplicatas.
+    // Se não há alunos novos nem documentos alterados, não envie gravação alguma.
+    if (unsavedNewStudents.length === 0 && dirtyStudentIds.size === 0) {
+      setSaveStatus('Nenhuma alteração pendente para salvar.', 'success');
+      alert('Não há alterações pendentes para salvar.');
+      return true;
+    }
+
+    // Primeiro salva os alunos novos. O ID é estável, então repetir a tentativa
+    // atualiza o mesmo documento; a cache evita regravar conteúdo já confirmado.
     const newStudentsToSave = [...unsavedNewStudents];
     for (const student of newStudentsToSave) {
       const name = String(student.aluno || '').trim();
       if (!name) {
         throw new Error('Preencha o nome do aluno novo antes de salvar. Nenhum registro vazio foi gravado.');
       }
-      const docId = 's' + String(student.id).replace(/^temp_/, '').replace(/[^A-Za-z0-9_-]/g, '_');
+      const docId = stableStudentDocId(student.id);
       const payload = studentPayload(student, docId);
       setSaveStatus(`Salvando ${name}…`, 'pending');
-      await firebaseWriteWithTimeout(
-        setDoc(doc(db, 'students', docId), payload, { merge: true }),
-        `Salvar estudante ${name}`
-      );
+      await writeStudentPayloadOnce(docId, payload, `Salvar estudante ${name}`);
       unsavedNewStudents = unsavedNewStudents.filter(item => item.id !== student.id);
+      dirtyStudentIds.delete(docId);
       students = [...students.filter(item => item.id !== docId), payload];
     }
 
@@ -1878,15 +1935,24 @@ async function saveAllStudents(){
       await persistStudentById(id);
     }
 
+    if (unsavedNewStudents.length > 0 || dirtyStudentIds.size > 0) {
+      setSaveStatus('Ainda há alterações pendentes; aguarde o salvamento automático.', 'pending');
+      renderAll();
+      alert('Algumas alterações continuam pendentes. Aguarde a indicação de salvamento antes de atualizar a página.');
+      return false;
+    }
     setSaveStatus('Dados salvos no Firebase às ' + new Date().toLocaleTimeString('pt-BR'), 'success');
     renderAll();
     alert('Dados salvos no Firebase com sucesso!');
     return true;
   } catch (error) {
     console.error('Erro ao salvar estudantes:', error);
-    const message = error?.message || 'erro desconhecido';
+    const rawMessage = error?.message || 'erro desconhecido';
+    const message = error?.code === 'resource-exhausted'
+      ? 'O Firestore esgotou a cota de uso. Aguarde a renovação diária; o código não consegue ultrapassar esse limite gratuitamente.'
+      : rawMessage;
     setSaveStatus('Falha ao salvar: ' + message, 'error');
-    alert('NÃO foi possível confirmar o salvamento no Firebase.\n\n' + message + '\n\nOs registros que não foram confirmados continuam na tela. Verifique a conexão e as regras do Firestore e tente novamente.');
+    alert('NÃO foi possível confirmar o salvamento no Firebase.\n\n' + message + '\n\nOs registros que não foram confirmados continuam na tela. Não clique repetidamente em Salvar; se o Console mostrar Quota exceeded/resource-exhausted, aguarde a renovação da cota.');
     renderAll();
     return false;
   } finally {
