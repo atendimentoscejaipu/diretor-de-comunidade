@@ -36,9 +36,16 @@ a{color:var(--green);text-decoration:none;}
 h1.pg{font-size:1.3rem;margin:0 0 2px;} .sub-pg{color:var(--muted);font-size:.85rem;margin:0 0 16px;}
 label{display:block;font-size:.78rem;color:var(--muted);margin:8px 0 4px;}
 input,select{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--ink);font-size:.87rem;}
+.grid{display:grid;gap:10px;} .grid.c5{grid-template-columns:repeat(5,1fr);} .grid.c2{grid-template-columns:1fr 1fr;}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center;}
+.tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+.tab{padding:9px 16px;border-radius:20px;cursor:pointer;color:var(--muted);background:var(--bg);border:1px solid var(--border);font-size:.85rem;white-space:nowrap;}
+.tab.active{background:var(--green);color:#fff;border-color:var(--green);font-weight:600;}
+.tab.gold.active{background:var(--gold);color:#5a4200;border-color:var(--gold);}
 .tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;background:var(--card);}
 table{border-collapse:collapse;width:100%;min-width:880px;font-size:.8rem;}
 th{padding:9px 6px;text-align:left;position:sticky;top:0;font-weight:700;background:#3b5fa8;color:#fff;}
+thead.darkgreen th{background:var(--green-d);color:#fff;} thead.navy th{background:var(--navy);color:#fff;}
 td{padding:6px;border-bottom:1px solid var(--border);vertical-align:middle;}
 input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--border);border-radius:6px;}
 .badge{padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;color:#fff;display:inline-block;}
@@ -52,6 +59,23 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
 .pass-wrap input{padding-right:36px;}
 .pass-wrap .eye-btn{position:absolute;right:8px;background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;}
 .err{color:var(--red);font-size:.82rem;margin-top:6px;}
+.pill-toggle{display:flex;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:16px;}
+.pill-toggle .pill{flex:1;text-align:center;padding:9px;border-radius:8px;cursor:pointer;font-weight:700;font-size:.85rem;color:var(--muted);}
+.pill-toggle .pill.active{background:var(--green);color:#fff;}
+.months-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+@media(max-width:700px){.months-grid{grid-template-columns:repeat(2,1fr);}}
+.month-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;cursor:pointer;font-weight:700;font-size:.9rem;color:var(--ink);}
+.month-card:hover,.month-card.active{background:var(--green);color:#fff;border-color:var(--green);}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;}
+.stat-card .num{font-size:2.2rem;font-weight:800;color:var(--green);}
+.stat-card .label{font-size:.82rem;color:var(--muted);font-weight:600;}
+.mode-toggle-bar{display:flex;gap:10px;margin-bottom:16px;border-bottom:2px solid var(--border);padding-bottom:10px;}
+.mode-btn{background:var(--bg);color:var(--ink);border:1px solid var(--border);border-radius:8px;padding:10px 18px;font-weight:700;cursor:pointer;font-size:0.92rem;display:flex;align-items:center;gap:8px;}
+.mode-btn.active{background:var(--green);color:#fff;border-color:var(--green);}
+.legend{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.legend div{border-radius:10px;padding:12px;color:#fff;font-size:.8rem;}
+.legend .g{background:var(--green);} .legend .y{background:var(--gold);color:#5a4200;} .legend .r{background:var(--red);}
+.prof-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 </style>
 </head>
 <body>
@@ -64,14 +88,30 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
       <h2>CEJA Dr. Gerardo Camelo Madeira</h2>
       <p style="color:var(--muted); font-size:.78rem; margin:2px 0 0;">Ipu · CE — Diretor de Comunidade</p>
     </div>
-    <div>
+    <div class="pill-toggle">
+      <div class="pill active" id="pillSec" onclick="setLoginTab('sec')">Secretária</div>
+      <div class="pill" id="pillProf" onclick="setLoginTab('prof')">Professor</div>
+    </div>
+    <div id="secForm">
       <label>Usuário</label><input value="Secretária" disabled>
       <label>Senha</label>
       <div class="pass-wrap">
         <input type="password" id="secPass" placeholder="Senha da secretária" value="Secretaria23231939">
+        <button type="button" class="eye-btn" onclick="togglePass('secPass', this)"><i class="fa-solid fa-eye"></i></button>
       </div>
       <div id="secErr" class="err"></div>
       <button class="btn" style="width:100%; margin-top: 12px;" onclick="loginSecretaria()">Acessar Sistema</button>
+    </div>
+    <div id="profForm" class="hidden">
+      <label>Nome completo do Professor</label>
+      <input type="text" id="profNameInput" placeholder="Digite seu nome">
+      <label>Senha</label>
+      <div class="pass-wrap">
+        <input type="password" id="profPass" placeholder="Senha (padrão: 12345)">
+        <button type="button" class="eye-btn" onclick="togglePass('profPass', this)"><i class="fa-solid fa-eye"></i></button>
+      </div>
+      <div id="profErr" class="err"></div>
+      <button class="btn" style="width:100%; margin-top: 12px;" onclick="loginProfessor()">Acessar Sistema</button>
     </div>
   </div>
 </div>
@@ -83,7 +123,7 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
       <div>
         <div class="gov">Governo do Estado do Ceará <span class="badge-seduc">SEDUC</span></div>
         <div class="school">CEJA Dr. Gerardo Camelo Madeira - IPU/CE</div>
-        <div class="sub">DIRETOR DE COMUNIDADE • AMBIENTE DA SECRETÁRIA</div>
+        <div class="sub" id="whoami">DIRETOR DE COMUNIDADE • AMBIENTE DA SECRETÁRIA</div>
       </div>
     </div>
     <div class="right">
@@ -92,34 +132,167 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
   </div>
 
   <div class="layout">
-    <div class="sidebar">
-      <h4>Módulos</h4>
-      <div class="nav-item active"><i class="fa-solid fa-user-graduate"></i> Estudantes</div>
+    <div class="sidebar" id="sidebarSec">
+      <h4>Módulos do Sistema</h4>
+      <div class="nav-item active" data-mod="alunos" onclick="setModule('alunos')"><i class="fa-solid fa-user-graduate"></i> Estudantes &amp; Matrículas</div>
+      <div class="nav-item" data-mod="profs" onclick="setModule('profs')"><i class="fa-solid fa-chalkboard-user"></i> Ambientes dos Professores</div>
+      <div class="nav-item" data-mod="remat" onclick="setModule('remat')"><i class="fa-solid fa-file-pen"></i> Rematrícula Mensal</div>
+      <div class="nav-item" data-mod="farol" onclick="setModule('farol')"><i class="fa-solid fa-lightbulb"></i> Farol de Rematrícula</div>
+      <div class="nav-item" data-mod="certificacao" onclick="setModule('certificacao')"><i class="fa-solid fa-award"></i> Certificação</div>
     </div>
+
     <div class="main">
-      <h1 class="pg">Gestão de Estudantes</h1>
-      <p class="sub-pg">Integrado com Supabase (PostgreSQL)</p>
-      
-      <div style="margin-bottom: 12px; display:flex; gap:8px;">
-        <button class="btn sm" onclick="carregarEstudantes()"><i class="fa-solid fa-rotate"></i> Atualizar Dados</button>
-        <button class="btn orange sm" onclick="adicionarAluno()"><i class="fa-solid fa-user-plus"></i> Novo Aluno</button>
+      <!-- ESTUDANTES -->
+      <div id="mod-alunos">
+        <h1 class="pg">Gestão de Estudantes</h1>
+        <p class="sub-pg">Integrado com Supabase (PostgreSQL)</p>
+        
+        <div class="mode-toggle-bar">
+          <button class="mode-btn active" id="btnModeGeral" onclick="setSecViewMode('geral')"><i class="fa-solid fa-list-check"></i> Matrícula Geral</button>
+          <button class="mode-btn" id="btnModePorProf" onclick="setSecViewMode('porProf')"><i class="fa-solid fa-chalkboard-user"></i> Por Professor</button>
+          <button class="mode-btn" id="btnModeNiveis" onclick="setSecViewMode('niveis')"><i class="fa-solid fa-layer-group"></i> Níveis de Ensino</button>
+        </div>
+
+        <div id="secViewGeral">
+          <div class="toolbar">
+            <button class="btn sm orange" onclick="adicionarAluno()"><i class="fa-solid fa-user-plus"></i> Novo Aluno</button>
+            <button class="btn sm" style="background:var(--navy)" onclick="carregarEstudantes()"><i class="fa-solid fa-rotate"></i> Atualizar Dados</button>
+          </div>
+          <div class="tablewrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>MAT</th>
+                  <th>ALUNO(A)</th>
+                  <th>NÍVEL</th>
+                  <th>CONTATO</th>
+                  <th>ÚLT. FREQ.</th>
+                  <th>PROFESSOR</th>
+                  <th>STATUS</th>
+                  <th>CONCLUDENTE</th>
+                </tr>
+              </thead>
+              <tbody id="studentsBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="secViewPorProf" class="hidden">
+          <h3 id="secProfSelectedTitle">Selecione o Professor:</h3>
+          <div class="tabs" id="secProfsPills" style="margin-bottom:16px;"></div>
+          <div class="tablewrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>MAT</th>
+                  <th>ALUNO(A)</th>
+                  <th>NÍVEL</th>
+                  <th>CONTATO</th>
+                  <th>ÚLT. FREQ.</th>
+                  <th>STATUS</th>
+                </tr>
+              </thead>
+              <tbody id="secProfStudentsBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="secViewNiveis" class="hidden">
+          <div class="tabs" style="margin-bottom:16px;">
+            <div class="tab active gold" id="tabNivelEF" onclick="setNivelTab('EF')">Ensino Fundamental (EF)</div>
+            <div class="tab" id="tabNivelEM" onclick="setNivelTab('EM')">Ensino Médio (EM)</div>
+          </div>
+          <div class="tablewrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>MAT</th>
+                  <th>ALUNO(A)</th>
+                  <th>CONTATO</th>
+                  <th>ÚLT. FREQ.</th>
+                  <th>PROFESSOR</th>
+                </tr>
+              </thead>
+              <tbody id="secNiveisStudentsBody"></tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
-      <div class="tablewrap">
-        <table>
-          <thead>
-            <tr>
-              <th>MAT</th>
-              <th>ALUNO(A)</th>
-              <th>NÍVEL</th>
-              <th>CONTATO</th>
-              <th>ÚLT. FREQ.</th>
-              <th>PROFESSOR</th>
-            </tr>
-          </thead>
-          <tbody id="studentsBody"></tbody>
-        </table>
+      <!-- AMBIENTES DOS PROFESSORES -->
+      <div id="mod-profs" class="hidden">
+        <h1 class="pg">Ambientes dos Professores</h1>
+        <p class="sub-pg">Gestão de professores cadastrados</p>
+        <div class="card">
+          <label>Cadastrar Novo Professor</label>
+          <div style="display:flex;gap:8px">
+            <input id="newProfName" placeholder="Nome completo do professor">
+            <button class="btn sm" onclick="addProfessor()"><i class="fa-solid fa-plus"></i> Cadastrar</button>
+          </div>
+        </div>
+        <div class="prof-grid" id="profList"></div>
       </div>
+
+      <!-- REMATRÍCULA MENSAL -->
+      <div id="mod-remat" class="hidden">
+        <h1 class="pg">Rematrícula Mensal</h1>
+        <p class="sub-pg">Acompanhamento de retornos</p>
+        <div class="months-grid" id="rematMonthsGrid"></div>
+        <div class="tablewrap">
+          <table>
+            <thead>
+              <tr><th>ESTUDANTE</th><th>MATRÍCULA</th><th>MÊS</th><th>PROFESSOR</th></tr>
+            </thead>
+            <tbody id="rematBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- FAROL DE REMATRÍCULA -->
+      <div id="mod-farol" class="hidden">
+        <h1 class="pg">Farol de Rematrícula</h1>
+        <p class="sub-pg">Desempenho em tempo real</p>
+        <div class="legend">
+          <div class="g"><b>Verde:</b> 4+ Rematrículas</div>
+          <div class="y"><b>Amarelo:</b> 1 a 3</div>
+          <div class="r"><b>Vermelho:</b> 0</div>
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>PROFESSOR</th><th>QTD</th><th>STATUS</th></tr></thead>
+            <tbody id="rankBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CERTIFICAÇÃO -->
+      <div id="mod-certificacao" class="hidden">
+        <h1 class="pg">Certificação e Concludentes</h1>
+        <p class="sub-pg">Alunos diplomados</p>
+        <div class="grid c2" style="margin-bottom:20px">
+          <div class="stat-card"><div class="num" id="countCertEF">0</div><div class="label">Ensino Fundamental (EF)</div></div>
+          <div class="stat-card"><div class="num" id="countCertEM">0</div><div class="label">Ensino Médio (EM)</div></div>
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>MAT</th><th>ALUNO</th><th>NÍVEL</th><th>PROFESSOR</th></tr></thead>
+            <tbody id="certificacaoBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- VISÃO DO PROFESSOR -->
+      <div id="mod-prof-view" class="hidden">
+        <h1 class="pg" id="profWelcome"></h1>
+        <p class="sub-pg">Acompanhe os alunos da sua turma.</p>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>MAT</th><th>ALUNO(A)</th><th>CONTATO</th><th>ÚLT. FREQ.</th><th>STATUS</th></tr></thead>
+            <tbody id="profStudentsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -129,49 +302,231 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
 <script>
 const SUPABASE_URL = "https://jddocnyogwgygxcaqvep.supabase.co";
 const SUPABASE_KEY = "sb_publishable_7WJffvwyD15hhUu168RY7A_rlFFQE_5";
-
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let PROFESSORES = ["Aldânia Maria de Melo Lima Soares","Aline Dantas Moreira","Ana Gardênia Ximenes Dias","Ana Jéssica Martins Matos","Antonia Carla Victor de Paiva","Antonio Helio Pereira de Farias","Carliana Lima Almeida","Carlos Ely Costa Dias","Francisco de Assis Martins Passos","Francisco José Bezerra Felizola","Glaucia Paiva Timbó","Gonçalinha Rodrigues Martins","Itala Futado Dias","José Airton Ferreira de Mesquita","Marcília Felipe da Costa","Maria Siloneida de Farias","Maria Sueli Bernardo de Lima","Maria Suely Rodrigues Araujo","Pedro Furtuna da Silva","Reinaldo Inacio Barbalho","Sabrina Farias Camelo","Samuel Martins de Sousa","Silvia Helena Peres Dias","Tatiana Maria de Aragão Paiva"];
+
+let students = [];
+let rematriculas = [];
+let session = null;
+let currentSecViewMode = 'geral';
+let selectedSecProfName = PROFESSORES[0];
+let currentNivelTab = 'EF';
+const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+let selectedRematMonth = 'Setembro';
+
+function togglePass(id, btn){
+  const inp = document.getElementById(id);
+  if(inp.type==='password'){ inp.type='text'; btn.innerHTML='<i class="fa-solid fa-eye-slash"></i>'; }
+  else { inp.type='password'; btn.innerHTML='<i class="fa-solid fa-eye"></i>'; }
+}
+
+function setLoginTab(t){
+  document.getElementById('pillSec').classList.toggle('active', t==='sec');
+  document.getElementById('pillProf').classList.toggle('active', t==='prof');
+  document.getElementById('secForm').classList.toggle('hidden', t!=='sec');
+  document.getElementById('profForm').classList.toggle('hidden', t!=='prof');
+}
 
 function loginSecretaria(){
   const pass = document.getElementById('secPass').value;
-  if(pass !== "Secretaria23231939"){
-    document.getElementById('secErr').textContent = "Senha incorreta.";
-    return;
-  }
-  document.getElementById('loginView').classList.add('hidden');
-  document.getElementById('appView').classList.remove('hidden');
-  carregarEstudantes();
+  if(pass !== "Secretaria23231939"){ document.getElementById('secErr').textContent = "Senha incorreta."; return; }
+  session = {role:'secretaria'};
+  enterApp();
+}
+
+function loginProfessor(){
+  const name = document.getElementById('profNameInput').value.trim();
+  const match = PROFESSORES.find(p => p.toLowerCase() === name.toLowerCase());
+  if(!match){ document.getElementById('profErr').textContent = "Professor não encontrado."; return; }
+  session = {role:'professor', name: match};
+  enterApp();
 }
 
 function doLogout(){
+  session = null;
   document.getElementById('loginView').classList.remove('hidden');
   document.getElementById('appView').classList.add('hidden');
 }
 
-async function carregarEstudantes(){
-  const { data, error } = await supabaseClient.from('students').select('*');
-  const tbody = document.getElementById('studentsBody');
-  if(error){
-    console.error(error);
-    alert("Erro ao carregar do Supabase.");
-    return;
-  }
+async function enterApp(){
+  document.getElementById('loginView').classList.add('hidden');
+  document.getElementById('appView').classList.remove('hidden');
+  const isSec = session.role === 'secretaria';
+  document.getElementById('sidebarSec').classList.toggle('hidden', !isSec);
+  document.getElementById('mod-prof-view').classList.toggle('hidden', isSec);
   
-  if(!data || data.length === 0){
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:15px; color:var(--muted)">Nenhum aluno cadastrado ainda. Clique em "Novo Aluno".</td></tr>`;
-    return;
+  if(isSec){
+    setModule('alunos');
+  } else {
+    document.getElementById('profWelcome').textContent = 'Bem-vindo(a), ' + session.name;
+    renderProfView();
   }
+  await carregarDadosSupabase();
+}
 
-  tbody.innerHTML = data.map(s => `
-    <tr>
+function setModule(mod){
+  ['alunos','profs','remat','farol','certificacao'].forEach(m => {
+    const el = document.getElementById('mod-'+m);
+    if(el) el.classList.toggle('hidden', m !== mod);
+  });
+  document.querySelectorAll('.sidebar .nav-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.mod === mod);
+  });
+  renderAll();
+}
+
+function setSecViewMode(mode){
+  currentSecViewMode = mode;
+  document.getElementById('btnModeGeral').classList.toggle('active', mode==='geral');
+  document.getElementById('btnModePorProf').classList.toggle('active', mode==='porProf');
+  document.getElementById('btnModeNiveis').classList.toggle('active', mode==='niveis');
+
+  document.getElementById('secViewGeral').classList.toggle('hidden', mode!=='geral');
+  document.getElementById('secViewPorProf').classList.toggle('hidden', mode!=='porProf');
+  document.getElementById('secViewNiveis').classList.toggle('hidden', mode!=='niveis');
+  renderAll();
+}
+
+function setNivelTab(nivel){
+  currentNivelTab = nivel;
+  document.getElementById('tabNivelEF').classList.toggle('active', nivel==='EF');
+  document.getElementById('tabNivelEM').classList.toggle('active', nivel==='EM');
+  renderAll();
+}
+
+async function carregarDadosSupabase(){
+  const { data, error } = await supabaseClient.from('students').select('*');
+  if(!error && data){
+    students = data;
+  }
+  renderAll();
+}
+
+function diasDesde(dateStr){
+  if(!dateStr) return 999;
+  const d = new Date(dateStr);
+  const now = new Date();
+  return Math.floor((now - d) / 86400000);
+}
+
+function situacaoStatus(dateStr){
+  const dias = diasDesde(dateStr);
+  if(dias <= 30) return {situacao:'Ativo', cls:'g'};
+  if(dias <= 59) return {situacao:'Pré-evadido', cls:'y'};
+  return {situacao:'Evadido', cls:'r'};
+}
+
+function renderAll(){
+  renderTableGeral();
+  renderPorProf();
+  renderNiveis();
+  renderProfsList();
+  renderRemat();
+  renderFarol();
+  renderCert();
+  if(session && session.role === 'professor') renderProfView();
+}
+
+function renderTableGeral(){
+  const tbody = document.getElementById('studentsBody');
+  if(!tbody) return;
+  tbody.innerHTML = students.map(s => {
+    const st = situacaoStatus(s.ultimaFreq);
+    return `<tr>
       <td>${s.mat || ''}</td>
       <td><b>${s.aluno || ''}</b></td>
       <td>${s.nivel || 'EM'}</td>
       <td>${s.contato || ''}</td>
       <td>${s.ultimaFreq || ''}</td>
       <td>${s.professor || ''}</td>
-    </tr>
+      <td><span class="badge ${st.cls}">${st.situacao}</span></td>
+      <td>${s.concludente ? 'SIM' : 'NÃO'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderPorProf(){
+  const wrap = document.getElementById('secProfsPills');
+  if(!wrap) return;
+  wrap.innerHTML = PROFESSORES.map(p => `
+    <div class="tab ${p === selectedSecProfName ? 'active gold' : ''}" onclick="selectedSecProfName='${p}'; renderPorProf();">${p}</div>
   `).join('');
+
+  const tbody = document.getElementById('secProfStudentsBody');
+  if(!tbody) return;
+  const filtered = students.filter(s => (s.professor || '').toLowerCase() === selectedSecProfName.toLowerCase());
+  tbody.innerHTML = filtered.map(s => {
+    const st = situacaoStatus(s.ultimaFreq);
+    return `<tr>
+      <td>${s.mat || ''}</td>
+      <td><b>${s.aluno || ''}</b></td>
+      <td>${s.nivel || 'EM'}</td>
+      <td>${s.contato || ''}</td>
+      <td>${s.ultimaFreq || ''}</td>
+      <td><span class="badge ${st.cls}">${st.situacao}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderNiveis(){
+  const tbody = document.getElementById('secNiveisStudentsBody');
+  if(!tbody) return;
+  const filtered = students.filter(s => (s.nivel || 'EM') === currentNivelTab);
+  tbody.innerHTML = filtered.map(s => `<tr>
+    <td>${s.mat || ''}</td>
+    <td><b>${s.aluno || ''}</b></td>
+    <td>${s.contato || ''}</td>
+    <td>${s.ultimaFreq || ''}</td>
+    <td>${s.professor || ''}</td>
+  </tr>`).join('');
+}
+
+function renderProfsList(){
+  const list = document.getElementById('profList');
+  if(!list) return;
+  list.innerHTML = PROFESSORES.map(p => `<div class="card" style="margin:0"><b>${p}</b></div>`).join('');
+}
+
+function renderRemat(){
+  const grid = document.getElementById('rematMonthsGrid');
+  if(!grid) return;
+  grid.innerHTML = MESES.map(m => `<div class="month-card ${m===selectedRematMonth?'active':''}" onclick="selectedRematMonth='${m}'; renderRemat();">${m}</div>`).join('');
+}
+
+function renderFarol(){
+  const tbody = document.getElementById('rankBody');
+  if(!tbody) return;
+  tbody.innerHTML = PROFESSORES.map(p => `<tr><td>${p}</td><td>0</td><td><span class="badge r">Vermelho</span></td></tr>`).join('');
+}
+
+function renderCert(){
+  const ef = students.filter(s => s.concludente && s.nivel === 'EF').length;
+  const em = students.filter(s => s.concludente && s.nivel === 'EM').length;
+  document.getElementById('countCertEF').textContent = ef;
+  document.getElementById('countCertEM').textContent = em;
+
+  const tbody = document.getElementById('certificacaoBody');
+  if(!tbody) return;
+  const conds = students.filter(s => s.concludente);
+  tbody.innerHTML = conds.map(s => `<tr><td>${s.mat}</td><td><b>${s.aluno}</b></td><td>${s.nivel}</td><td>${s.professor}</td></tr>`).join('');
+}
+
+function renderProfView(){
+  if(!session || session.role !== 'professor') return;
+  const tbody = document.getElementById('profStudentsBody');
+  if(!tbody) return;
+  const myStudents = students.filter(s => (s.professor || '').toLowerCase() === session.name.toLowerCase());
+  tbody.innerHTML = myStudents.map(s => {
+    const st = situacaoStatus(s.ultimaFreq);
+    return `<tr>
+      <td>${s.mat || ''}</td>
+      <td><b>${s.aluno || ''}</b></td>
+      <td>${s.contato || ''}</td>
+      <td>${s.ultimaFreq || ''}</td>
+      <td><span class="badge ${st.cls}">${st.situacao}</span></td>
+    </tr>`;
+  }).join('');
 }
 
 async function adicionarAluno(){
@@ -186,24 +541,29 @@ async function adicionarAluno(){
     nivel: 'EM',
     contato: '88999999999',
     ultimaFreq: new Date().toISOString().split('T')[0],
-    professor: 'Samuel Martins de Sousa',
+    professor: PROFESSORES[0],
     concludente: false,
     ano: '2026'
   }]);
 
   if(error){
     alert("Erro ao inserir aluno no Supabase.");
-    console.error(error);
   } else {
     alert("Aluno cadastrado com sucesso!");
-    carregarEstudantes();
+    await carregarDadosSupabase();
   }
 }
 
-window.loginSecretaria = loginSecretaria;
-window.doLogout = doLogout;
-window.carregarEstudantes = carregarEstudantes;
-window.adicionarAluno = adicionarAluno;
+async function addProfessor(){
+  const inp = document.getElementById('newProfName');
+  const name = inp.value.trim();
+  if(name && !PROFESSORES.includes(name)){
+    PROFESSORES.push(name);
+    inp.value = '';
+    renderAll();
+    alert("Professor cadastrado!");
+  }
+}
 </script>
 </body>
 </html>
