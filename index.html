@@ -248,7 +248,7 @@ tr.highlight-search td { background: rgba(242, 183, 5, 0.4) !important; border-t
               </div>
             </div>
 
-            <button class="btn sm" style="background:var(--navy)" onclick="saveEstudantesModule()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
+            <button type="button" class="btn sm" style="background:var(--navy)" onclick="saveEstudantesModule()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
             <button class="btn dark sm" onclick="exportCSV()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
             <button class="btn dark sm" onclick="exportWord('printAlunos', 'Estudantes')"><i class="fa-solid fa-file-word"></i> Exportar Word</button>
             <button class="btn red sm" onclick="printSection('printAlunos')"><i class="fa-solid fa-file-pdf"></i> Gerar PDF / Imprimir</button>
@@ -315,7 +315,7 @@ tr.highlight-search td { background: rgba(242, 183, 5, 0.4) !important; border-t
                     </button>
                   </div>
                 </div>
-                <button class="btn sm" style="background:var(--navy)" onclick="saveEstudantesModule()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
+                <button type="button" class="btn sm" style="background:var(--navy)" onclick="saveEstudantesModule()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
                 <button class="btn dark sm" onclick="exportCSVPorProf()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
                 <button class="btn red sm" onclick="printSection('printAlunosPorProf')"><i class="fa-solid fa-file-pdf"></i> Gerar PDF / Imprimir</button>
               </div>
@@ -364,7 +364,7 @@ tr.highlight-search td { background: rgba(242, 183, 5, 0.4) !important; border-t
               </div>
             </div>
 
-            <button class="btn sm" style="background:var(--navy)" onclick="saveEstudantesModule()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
+            <button type="button" class="btn sm" style="background:var(--navy)" onclick="saveEstudantesModule()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button>
             <button class="btn dark sm" onclick="exportCSVNiveis()"><i class="fa-solid fa-file-excel"></i> Exportar Excel</button>
             <button class="btn dark sm" onclick="exportWord('printAlunosNiveis', 'Estudantes_Niveis')"><i class="fa-solid fa-file-word"></i> Exportar Word</button>
             <button class="btn red sm" onclick="printSection('printAlunosNiveis')"><i class="fa-solid fa-file-pdf"></i> Gerar PDF / Imprimir</button>
@@ -556,7 +556,7 @@ tr.highlight-search td { background: rgba(242, 183, 5, 0.4) !important; border-t
         <p class="sub-pg">Acompanhe seus alunos evadidos e ativos em tempo real.</p>
 
         <div id="ptab-turma">
-          <div class="toolbar"><button class="btn sm" style="background:var(--navy)" onclick="saveAllStudents()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button></div>
+          <div class="toolbar"><button type="button" class="btn sm" style="background:var(--navy)" onclick="saveAllStudents()"><i class="fa-solid fa-floppy-disk"></i> Salvar Alterações</button></div>
           <div class="tabs">
             <div class="tab gold" id="tabAntigas2" onclick="setSubTab2('antigas')">Matrículas Antigas</div>
             <div class="tab active" id="tabAtuais2" onclick="setSubTab2('atuais')">Matrículas Atuais</div>
@@ -607,6 +607,8 @@ const db = getFirestore(firebaseApp);
 // pois os registros dos estudantes foram encontrados no projeto antigo.
 const autosaveTimers = new Map();
 const autosaveInFlight = new Map();
+const dirtyStudentIds = new Set();
+let savingStudents = false;
 
 function setSaveStatus(message, state='') {
   const el = document.getElementById('saveStatus');
@@ -614,6 +616,16 @@ function setSaveStatus(message, state='') {
   el.textContent = message;
   el.className = 'save-status' + (state ? ' ' + state : '');
   el.title = message;
+}
+
+// Evita que o botão fique indefinidamente aguardando uma gravação sem resposta.
+// O timeout não apaga dados; uma nova tentativa usa o mesmo ID de documento.
+function firebaseWriteWithTimeout(writePromise, description, timeoutMs = 15000) {
+  let timer;
+  const timeoutPromise = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`${description}: o Firebase não confirmou a gravação em 15 segundos. Confira a conexão e as regras do Firestore.`)), timeoutMs);
+  });
+  return Promise.race([writePromise, timeoutPromise]).finally(() => clearTimeout(timer));
 }
 
 function stableJson(value) {
@@ -637,8 +649,16 @@ function studentPayload(student, id) {
 }
 
 function scheduleStudentAutosave(id) {
+  // Não gravar nem redesenhar um aluno temporário durante o preenchimento.
+  // Alunos novos são enviados de forma explícita pelo botão Salvar Alterações.
+  if (unsavedNewStudents.some(student => student.id === id)) {
+    setSaveStatus('Novo aluno em edição — preencha os campos e clique em Salvar Alterações.', 'pending');
+    return;
+  }
+
   const oldTimer = autosaveTimers.get(id);
   if (oldTimer) clearTimeout(oldTimer);
+  dirtyStudentIds.add(id);
   setSaveStatus('Alterações pendentes…', 'pending');
   const timer = setTimeout(async () => {
     autosaveTimers.delete(id);
@@ -647,45 +667,46 @@ function scheduleStudentAutosave(id) {
       setSaveStatus('Salvo automaticamente às ' + new Date().toLocaleTimeString('pt-BR'), 'success');
     } catch (error) {
       console.error('Falha no salvamento automático do estudante:', error);
-      setSaveStatus('Falha ao salvar. Confira a conexão/permissões.', 'error');
+      setSaveStatus('Falha ao salvar. ' + (error?.message || 'Confira conexão e permissões.'), 'error');
     }
-  }, 800);
+  }, 1000);
   autosaveTimers.set(id, timer);
 }
 
 async function persistStudentById(id) {
-  // Evita escritas simultâneas sobre o mesmo registro.
-  if (autosaveInFlight.has(id)) {
-    await autosaveInFlight.get(id);
-    return;
+  // Esta função persiste somente alunos já existentes. Alunos temporários são
+  // gravados por saveAllStudents(), com um ID estável para não duplicar registros.
+  if (!id || id.startsWith('temp_')) return null;
+
+  const pendingWrite = autosaveInFlight.get(id);
+  if (pendingWrite) {
+    try { await pendingWrite; } catch (error) {
+      console.warn('A gravação anterior falhou; será feita nova tentativa.', error);
+    }
   }
 
+  const student = students.find(item => item.id === id);
+  if (!student) return null;
+
   const task = (async () => {
-    let student = unsavedNewStudents.find(item => item.id === id);
-    const isNew = !!student;
-    if (!student) student = students.find(item => item.id === id);
-    if (!student) return;
-
-    const docId = isNew ? ('s' + Date.now() + Math.random().toString(36).slice(2, 8)) : id;
-    setSaveStatus('Salvando…', 'pending');
-
-    // Se o usuário continuar digitando durante uma gravação, repete com os
-    // valores mais recentes antes de marcar como salvo.
-    let payload;
-    for (let attempt = 0; attempt < 5; attempt++) {
-      payload = studentPayload(student, docId);
-      await setDoc(doc(db, 'students', docId), payload, { merge: true });
-      const latest = studentPayload(student, docId);
-      if (stableJson(payload) === stableJson(latest)) break;
+    setSaveStatus('Salvando alterações…', 'pending');
+    let lastPayload;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const latestStudent = students.find(item => item.id === id);
+      if (!latestStudent) throw new Error('O registro do estudante não está mais disponível na memória.');
+      const payload = studentPayload(latestStudent, id);
+      await firebaseWriteWithTimeout(
+        setDoc(doc(db, 'students', id), payload, { merge: true }),
+        `Salvar estudante ${payload.aluno || payload.mat || id}`
+      );
+      lastPayload = payload;
+      const current = students.find(item => item.id === id);
+      if (current && stableJson(payload) === stableJson(studentPayload(current, id))) {
+        dirtyStudentIds.delete(id);
+        return payload;
+      }
     }
-    payload = studentPayload(student, docId);
-
-    if (isNew) {
-      unsavedNewStudents = unsavedNewStudents.filter(item => item.id !== id);
-      students = [...students.filter(item => item.id !== docId), payload];
-      renderAll();
-    }
-    return payload;
+    throw new Error(`Os dados de ${lastPayload?.aluno || 'um estudante'} continuaram mudando durante o salvamento. Clique em Salvar Alterações novamente.`);
   })();
 
   autosaveInFlight.set(id, task);
@@ -933,7 +954,10 @@ function sortYears(){
 async function persistAnos(){
   sortYears();
   try {
-    await setDoc(doc(db,'meta','anos'), {list: anosCriados});
+    await firebaseWriteWithTimeout(
+      setDoc(doc(db,'meta','anos'), {list: anosCriados}),
+      'Salvar anos letivos'
+    );
     setSaveStatus('Anos letivos salvos automaticamente.', 'success');
   } catch (error) {
     console.error('Erro ao salvar anos letivos:', error);
@@ -1280,16 +1304,18 @@ function filterStudentsList(list, subtabFilter, yearFilter, profFilter){
 
 async function updateStudentField(id, field, value) {
   let st = unsavedNewStudents.find(s => s.id === id);
+  const isNew = !!st;
   if (!st) st = students.find(s => s.id === id);
   if (!st) return;
 
-  if (field === 'concludente') {
-    st[field] = !!value;
-  } else if (field === 'ultimaFreq') {
-    st[field] = toISO(String(value || '').trim());
-  } else {
-    st[field] = String(value ?? '');
-  }
+  let normalizedValue;
+  if (field === 'concludente') normalizedValue = !!value;
+  else if (field === 'ultimaFreq') normalizedValue = toISO(String(value || '').trim());
+  else normalizedValue = String(value ?? '');
+
+  if (st[field] === normalizedValue) return;
+  st[field] = normalizedValue;
+  if (!isNew) dirtyStudentIds.add(id);
   scheduleStudentAutosave(id);
 }
 
@@ -1768,52 +1794,103 @@ async function saveProfessors(){
 }
 
 async function saveEstudantesModule(){
-  const anoInp = document.getElementById('anoLetivoInput')?.value.trim();
-  if(anoInp && !anosCriados.includes(anoInp)){
-    anosCriados.push(anoInp);
-    currentAno = anoInp;
-    await persistAnos();
+  setSaveStatus('Botão Salvar acionado…', 'pending');
+  try {
+    const anoInp = (document.getElementById('anoLetivoInput')?.value || '').trim();
+    if (anoInp) {
+      if (!/^\d{4}$/.test(anoInp)) {
+        setSaveStatus('Digite o ano letivo com quatro números.', 'error');
+        alert('Digite um ano letivo válido com quatro números, por exemplo 2026.');
+        return;
+      }
+      if (!anosCriados.includes(anoInp)) {
+        anosCriados.push(anoInp);
+        currentAno = anoInp;
+        await persistAnos();
+      }
+    }
+    await saveAllStudents();
+  } catch (error) {
+    console.error('Erro ao iniciar o salvamento dos estudantes:', error);
+    setSaveStatus('Falha ao salvar: ' + (error?.message || 'erro desconhecido.'), 'error');
+    alert('Não foi possível iniciar o salvamento no Firebase. Detalhes: ' + (error?.message || 'erro desconhecido.'));
   }
-  await saveAllStudents();
 }
 
 async function saveAllStudents(){
-  setSaveStatus('Salvando estudantes…', 'pending');
+  if (savingStudents) {
+    setSaveStatus('O salvamento já está em andamento. Aguarde.', 'pending');
+    return false;
+  }
+  savingStudents = true;
+  setSaveStatus('Salvando estudantes no Firebase…', 'pending');
+
   try {
-    // Captura qualquer valor ainda presente nos campos visíveis.
-    const rows = [...document.querySelectorAll('tr[data-id]')].filter(row => row.getClientRects().length > 0);
+    // Captura os valores visíveis antes de iniciar qualquer gravação.
+    const rows = [...document.querySelectorAll('tr[data-id]')]
+      .filter(row => row.getClientRects().length > 0);
+
     for (const row of rows) {
       const id = row.dataset.id;
-      const st = unsavedNewStudents.find(s => s.id === id) || students.find(s => s.id === id);
-      if (!st) continue;
+      const student = unsavedNewStudents.find(item => item.id === id) || students.find(item => item.id === id);
+      if (!student) continue;
+      let changedInRow = false;
       row.querySelectorAll('[data-field]').forEach(input => {
         if (input.disabled) return;
         const field = input.dataset.field;
-        if (input.type === 'checkbox') st[field] = input.checked;
-        else if (field === 'ultimaFreq') st[field] = toISO(input.value.trim());
-        else st[field] = input.value;
+        let value;
+        if (input.type === 'checkbox') value = input.checked;
+        else if (field === 'ultimaFreq') value = toISO(input.value.trim());
+        else value = input.value;
+        if (student[field] !== value) {
+          student[field] = value;
+          changedInRow = true;
+        }
       });
+      if (changedInRow && !id.startsWith('temp_')) dirtyStudentIds.add(id);
     }
 
-    const ids = new Set([
-      ...unsavedNewStudents.map(s => s.id),
-      ...rows.map(row => row.dataset.id).filter(id => id && !id.startsWith('temp_'))
-    ]);
+    // Primeiro salva os alunos novos. O ID deriva do ID temporário, então
+    // repetir a tentativa atualiza o mesmo documento e não cria duplicatas.
+    const newStudentsToSave = [...unsavedNewStudents];
+    for (const student of newStudentsToSave) {
+      const name = String(student.aluno || '').trim();
+      if (!name) {
+        throw new Error('Preencha o nome do aluno novo antes de salvar. Nenhum registro vazio foi gravado.');
+      }
+      const docId = 's' + String(student.id).replace(/^temp_/, '').replace(/[^A-Za-z0-9_-]/g, '_');
+      const payload = studentPayload(student, docId);
+      setSaveStatus(`Salvando ${name}…`, 'pending');
+      await firebaseWriteWithTimeout(
+        setDoc(doc(db, 'students', docId), payload, { merge: true }),
+        `Salvar estudante ${name}`
+      );
+      unsavedNewStudents = unsavedNewStudents.filter(item => item.id !== student.id);
+      students = [...students.filter(item => item.id !== docId), payload];
+    }
 
-    for (const id of ids) {
+    // Força a gravação dos registros existentes que ainda têm alterações pendentes.
+    const idsToSave = [...dirtyStudentIds].filter(id => id && !id.startsWith('temp_'));
+    for (const id of idsToSave) {
       const timer = autosaveTimers.get(id);
       if (timer) clearTimeout(timer);
       autosaveTimers.delete(id);
       await persistStudentById(id);
     }
 
-    setSaveStatus('Estudantes salvos automaticamente.', 'success');
-    alert('Alterações dos estudantes salvas com sucesso.');
+    setSaveStatus('Dados salvos no Firebase às ' + new Date().toLocaleTimeString('pt-BR'), 'success');
     renderAll();
+    alert('Dados salvos no Firebase com sucesso!');
+    return true;
   } catch (error) {
     console.error('Erro ao salvar estudantes:', error);
-    setSaveStatus('Falha ao salvar estudantes. Confira as permissões.', 'error');
-    alert('Não foi possível salvar todos os estudantes. Verifique a conexão e as permissões do Firestore. Seus dados não foram apagados.');
+    const message = error?.message || 'erro desconhecido';
+    setSaveStatus('Falha ao salvar: ' + message, 'error');
+    alert('NÃO foi possível confirmar o salvamento no Firebase.\n\n' + message + '\n\nOs registros que não foram confirmados continuam na tela. Verifique a conexão e as regras do Firestore e tente novamente.');
+    renderAll();
+    return false;
+  } finally {
+    savingStudents = false;
   }
 }
 
