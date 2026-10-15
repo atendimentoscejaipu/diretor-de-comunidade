@@ -30,6 +30,8 @@ a{color:var(--green);text-decoration:none;}
 .top .sub{font-size:.72rem;opacity:.9;}
 .top .right{display:flex;align-items:center;gap:10px;}
 .clock{background:rgba(0,0,0,.15);border-radius:20px;padding:5px 12px;font-size:.78rem;}
+.save-status{font-size:.75rem;padding:5px 9px;border-radius:8px;background:rgba(255,255,255,.15);color:#fff;max-width:240px;}
+.save-status.pending{background:#8a6d00;color:#fff;} .save-status.success{background:#176b2c;color:#fff;} .save-status.error{background:#b91c1c;color:#fff;}
 .btn{background:var(--green);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:.9rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
 .btn:hover{background:var(--green-d);}
 .btn.orange{background:#e08a00;} .btn.orange:hover{background:#c67600;}
@@ -99,6 +101,7 @@ input.cell, select.cell{padding:5px 6px;font-size:.78rem;border:1px solid var(--
 .container, .main-module { width: 100%; max-width: 98%; padding: 5px; margin: 0 auto; }
 th.col-aluno, td.col-aluno { min-width: 180px; }
 td.col-aluno input { width: 100%; min-width: 170px; font-size: 14px; }
+/* Ajuste na largura da Coluna do Nível para exibir EF e EM sem cortes */
 th.col-nivel, td.col-nivel { min-width: 85px; width: 85px; text-align: center; }
 select.cell-nivel { min-width: 75px; width: 100%; text-align: center; padding: 5px 4px; font-weight: bold; }
 .btn-excluir { background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
@@ -107,6 +110,7 @@ select.cell-nivel { min-width: 75px; width: 100%; text-align: center; padding: 5
 .mode-btn { background: var(--bg); color: var(--ink); border: 1px solid var(--border); border-radius: 8px; padding: 10px 18px; font-weight: 700; cursor: pointer; font-size: 0.92rem; display: flex; align-items: center; gap: 8px; transition: all .2s; }
 .mode-btn.active { background: var(--green); color: #fff; border-color: var(--green); }
 
+/* Destaque para busca de alunos */
 tr.highlight-search td { background: rgba(242, 183, 5, 0.4) !important; border-top: 1px solid var(--gold); border-bottom: 1px solid var(--gold); transition: background-color 0.3s ease; }
 </style>
 </head>
@@ -197,6 +201,7 @@ tr.highlight-search td { background: rgba(242, 183, 5, 0.4) !important; border-t
       </div>
     </div>
     <div class="right">
+      <div class="save-status" id="saveStatus" role="status" aria-live="polite">Aguardando conexão…</div>
       <div class="clock" id="clockBox"></div>
       <button class="btn orange sm" id="logoutBtn" onclick="doLogout()"><i class="fa-solid fa-power-off"></i> Sair</button>
     </div>
@@ -264,7 +269,7 @@ tr.highlight-search td { background: rgba(242, 183, 5, 0.4) !important; border-t
 
           </div>
           <div class="grid c5" style="margin-bottom:6px;">
-            <div><label>Ano Letivo (digite e clique em Salvar)</label><input type="text" id="anoLetivoInput" maxlength="4" placeholder="Ex: 2027"></div>
+            <div><label>Ano Letivo (salvamento automático ao sair do campo)</label><input type="text" id="anoLetivoInput" maxlength="4" placeholder="Ex: 2027" onchange="saveAcademicYearFromInput()"></div>
             <div><label>Professor</label><select id="filtroProfessor"></select></div>
           </div>
           <div class="tabs" id="anosPills" style="margin-bottom:10px;"></div>
@@ -296,7 +301,7 @@ tr.highlight-search td { background: rgba(242, 183, 5, 0.4) !important; border-t
           <div class="tabs" id="secProfsPills" style="margin-bottom:16px;"></div>
 
           <div id="secProfDetail">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
+            <div style="display:flex; justify-space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
               <h3 id="secProfSelectedTitle" style="margin:0; color:var(--green)"></h3>
               <div class="toolbar" style="margin:0">
                 <div class="actions-dropdown" style="position:relative; display:inline-block;">
@@ -598,8 +603,102 @@ const firebaseConfig = {
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
 
+// Estado visual do salvamento. A configuração mantém o banco original,
+// pois os registros dos estudantes foram encontrados no projeto antigo.
+const autosaveTimers = new Map();
+const autosaveInFlight = new Map();
+
+function setSaveStatus(message, state='') {
+  const el = document.getElementById('saveStatus');
+  if (!el) return;
+  el.textContent = message;
+  el.className = 'save-status' + (state ? ' ' + state : '');
+  el.title = message;
+}
+
+function stableJson(value) {
+  if (Array.isArray(value)) return '[' + value.map(stableJson).join(',') + ']';
+  if (value && typeof value === 'object') {
+    return '{' + Object.keys(value).sort().map(k => JSON.stringify(k) + ':' + stableJson(value[k])).join(',') + '}';
+  }
+  return JSON.stringify(value);
+}
+
+function studentListsEqual(a, b) {
+  if (a.length !== b.length) return false;
+  const byId = new Map(a.map(item => [item.id, item]));
+  return b.every(item => byId.has(item.id) && stableJson(byId.get(item.id)) === stableJson(item));
+}
+
+function studentPayload(student, id) {
+  const payload = { ...student, id };
+  delete payload.isNew;
+  return payload;
+}
+
+function scheduleStudentAutosave(id) {
+  const oldTimer = autosaveTimers.get(id);
+  if (oldTimer) clearTimeout(oldTimer);
+  setSaveStatus('Alterações pendentes…', 'pending');
+  const timer = setTimeout(async () => {
+    autosaveTimers.delete(id);
+    try {
+      await persistStudentById(id);
+      setSaveStatus('Salvo automaticamente às ' + new Date().toLocaleTimeString('pt-BR'), 'success');
+    } catch (error) {
+      console.error('Falha no salvamento automático do estudante:', error);
+      setSaveStatus('Falha ao salvar. Confira a conexão/permissões.', 'error');
+    }
+  }, 800);
+  autosaveTimers.set(id, timer);
+}
+
+async function persistStudentById(id) {
+  // Evita escritas simultâneas sobre o mesmo registro.
+  if (autosaveInFlight.has(id)) {
+    await autosaveInFlight.get(id);
+    return;
+  }
+
+  const task = (async () => {
+    let student = unsavedNewStudents.find(item => item.id === id);
+    const isNew = !!student;
+    if (!student) student = students.find(item => item.id === id);
+    if (!student) return;
+
+    const docId = isNew ? ('s' + Date.now() + Math.random().toString(36).slice(2, 8)) : id;
+    setSaveStatus('Salvando…', 'pending');
+
+    // Se o usuário continuar digitando durante uma gravação, repete com os
+    // valores mais recentes antes de marcar como salvo.
+    let payload;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      payload = studentPayload(student, docId);
+      await setDoc(doc(db, 'students', docId), payload, { merge: true });
+      const latest = studentPayload(student, docId);
+      if (stableJson(payload) === stableJson(latest)) break;
+    }
+    payload = studentPayload(student, docId);
+
+    if (isNew) {
+      unsavedNewStudents = unsavedNewStudents.filter(item => item.id !== id);
+      students = [...students.filter(item => item.id !== docId), payload];
+      renderAll();
+    }
+    return payload;
+  })();
+
+  autosaveInFlight.set(id, task);
+  try {
+    return await task;
+  } finally {
+    if (autosaveInFlight.get(id) === task) autosaveInFlight.delete(id);
+  }
+}
+
 function setupLogos() {
   const sources = [
+    'https://raw.githubusercontent.com/atendimentoscejaipu/diretor-de-comunidade/main/ceja-logo.webp',
     './ceja-logo.webp',
     './assets/ceja-logo.webp',
     './logo.png',
@@ -648,7 +747,7 @@ let selectedRematYear='2026', selectedRematMonth='Setembro', selectedRematProf='
 let selectedFarolYear='2026', selectedFarolMonth='Setembro';
 let selectedCertYear='2026';
 
-let currentSecViewMode = 'geral';
+let currentSecViewMode = 'geral'; // 'geral', 'porProf' ou 'niveis'
 let selectedSecProfName = '';
 let currentNivelTab = 'EF';
 
@@ -752,39 +851,62 @@ function getProfLink(profName){
 }
 
 async function boot(){
+  setSaveStatus('Conectando ao banco…', 'pending');
+
   onSnapshot(collection(db,'students'), (snap)=>{
-    students = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    seedIfEmpty();
-    renderAll();
+    const nextStudents = snap.docs.map(d => ({ ...d.data(), id: d.id }));
+    // Evita redesenhar a tabela após o próprio salvamento e interromper a digitação.
+    const changed = !studentListsEqual(students, nextStudents);
+    students = nextStudents;
+    if (changed) renderAll();
+    setSaveStatus('Conectado ao banco de dados', 'success');
+  }, (error)=>{
+    console.error('Erro ao ler estudantes do Firestore:', error);
+    setSaveStatus('Erro ao ler estudantes. Verifique as permissões.', 'error');
   });
 
   onSnapshot(doc(db,'meta','professors'), (d)=>{
     const dt = d.data();
-    if(dt && dt.list && dt.list.length){ PROFESSORES = dt.list; sortProfessors(); }
+    if(dt && Array.isArray(dt.list) && dt.list.length){ PROFESSORES = dt.list; sortProfessors(); }
     else { seedProfessorsIfEmpty(); }
     if(!selectedSecProfName || !PROFESSORES.includes(selectedSecProfName)){
       if(PROFESSORES.length) selectedSecProfName = PROFESSORES[0];
     }
     buildProfessorFilter();
     renderAll();
+  }, (error)=>{
+    console.error('Erro ao ler professores:', error);
+    setSaveStatus('Erro ao ler professores. Verifique as permissões.', 'error');
   });
 
   onSnapshot(doc(db,'meta','anos'), (d)=>{
     const dt = d.data();
-    if(dt && dt.list && dt.list.length){ anosCriados = dt.list; sortYears(); if(!anosCriados.includes(currentAno)) currentAno = anosCriados[0]; }
+    if(dt && Array.isArray(dt.list) && dt.list.length){ anosCriados = dt.list; sortYears(); if(!anosCriados.includes(currentAno)) currentAno = anosCriados[0]; }
     renderAll();
+  }, (error)=>{
+    console.error('Erro ao ler anos letivos:', error);
+    setSaveStatus('Erro ao ler anos letivos.', 'error');
   });
 
   onSnapshot(doc(db,'meta','rematriculas'), (d)=>{
     const dt = d.data();
-    rematriculas = (dt && dt.list) ? dt.list : [];
+    rematriculas = (dt && Array.isArray(dt.list)) ? dt.list : [];
     renderAll();
+  }, (error)=>{
+    console.error('Erro ao ler rematrículas:', error);
+    setSaveStatus('Erro ao ler rematrículas.', 'error');
   });
 
   onSnapshot(doc(db,'meta','auth'), (d)=>{
     const dt = d.data();
-    if(dt){ authData = dt; }
-    else { setDoc(doc(db,'meta','auth'), authData).catch(()=>{}); }
+    if(dt) { authData = dt; loadSavedLoginCredentials(); }
+    else { setDoc(doc(db,'meta','auth'), authData).catch(error => {
+      console.error('Erro ao inicializar configuração de login:', error);
+      setSaveStatus('Erro ao inicializar login.', 'error');
+    }); }
+  }, (error)=>{
+    console.error('Erro ao ler configuração de login:', error);
+    setSaveStatus('Erro ao ler configuração de login.', 'error');
   });
 
   tickClock(); setInterval(tickClock,1000);
@@ -793,19 +915,15 @@ async function boot(){
   tryAutoLogin();
 }
 
-let studentsSeeded = false;
-async function seedIfEmpty(){
-  if(studentsSeeded) return; studentsSeeded = true;
-  if(students.length===0){
-    const data = seedData();
-    for(const s of data){ await setDoc(doc(db,'students',s.id), s).catch(()=>{}); }
-  }
-}
-
 let profsSeeded = false;
 async function seedProfessorsIfEmpty(){
   if(profsSeeded) return; profsSeeded = true;
-  await setDoc(doc(db,'meta','professors'), {list: PROFESSORES}).catch(()=>{});
+  try {
+    await setDoc(doc(db,'meta','professors'), {list: PROFESSORES});
+  } catch (error) {
+    console.error('Erro ao inicializar a lista de professores:', error);
+    setSaveStatus('Falha ao inicializar professores.', 'error');
+  }
 }
 
 function sortYears(){
@@ -814,7 +932,28 @@ function sortYears(){
 
 async function persistAnos(){
   sortYears();
-  await setDoc(doc(db,'meta','anos'), {list: anosCriados}).catch(()=>{});
+  try {
+    await setDoc(doc(db,'meta','anos'), {list: anosCriados});
+    setSaveStatus('Anos letivos salvos automaticamente.', 'success');
+  } catch (error) {
+    console.error('Erro ao salvar anos letivos:', error);
+    setSaveStatus('Falha ao salvar anos letivos.', 'error');
+    throw error;
+  }
+}
+
+async function saveAcademicYearFromInput(){
+  const inp = document.getElementById('anoLetivoInput');
+  const val = (inp?.value || '').trim();
+  if(!val) return;
+  if(!/^\d{4}$/.test(val)) {
+    setSaveStatus('Digite um ano com quatro números.', 'error');
+    return;
+  }
+  if(!anosCriados.includes(val)) anosCriados.push(val);
+  currentAno = val;
+  await persistAnos();
+  renderAll();
 }
 
 function prefillFromLink(){
@@ -832,16 +971,7 @@ function prefillFromLink(){
   }
 }
 
-function seedData(){
-  const base=[
-    ["520","FRANCISCO DANIEL RIBEIRO DE MORAES","EM","","2026-08-27",28,"Samuel Martins de Sousa", false],
-    ["740","CARLOS ALBERTO INÁCIO DE OLIVEIRA","EF","","2026-06-10",106,"Samuel Martins de Sousa", false],
-    ["765","ANDREA LOPES ALVES DO NASCIMENTO","EM","","2026-06-23",93,"Aline Dantas Moreira", false],
-    ["1590","NAZELIA ALVES RODRIGUES","EF","88993610217","2026-09-21",3,"Carliana Lima Almeida", false],
-    ["1601","IURI RIBEIRO MATOS","EM","88996514766","2026-09-16",8,"Glaucia Paiva Timbó", false]
-  ];
-  return base.map((r,i)=>({id:'s'+Date.now()+i,mat:r[0],aluno:r[1],nivel:r[2],contato:r[3],ultimaFreq:r[4],rematricula:r[5],professor:r[6],concludente:r[7],ano:'2026'}));
-}
+// A base de estudantes não é preenchida automaticamente com dados fictícios.
 
 function toBR(dateStr){ 
   if(!dateStr) return ''; 
@@ -959,6 +1089,7 @@ async function doReset(){
   const p1=document.getElementById('resetPass1').value, p2=document.getElementById('resetPass2').value;
   const err=document.getElementById('resetErr');
   if(!p1||p1!==p2){ err.textContent='As senhas não coincidem.'; return; }
+  try {
   if(resetTarget==='sec'){ 
     authData.secPass = p1;
     await setDoc(doc(db,'meta','auth'), authData);
@@ -974,6 +1105,11 @@ async function doReset(){
   }
   closeReset();
   alert('Senha redefinida com sucesso!');
+  } catch (error) {
+    console.error('Erro ao redefinir senha:', error);
+    err.textContent = 'Não foi possível salvar a senha. Verifique a conexão e as permissões.';
+    setSaveStatus('Falha ao salvar configuração de senha.', 'error');
+  }
 }
 
 function loginSecretaria(){
@@ -1144,27 +1280,17 @@ function filterStudentsList(list, subtabFilter, yearFilter, profFilter){
 
 async function updateStudentField(id, field, value) {
   let st = unsavedNewStudents.find(s => s.id === id);
-  if (st) {
-    if (field === 'concludente') {
-      st[field] = !!value;
-    } else if (field === 'ultimaFreq') {
-      st[field] = toISO(value);
-    } else {
-      st[field] = value;
-    }
-    return;
-  }
-
-  st = students.find(s => s.id === id);
+  if (!st) st = students.find(s => s.id === id);
   if (!st) return;
+
   if (field === 'concludente') {
     st[field] = !!value;
   } else if (field === 'ultimaFreq') {
-    st[field] = toISO(value);
+    st[field] = toISO(String(value || '').trim());
   } else {
-    st[field] = value;
+    st[field] = String(value ?? '');
   }
-  await setDoc(doc(db, 'students', id), st, { merge: true }).catch(console.error);
+  scheduleStudentAutosave(id);
 }
 
 function buildStudentRowHTML(s, isSecretaria=true, seq=''){
@@ -1185,7 +1311,7 @@ function buildStudentRowHTML(s, isSecretaria=true, seq=''){
       </td>
       <td class="col-aluno"><input class="cell" value="${s.aluno||''}" disabled style="background:rgba(0,0,0,0.04); color:var(--ink);"></td>
       <td><input class="cell" value="${dateFormatted}" data-field="ultimaFreq" onchange="updateStudentField('${s.id}', 'ultimaFreq', this.value)" placeholder="DD/MM/AAAA" style="width:105px"></td>
-      <td><input class="cell" value="${s.contato||''}" data-field="contato" onchange="updateStudentField('${s.id}', 'contato', this.value)" placeholder="Celular"></td>
+      <td><input class="cell" value="${s.contato||''}" data-field="contato" oninput="updateStudentField('${s.id}', 'contato', this.value)" placeholder="Celular"></td>
       <td><span class="badge ${st.cls}">${st.situacao}</span></td>
       <td style="text-align:center; font-weight:bold; color:var(--muted)">${diasSemFreq}</td>
       <td><input class="cell" value="${s.professor||''}" disabled style="background:rgba(0,0,0,0.04); color:var(--ink);"></td>
@@ -1199,10 +1325,10 @@ function buildStudentRowHTML(s, isSecretaria=true, seq=''){
   if (isRetirarMode) {
     matColHTML = `<div style="display:flex; align-items:center; gap:6px;">
       <input type="checkbox" class="chk-retirar-aluno" onchange="confirmarRetirarAluno('${s.id}', this)" title="Clique para retirar este aluno" style="width:18px; height:18px; cursor:pointer; accent-color:var(--red);">
-      <input class="cell" value="${s.mat||''}" data-field="mat" onchange="updateStudentField('${s.id}', 'mat', this.value)" style="width:55px" placeholder="MAT">
+      <input class="cell" value="${s.mat||''}" data-field="mat" oninput="updateStudentField('${s.id}', 'mat', this.value)" style="width:55px" placeholder="MAT">
     </div>`;
   } else {
-    matColHTML = `<input class="cell" value="${s.mat||''}" data-field="mat" onchange="updateStudentField('${s.id}', 'mat', this.value)" style="width:65px" placeholder="MAT">`;
+    matColHTML = `<input class="cell" value="${s.mat||''}" data-field="mat" oninput="updateStudentField('${s.id}', 'mat', this.value)" style="width:65px" placeholder="MAT">`;
   }
 
   return `<tr data-id="${s.id}">
@@ -1214,9 +1340,9 @@ function buildStudentRowHTML(s, isSecretaria=true, seq=''){
         <option value="EM" ${s.nivel==='EM'?'selected':''}>EM</option>
       </select>
     </td>
-    <td class="col-aluno"><input class="cell" value="${s.aluno||''}" data-field="aluno" onchange="updateStudentField('${s.id}', 'aluno', this.value)" placeholder="Nome do Aluno"></td>
+    <td class="col-aluno"><input class="cell" value="${s.aluno||''}" data-field="aluno" oninput="updateStudentField('${s.id}', 'aluno', this.value)" placeholder="Nome do Aluno"></td>
     <td><input class="cell" value="${dateFormatted}" data-field="ultimaFreq" onchange="updateStudentField('${s.id}', 'ultimaFreq', this.value)" placeholder="DD/MM/AAAA" style="width:105px"></td>
-    <td><input class="cell" value="${s.contato||''}" data-field="contato" onchange="updateStudentField('${s.id}', 'contato', this.value)" placeholder="Contato"></td>
+    <td><input class="cell" value="${s.contato||''}" data-field="contato" oninput="updateStudentField('${s.id}', 'contato', this.value)" placeholder="Contato"></td>
     <td><span class="badge ${st.cls}">${st.situacao}</span></td>
     <td style="text-align:center; font-weight:bold; color:var(--muted)">${diasSemFreq}</td>
     <td><select class="cell" data-field="professor" onchange="updateStudentField('${s.id}', 'professor', this.value)"><option value="">Selecione...</option>${optionsProf}</select></td>
@@ -1303,6 +1429,8 @@ function renderSecNiveisModule(){
   });
 
   combinedList = [...listUnsaved, ...listSaved];
+  
+  // Ordenar alfabeticamente os alunos do respectivo nível
   combinedList.sort((a,b) => (a.aluno||'').localeCompare(b.aluno||'', 'pt-BR'));
 
   body.innerHTML = combinedList.map((s, idx) => buildStudentRowHTML(s, true, idx + 1)).join('');
@@ -1438,9 +1566,15 @@ function renderRematTable(){
 }
 
 async function updateRematItem(globalIdx, field, val){
-  if(rematriculas[globalIdx]){
-    rematriculas[globalIdx][field] = (field==='ultFreq'||field==='retorno') ? toISO(val) : val;
-    await setDoc(doc(db, 'meta', 'rematriculas'), { list: rematriculas }).catch(console.error);
+  if(!rematriculas[globalIdx]) return;
+  rematriculas[globalIdx][field] = (field==='ultFreq'||field==='retorno') ? toISO(val) : val;
+  setSaveStatus('Salvando rematrícula…', 'pending');
+  try {
+    await setDoc(doc(db, 'meta', 'rematriculas'), { list: rematriculas });
+    setSaveStatus('Rematrícula salva automaticamente.', 'success');
+  } catch (error) {
+    console.error('Erro ao salvar rematrícula:', error);
+    setSaveStatus('Falha ao salvar rematrícula.', 'error');
   }
 }
 
@@ -1620,8 +1754,17 @@ async function deleteProfessor(name){
 
 async function saveProfessors(){
   sortProfessors();
-  await setDoc(doc(db, 'meta', 'professors'), { list: PROFESSORES }).catch(console.error);
-  alert('Lista de professores atualizada com sucesso no banco de dados!');
+  setSaveStatus('Salvando lista de professores…', 'pending');
+  try {
+    await setDoc(doc(db, 'meta', 'professors'), { list: PROFESSORES });
+    setSaveStatus('Lista de professores salva.', 'success');
+    renderAll();
+  } catch (error) {
+    console.error('Erro ao salvar lista de professores:', error);
+    setSaveStatus('Falha ao salvar professores. Confira as permissões.', 'error');
+    alert('Não foi possível salvar a lista de professores. Verifique a conexão e as permissões do Firestore.');
+    throw error;
+  }
 }
 
 async function saveEstudantesModule(){
@@ -1635,61 +1778,57 @@ async function saveEstudantesModule(){
 }
 
 async function saveAllStudents(){
-  const rows = document.querySelectorAll('tr[data-id]');
-  for(let row of rows){
-    const id = row.dataset.id;
-    let st = unsavedNewStudents.find(s=>s.id===id) || students.find(s=>s.id===id);
-    if(st){
-      row.querySelectorAll('[data-field]').forEach(input=>{
-        if(input.disabled) return;
-        if(input.type === 'checkbox'){
-          st[input.dataset.field] = input.checked;
-        } else if(input.dataset.field === 'ultimaFreq'){
-          st[input.dataset.field] = toISO(input.value);
-        } else {
-          st[input.dataset.field] = input.value;
-        }
+  setSaveStatus('Salvando estudantes…', 'pending');
+  try {
+    // Captura qualquer valor ainda presente nos campos visíveis.
+    const rows = [...document.querySelectorAll('tr[data-id]')].filter(row => row.getClientRects().length > 0);
+    for (const row of rows) {
+      const id = row.dataset.id;
+      const st = unsavedNewStudents.find(s => s.id === id) || students.find(s => s.id === id);
+      if (!st) continue;
+      row.querySelectorAll('[data-field]').forEach(input => {
+        if (input.disabled) return;
+        const field = input.dataset.field;
+        if (input.type === 'checkbox') st[field] = input.checked;
+        else if (field === 'ultimaFreq') st[field] = toISO(input.value.trim());
+        else st[field] = input.value;
       });
     }
-  }
 
-  if(unsavedNewStudents.length > 0){
-    for(let tempSt of unsavedNewStudents){
-      const realId = 's' + Date.now() + Math.random().toString(36).substring(2, 5);
-      const studentToSave = {
-        id: realId,
-        mat: tempSt.mat || '',
-        aluno: tempSt.aluno || '',
-        nivel: tempSt.nivel || 'EM',
-        contato: tempSt.contato || '',
-        ultimaFreq: tempSt.ultimaFreq || toISO(new Date().toLocaleDateString('pt-BR')),
-        rematricula: tempSt.rematricula || 0,
-        professor: tempSt.professor || '',
-        concludente: !!tempSt.concludente,
-        ano: tempSt.ano || currentAno
-      };
-      await setDoc(doc(db, 'students', realId), studentToSave).catch(console.error);
+    const ids = new Set([
+      ...unsavedNewStudents.map(s => s.id),
+      ...rows.map(row => row.dataset.id).filter(id => id && !id.startsWith('temp_'))
+    ]);
+
+    for (const id of ids) {
+      const timer = autosaveTimers.get(id);
+      if (timer) clearTimeout(timer);
+      autosaveTimers.delete(id);
+      await persistStudentById(id);
     }
-    unsavedNewStudents = [];
-  }
 
-  for(let row of rows){
-    const id = row.dataset.id;
-    if(!id.startsWith('temp_')){
-      const st = students.find(s=>s.id===id);
-      if(st){
-        await setDoc(doc(db,'students',id), st, {merge:true}).catch(console.error);
-      }
-    }
+    setSaveStatus('Estudantes salvos automaticamente.', 'success');
+    alert('Alterações dos estudantes salvas com sucesso.');
+    renderAll();
+  } catch (error) {
+    console.error('Erro ao salvar estudantes:', error);
+    setSaveStatus('Falha ao salvar estudantes. Confira as permissões.', 'error');
+    alert('Não foi possível salvar todos os estudantes. Verifique a conexão e as permissões do Firestore. Seus dados não foram apagados.');
   }
-
-  alert('Alterações salvas e sincronizadas em tempo real!');
-  renderAll();
 }
 
 async function saveAllRemat(){
-  await setDoc(doc(db, 'meta', 'rematriculas'), { list: rematriculas }).catch(console.error);
-  alert('Rematrículas salvas e sincronizadas em tempo real!');
+  setSaveStatus('Salvando rematrículas…', 'pending');
+  try {
+    await setDoc(doc(db, 'meta', 'rematriculas'), { list: rematriculas });
+    setSaveStatus('Rematrículas salvas.', 'success');
+    alert('Rematrículas salvas com sucesso.');
+  } catch (error) {
+    console.error('Erro ao salvar rematrículas:', error);
+    setSaveStatus('Falha ao salvar rematrículas.', 'error');
+    alert('Não foi possível salvar as rematrículas. Verifique a conexão e as permissões do Firestore.');
+    throw error;
+  }
 }
 
 async function adminChangePass(){
@@ -1847,6 +1986,7 @@ async function zerarBancoDeDados() {
     }
 }
 
+// Lógica de Busca e Scroll Sequencial por NOME DO ALUNO
 let termoPesquisaAtual = "";
 let indicePesquisaAtual = -1;
 let linhasEncontradas = [];
@@ -1900,6 +2040,7 @@ function buscarProximoAluno() {
     linha.classList.add('highlight-search');
 }
 
+// NOVA FUNÇÃO: Lógica de Busca e Scroll Sequencial por NÚMERO DE MATRÍCULA
 let termoPesquisaMatriculaAtual = "";
 let indicePesquisaMatriculaAtual = -1;
 let linhasEncontradasMatricula = [];
@@ -1927,6 +2068,7 @@ function buscarProximoAlunoMatricula() {
 
         const rows = tbody.querySelectorAll('tr');
         rows.forEach(row => {
+            // Procura diretamente o campo input com data-field="mat"
             const inputMatricula = row.querySelector('input[data-field="mat"]');
             if (inputMatricula && inputMatricula.value.toLowerCase().includes(termo)) {
                 linhasEncontradasMatricula.push(row);
@@ -1957,14 +2099,14 @@ function limparDestaquesPesquisa() {
     document.querySelectorAll('.highlight-search').forEach(el => el.classList.remove('highlight-search'));
 }
 
-// Vinculação de funções no escopo global
-window.loginSecretaria = loginSecretaria;
-window.loginProfessor = loginProfessor;
+
 window.togglePass = togglePass;
 window.setLoginTab = setLoginTab;
 window.openReset = openReset;
 window.closeReset = closeReset;
 window.doReset = doReset;
+window.loginSecretaria = loginSecretaria;
+window.loginProfessor = loginProfessor;
 window.doLogout = doLogout;
 window.setModule = setModule;
 window.setSecViewMode = setSecViewMode;
@@ -1975,6 +2117,7 @@ window.addProfessor = addProfessor;
 window.deleteProfessor = deleteProfessor;
 window.copyProfLink = copyProfLink;
 window.saveEstudantesModule = saveEstudantesModule;
+window.saveAcademicYearFromInput = saveAcademicYearFromInput;
 window.saveAllStudents = saveAllStudents;
 window.updateStudentField = updateStudentField;
 window.saveProfessors = saveProfessors;
@@ -2001,7 +2144,7 @@ window.acaoIncluirAluno = acaoIncluirAluno;
 window.acaoAlternarRetirarAluno = acaoAlternarRetirarAluno;
 window.confirmarRetirarAluno = confirmarRetirarAluno;
 window.buscarProximoAluno = buscarProximoAluno; 
-window.buscarProximoAlunoMatricula = buscarProximoAlunoMatricula;
+window.buscarProximoAlunoMatricula = buscarProximoAlunoMatricula; // Acesso global à nova função
 
 boot();
 </script>
